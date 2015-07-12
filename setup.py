@@ -9,6 +9,7 @@ setup(
     author_email='brent.tubbs@gmail.com',
     packages=find_packages(),
     include_package_data=True,
+    url='https://bitbucket.org/yougov/vr.server',
     install_requires=[
         'celery-schedulers==0.0.2',
         'diff-match-patch==20121119',
