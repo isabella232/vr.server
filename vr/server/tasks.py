@@ -21,7 +21,7 @@ from django.utils import timezone
 from django.core.files import File
 
 from vr.builder.main import BuildData
-from vr.imager.main import ImageData
+from vr.imager.command import ImageData
 from vr.common import utils
 from vr.common.models import Proc
 from vr.common.utils import tmpdir
