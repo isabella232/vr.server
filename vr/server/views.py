@@ -352,6 +352,28 @@ class UpdateConfigIngredient(edit.UpdateView):
     success_url = reverse_lazy('ingredient_list')
     form_class = forms.ConfigIngredientForm
 
+    def get_context_data(self, **kwargs):
+        context = super(UpdateConfigIngredient, self).get_context_data(**kwargs)
+        fields = [field for field in self.object._meta.fields]
+        version_diffs = []
+        version_list = Version.objects.get_for_object(self.object).reverse()
+        if len(version_list) > 1:
+            for version in version_list[1:6]:
+                diff_dict = {}
+                for field in fields:
+                    diff = generate_patch(version_list[0], version, field.name)
+                    if diff:
+                        diff_dict[field.name] = version.field_dict[field.name]
+                version_diffs.append({'diff_dict': diff_dict,
+                                      'user': version.revision.user,
+                                      'date': version.revision.date_created})
+        context['version_diffs'] = version_diffs
+        try:
+            context['last_edited'] = version_list[0].revision.date_created
+        except:
+            context['last_edited'] = "No data"
+        return context
+
 
 class AddConfigIngredient(edit.CreateView):
     template_name = 'ingredient_form.html'
