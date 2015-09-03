@@ -568,6 +568,7 @@ class Swarm(models.Model):
         if self.pool and not self.balancer:
             raise ValidationError('Swarms that specify a pool must specify a '
                                   'balancer')
+        validate_config_marshaling(self)
         super(Swarm, self).save()
 
     class Meta:
@@ -770,9 +771,6 @@ class Swarm(models.Model):
 
     version = property(get_version, set_version)
 
-    def save(self):
-        validate_config_marshaling(self)
-        super(Swarm, self).save()
 reversion.register(Swarm)
 
 
