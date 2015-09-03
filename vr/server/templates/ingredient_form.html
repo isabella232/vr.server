@@ -40,6 +40,27 @@ $(function() {
     </form>
   </div>
 </div>
+<div class="tab-pane form-horizontal" id="swarms">
+  <h2>Related swarms</h2>
+  <div class="row">
+    {% if related_swarms %}
+    <div class="col-sm-2"></div>
+    <div class="col-sm-10">
+      {% for swarm in related_swarms %}
+        <span>Swarm date: {{ swarm.get_latest_reversion.revision.date_created }}</span><br/>
+        {% if swarm.get_latest_reversion.revision.date_created < last_edited %}<span>Possibly outdated</span><br/>{% endif %}
+        <span>Swarm: <a href="{% url edit_swarm swarm.id %}">{{ swarm }}</a></span><br/>
+        <hr/>
+      {% endfor %}
+    </div>
+    {% else %}
+      <div class="col-sm-2"></div>
+      <div class="col-sm-10">
+        <p>No related swarms found.</p>
+      </div>
+    {% endif %}
+  </div>
+</div>
 <div class="tab-pane form-horizontal" id="versions">
   <h2>Previous Versions</h2>
   <div class="row">

@@ -17,6 +17,8 @@ import yaml
 import redis
 import reversion
 
+from reversion.models import Version
+
 from vr.server.fields import YAMLDictField, YAMLListField
 from vr.common import repo, models as common_models
 from vr.common.utils import parse_redis_url
@@ -768,6 +770,9 @@ class Swarm(models.Model):
 
     def set_version(self, version):
         self.release = self.get_current_release(version)
+
+    def get_latest_reversion(self):
+        return Version.objects.get_for_object(self).reverse()[0]
 
     version = property(get_version, set_version)
 

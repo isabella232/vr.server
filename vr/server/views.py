@@ -24,6 +24,9 @@ from reversion.helpers import generate_patch
 from vr.server import forms, tasks, events, models
 from vr.server.utils import yamlize
 
+import logging
+logger = logging.getLogger('velociraptor')
+
 
 def json_response(func):
     """
@@ -353,6 +356,12 @@ class UpdateConfigIngredient(edit.UpdateView):
     form_class = forms.ConfigIngredientForm
 
     def get_context_data(self, **kwargs):
+        """
+        Augment the data passed to the template with:
+        - version_diffs: Version history (last 6 versions)
+        - last_edited: Last time when the ingredient was modified
+        - related swarms
+        """
         context = super(UpdateConfigIngredient, self).get_context_data(**kwargs)
         fields = [field for field in self.object._meta.fields]
         version_diffs = []
@@ -372,6 +381,7 @@ class UpdateConfigIngredient(edit.UpdateView):
             context['last_edited'] = version_list[0].revision.date_created
         except:
             context['last_edited'] = "No data"
+        context['related_swarms'] = self.object.swarm_set.all()
         return context
 
 
