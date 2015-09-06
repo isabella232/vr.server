@@ -219,10 +219,7 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.transaction.TransactionMiddleware',
-    'reversion.middleware.RevisionMiddleware'
-
+    'django.contrib.messages.middleware.MessageMiddleware'
 )
 
 SESSION_ENGINE = "django.contrib.sessions.backends.signed_cookies"

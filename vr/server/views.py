@@ -17,7 +17,7 @@ from django.views.generic import edit
 from django.views.generic import ListView
 from django.utils import simplejson
 
-from reversion import revision
+from reversion import revision, create_revision
 from reversion.models import Version
 from reversion.helpers import generate_patch
 
@@ -383,6 +383,14 @@ class UpdateConfigIngredient(edit.UpdateView):
             context['last_edited'] = "No data"
         context['related_swarms'] = self.object.swarm_set.all()
         return context
+
+    def form_valid(self, form):
+        """
+        Override so we can setup django-reversion versioning.
+        """
+        with create_revision():
+            return_value = super(UpdateConfigIngredient, self).form_valid(form)
+        return return_value
 
 
 class AddConfigIngredient(edit.CreateView):
