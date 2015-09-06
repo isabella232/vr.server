@@ -7,6 +7,8 @@ from django.http import (HttpResponse, HttpResponseNotAllowed,
                          HttpResponseNotFound)
 from django.contrib.auth.models import User
 
+from reversion import create_revision
+
 from tastypie.resources import ModelResource
 from tastypie import fields
 from tastypie import authentication as auth
@@ -29,8 +31,31 @@ from vr.server.api.views import auth_required
 
 v1 = Api(api_name='v1')
 
+class ReversionModelResource(ModelResource):
+    """ Add django-reversion calls to methods that write to the db.
+    """
+    def obj_create(self, bundle, **kwargs):
+        with create_revision():
+            return super(ReversionModelResource, self).obj_create(bundle, **kwargs)
 
-class SquadResource(ModelResource):
+    def obj_update(self, bundle, skip_errors=False, **kwargs):
+        with create_revision():
+            return super(ReversionModelResource, self).obj_update(bundle, skip_errors, **kwargs)
+
+    def obj_delete_list(self, bundle, **kwargs):
+        with create_revision():
+            return super(ReversionModelResource, self).obj_delete_list(bundle, **kwargs)
+
+    def obj_delete_list_for_update(self, bundle, **kwargs):
+        with create_revision():
+            return super(ReversionModelResource, self).obj_delete_list_for_update(bundle, **kwargs)
+
+    def obj_delete(self, bundle, **kwargs):
+        with create_revision():
+            return super(ReversionModelResource, self).obj_delete(bundle, **kwargs)
+
+
+class SquadResource(ReversionModelResource):
     hosts = fields.ToManyField('api.resources.HostResource', 'hosts',
                                full=True)
 
@@ -46,10 +71,14 @@ class SquadResource(ModelResource):
         )
         authorization = Authorization()
         detail_uri_name = 'name'
+
+
+
+
 v1.register(SquadResource())
 
 
-class IngredientResource(ModelResource):
+class IngredientResource(ReversionModelResource):
     swarms = fields.ToManyField('api.resources.SwarmResource', 'swarms',
                                 blank=True, null=True, readonly=True)
 
@@ -67,7 +96,7 @@ class IngredientResource(ModelResource):
 v1.register(IngredientResource())
 
 
-class AppResource(ModelResource):
+class AppResource(ReversionModelResource):
 
     class Meta:
         queryset = models.App.objects.all()
@@ -85,7 +114,7 @@ class AppResource(ModelResource):
 v1.register(AppResource())
 
 
-class BuildPackResource(ModelResource):
+class BuildPackResource(ReversionModelResource):
     class Meta:
         queryset = models.BuildPack.objects.all()
         resource_name = 'buildpacks'
@@ -101,7 +130,7 @@ class BuildPackResource(ModelResource):
 v1.register(BuildPackResource())
 
 
-class BuildResource(ModelResource):
+class BuildResource(ReversionModelResource):
     app = fields.ToOneField('api.resources.AppResource', 'app')
     class Meta:
         queryset = models.Build.objects.all().prefetch_related('app')
@@ -140,7 +169,7 @@ class BuildResource(ModelResource):
 v1.register(BuildResource())
 
 
-class SwarmResource(ModelResource):
+class SwarmResource(ReversionModelResource):
     app = fields.ToOneField('api.resources.AppResource', 'app')
     squad = fields.ToOneField('api.resources.SquadResource', 'squad')
 
@@ -241,7 +270,7 @@ class SwarmResource(ModelResource):
 v1.register(SwarmResource())
 
 
-class ReleaseResource(ModelResource):
+class ReleaseResource(ReversionModelResource):
     build = fields.ToOneField('api.resources.BuildResource', 'build')
     compiled_name = fields.CharField('get_name')
 
@@ -316,7 +345,7 @@ class TestRunResource(ModelResource):
 v1.register(TestRunResource())
 
 
-class HostResource(ModelResource):
+class HostResource(ReversionModelResource):
     squad = fields.ToOneField('api.resources.SquadResource', 'squad',
                               null=True, blank=True)
 
@@ -396,7 +425,7 @@ class ProfileResource(ModelResource):
 v1.register(ProfileResource())
 
 
-class DashboardResource(ModelResource):
+class DashboardResource(ReversionModelResource):
     apps = fields.ToManyField(
         'api.resources.AppResource', 'apps', null=True, blank=True, full=True)
     class Meta:

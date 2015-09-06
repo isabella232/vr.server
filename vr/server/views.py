@@ -302,8 +302,6 @@ def do_swarm(swarm, user):
     """
     # Create a swarm trace id that takes our swarm and time
     swarm_trace_id = md5(str(swarm) + str(time.time())).hexdigest()
-
-
     ev_detail = textwrap.dedent(
         """%(user)s swarmed %(shortname)s
 
@@ -399,6 +397,14 @@ class AddConfigIngredient(edit.CreateView):
     success_url = reverse_lazy('ingredient_list')
     form_class = forms.ConfigIngredientForm
 
+    def form_valid(self, form):
+        """
+        Override so we can setup django-reversion versioning.
+        """
+        with create_revision():
+            return_value = super(AddConfigIngredient, self).form_valid(form)
+        return return_value
+
 
 class ListConfigIngredient(ListView):
     template_name = 'ingredient_list.html'
@@ -410,6 +416,10 @@ class DeleteConfigIngredient(edit.DeleteView):
     model = models.ConfigIngredient
     template_name = 'confirm_delete.html'
     success_url = reverse_lazy('ingredient_list')
+
+    def delete(self, request, *args, **kwargs):
+        with create_revision():
+            return super(DeleteConfigIngredient, self).delete(request)
 
 
 class ListHost(ListView):
@@ -423,6 +433,14 @@ class AddHost(edit.CreateView):
     success_url = reverse_lazy('host_list')
     form_class = forms.HostForm
 
+    def form_valid(self, form):
+        """
+        Override so we can setup django-reversion versioning.
+        """
+        with create_revision():
+            return_value = super(AddHost, self).form_valid(form)
+        return return_value
+
 
 class UpdateHost(edit.UpdateView):
     template_name = 'host_form.html'
@@ -430,11 +448,23 @@ class UpdateHost(edit.UpdateView):
     success_url = reverse_lazy('host_list')
     form_class = forms.HostForm
 
+    def form_valid(self, form):
+        """
+        Override so we can setup django-reversion versioning.
+        """
+        with create_revision():
+            return_value = super(UpdateHost, self).form_valid(form)
+        return return_value
+
 
 class DeleteHost(edit.DeleteView):
     model = models.Host
     template_name = 'confirm_delete.html'
     success_url = reverse_lazy('host_list')
+
+    def delete(self, request, *args, **kwargs):
+        with create_revision():
+            return super(DeleteHost, self).delete(request)
 
 
 class ListSquad(ListView):
@@ -448,6 +478,14 @@ class AddSquad(edit.CreateView):
     success_url = reverse_lazy('squad_list')
     form_class = forms.SquadForm
 
+    def form_valid(self, form):
+        """
+        Override so we can setup django-reversion versioning.
+        """
+        with create_revision():
+            return_value = super(AddSquad, self).form_valid(form)
+        return return_value
+
 
 class UpdateSquad(edit.UpdateView):
     template_name = 'squad_form.html'
@@ -455,11 +493,23 @@ class UpdateSquad(edit.UpdateView):
     success_url = reverse_lazy('squad_list')
     form_class = forms.SquadForm
 
+    def form_valid(self, form):
+        """
+        Override so we can setup django-reversion versioning.
+        """
+        with create_revision():
+            return_value = super(UpdateSquad, self).form_valid(form)
+        return return_value
+
 
 class DeleteSquad(edit.DeleteView):
     model = models.Squad
     template_name = 'confirm_delete.html'
     success_url = reverse_lazy('squad_list')
+
+    def delete(self, request, *args, **kwargs):
+        with create_revision():
+            return super(DeleteSquad, self).delete(request)
 
 
 class ListApp(ListView):
@@ -472,17 +522,38 @@ class AddApp(edit.CreateView):
     model = models.App
     success_url = reverse_lazy('app_list')
 
+    def form_valid(self, form):
+        """
+        Override so we can setup django-reversion versioning.
+        """
+        with create_revision():
+            return_value = super(AddApp, self).form_valid(form)
+        return return_value
+
 
 class UpdateApp(edit.UpdateView):
     template_name = 'app_form.html'
     model = models.App
     success_url = reverse_lazy('app_list')
 
+    def form_valid(self, form):
+        """
+        Override so we can setup django-reversion versioning.
+        """
+        with create_revision():
+            return_value = super(UpdateApp, self).form_valid(form)
+        return return_value
+
 
 class DeleteApp(edit.DeleteView):
     model = models.App
     template_name = 'confirm_delete.html'
     success_url = reverse_lazy('app_list')
+
+    def delete(self, request, *args, **kwargs):
+        with create_revision():
+            return super(DeleteApp, self).delete(request)
+
 
 # Buildpack views
 class ListBuildPack(ListView):
@@ -495,17 +566,37 @@ class AddBuildPack(edit.CreateView):
     model = models.BuildPack
     success_url = reverse_lazy('buildpack_list')
 
+    def form_valid(self, form):
+        """
+        Override so we can setup django-reversion versioning.
+        """
+        with create_revision():
+            return_value = super(AddBuildPack, self).form_valid(form)
+        return return_value
+
 
 class UpdateBuildPack(edit.UpdateView):
     template_name = 'buildpack_form.html'
     model = models.BuildPack
     success_url = reverse_lazy('buildpack_list')
 
+    def form_valid(self, form):
+        """
+        Override so we can setup django-reversion versioning.
+        """
+        with create_revision():
+            return_value = super(UpdateBuildPack, self).form_valid(form)
+        return return_value
+
 
 class DeleteBuildPack(edit.DeleteView):
     model = models.BuildPack
     template_name = 'confirm_delete.html'
     success_url = reverse_lazy('buildpack_list')
+
+    def delete(self, request, *args, **kwargs):
+        with create_revision():
+            return super(DeleteBuildPack, self).delete(request)
 
 
 # Stack views
@@ -520,8 +611,6 @@ def edit_stack(request, stack_id=None):
         stack = models.OSStack.objects.get(id=stack_id)
     else:
         stack = None
-
-    print "stack", stack
 
     form = forms.StackForm(request.POST or None, request.FILES or None,
                            instance=stack)
@@ -557,6 +646,10 @@ class DeleteStack(edit.DeleteView):
     model = models.OSStack
     template_name = 'confirm_delete.html'
     success_url = reverse_lazy('stack_list')
+
+    def delete(self, request, *args, **kwargs):
+        with create_revision():
+            return super(DeleteStack, self).delete(request)
 
 
 def login(request):
