@@ -771,10 +771,13 @@ class Swarm(models.Model):
     def set_version(self, version):
         self.release = self.get_current_release(version)
 
-    def get_latest_reversion(self):
-        return Version.objects.get_for_object(self).reverse()[0]
-
     version = property(get_version, set_version)
+
+    def get_latest_reversion(self):
+        try:
+            return Version.objects.get_for_object(self).reverse()[0]
+        except IndexError:
+            return None
 
 reversion.register(Swarm)
 
