@@ -282,27 +282,37 @@ def _do_build(build, build_yaml):
             build.buildpack_url = build_result.buildpack_url
             build.buildpack_version = build_result.buildpack_version
             build.status = 'success'
+            try_get_compile_log(build, raise_on_error=True)
 
         except:
-            logger.error('Build failed')
+            logger.exception('Build failed')
             build.status = 'failed'
+            # Don't raise, or we'll mask the real error
+            try_get_compile_log(build, raise_on_error=False)
             raise
+
         finally:
-            try:
-                # grab and store the compile log.
-                with open('compile.log', 'rb') as f:
-                    logname = 'builds/build_%s_compile.log' % build.id
-                    logger.info("logname: " + logname)
-                    build.compile_log.save(logname, File(f))
-            except:
-                logger.info('Could not retrieve compile.log for %s' % build)
-                raise
-            finally:
-                build.end_time = timezone.now()
-                build.save()
+            build.end_time = timezone.now()
+            build.save()
 
     msg = "Completed build %s" % build
     send_event(str(build), msg, tags=['build', 'success'])
+
+
+def try_get_compile_log(build, raise_on_error=True):
+    '''Try to get the compile.log for the build and save it. If we get
+    an error, we can decide to ignore it.'''
+    try:
+        # grab and store the compile log.
+        with open('compile.log', 'rb') as f:
+            logname = 'builds/build_%s_compile.log' % build.id
+            logger.info("logname: " + logname)
+            build.compile_log.save(logname, File(f))
+    except Exception as exc:
+        logger.error(
+            'Could not retrieve compile.log for %s: %r', build, exc)
+        if raise_on_error:
+            raise
 
 
 def get_build_parameters(build):
