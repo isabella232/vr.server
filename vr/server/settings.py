@@ -24,7 +24,7 @@ here = os.path.dirname(os.path.realpath(__file__))
 
 # Add current folder to the sys path so that the 'deployment' app in the child
 # folder ccan be imported.
-if not here in sys.path:
+if here not in sys.path:
     sys.path.insert(0, here)
 
 parentpath = os.path.dirname(here)
@@ -85,7 +85,8 @@ DEPLOY_PASSWORD = 'vagrant'
 
 # Suppress warnings when we pass a URI to MongoDB that includes the
 #  database name.
-warnings.filterwarnings('ignore', category=UserWarning,
+warnings.filterwarnings(
+    'ignore', category=UserWarning,
     message="must provide a username",
     module='pymongo.connection')
 
@@ -174,7 +175,8 @@ MEDIA_URL = 'http://localhost:8000/files/'
 
 # Store files using mongodb gridfs by default.
 DEFAULT_FILE_STORAGE = 'vr.server.storages.GridFSStorage'
-STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.CachedStaticFilesStorage'
+STATICFILES_STORAGE = (
+    'django.contrib.staticfiles.storage.CachedStaticFilesStorage')
 
 # Use package's static folder if found, else fall back to local
 STATIC_ROOT = pkg_resources.resource_filename('vr', 'static')
@@ -252,7 +254,7 @@ LOGGING = {
         'mail_admins': {
             'level': 'ERROR',
             'class': 'django.utils.log.AdminEmailHandler'
-        }
+        },
     },
     'loggers': {
         'django.request': {
@@ -260,7 +262,7 @@ LOGGING = {
             'level': 'ERROR',
             'propagate': True,
         },
-    }
+    },
 }
 
 SUPERVISORD_WEB_PORT = 9001
@@ -278,7 +280,9 @@ API_LIMIT_PER_PAGE = 100
 if os.environ.get('APP_SETTINGS_YAML'):
     import yaml
     try:
-        globals().update(yaml.safe_load(open(os.environ['APP_SETTINGS_YAML'])) or {})
+        app_settings = yaml.safe_load(
+            open(os.environ['APP_SETTINGS_YAML'])) or {}
+        globals().update(app_settings)
     except IOError:
         # Allow settings to be imported during build so we can compilestatic
         pass
