@@ -30,7 +30,7 @@ from vr.server.models import (Release, Build, Swarm, Host, PortLock, TestRun,
                               TestResult, BuildPack, OSImage)
 
 
-logger = logging.getLogger('velociraptor')
+logger = logging.getLogger('velociraptor.tasks')
 
 
 def send_event(title, msg, tags=None, **kw):
@@ -57,31 +57,38 @@ class event_on_exception(object):
     Decorator that puts a message on the pubsub for any exception raised in the
     decorated function.
     """
+
     def __init__(self, tags=None):
         self.tags = tags or []
         self.tags.append('failed')
 
     def __call__(self, func):
+
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
             try:
                 func(*args, **kwargs)
-            except remote.Error as e:
 
+            except remote.Error as e:
+                logger.warning('Notifying remote error: %r', e)
                 swarm_trace_id = kwargs.get('swarm_trace_id')
 
                 try:
-                    send_event(title=e.title, msg=e.out, tags=self.tags,
-                               swarm_trace_id=swarm_trace_id)
+                    send_event(title=e.title, msg=e.out,
+                               tags=self.tags, swarm_trace_id=swarm_trace_id)
                 finally:
                     raise
+
             except (Exception, SystemExit) as e:
+                logger.warning('Notifying error: %r', e)
+                swarm_trace_id = kwargs.get('swarm_trace_id')
+
                 try:
                     send_event(title=str(e), msg=traceback.format_exc(),
-                               tags=self.tags,
-                               swarm_trace_id=swarm_trace_id)
+                               tags=self.tags, swarm_trace_id=swarm_trace_id)
                 finally:
                     raise
+
         return wrapper
 
 
@@ -392,12 +399,13 @@ def build_start_waiting_swarms(build_id):
 
 
 @task
+@event_on_exception(['swarm'])
 def swarm_start(swarm_id, swarm_trace_id=None):
     """
     Given a swarm_id, kick off the chain of tasks necessary to get this swarm
     deployed.
     """
-    logger.info("Swarm start %s" % swarm_id)
+    logger.info("Swarm start %s", swarm_id)
     try:
         swarm = Swarm.objects.get(id=swarm_id)
     except Swarm.DoesNotExist:
@@ -408,7 +416,7 @@ def swarm_start(swarm_id, swarm_trace_id=None):
         swarms = Swarm.objects.all()
         ids = [str(s.id) for s in swarms]
         if swarm_id in ids:
-            swarm = next(s for s in swarms if s.id==swarm_id)
+            swarm = next(s for s in swarms if s.id == swarm_id)
         else:
             raise
     build = swarm.release.build
@@ -432,6 +440,7 @@ def swarm_start(swarm_id, swarm_trace_id=None):
 
 # This task should only be used as a callback after swarm_start
 @task
+@event_on_exception(['swarm'])
 def swarm_release(swarm_id, swarm_trace_id=None):
     """
     Assuming the swarm's build is complete, this task will ensure there's a
