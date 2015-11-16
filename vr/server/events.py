@@ -1,3 +1,4 @@
+import functools
 import json
 import datetime
 import logging
@@ -85,5 +86,25 @@ def eventify(user, action, obj, detail=None, **kw):
         settings.EVENTS_PUBSUB_URL,
         settings.EVENTS_PUBSUB_CHANNEL,
         settings.EVENTS_BUFFER_KEY)
-    sender.publish(detail or message, tags=['user', action], title=message, **kw)
+    tags = ['user', action]
+    if 'tags' in kw:
+        tags += kw['tags']
+        del kw['tags']
+    sender.publish(
+        detail or message, tags=tags, title=message, **kw)
     sender.close()
+
+
+def eventify_on_error(action):
+    def decorator(f):
+        @functools.wraps(f)
+        def wrapper(request, *args, **kwargs):
+            try:
+                return f(request, *args, **kwargs)
+            except Exception as e:
+                eventify(request.user, action, obj='',
+                         detail=str(e), tags=['failed'])
+                raise
+
+        return wrapper
+    return decorator
