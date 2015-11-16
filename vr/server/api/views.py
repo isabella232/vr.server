@@ -86,6 +86,7 @@ def swarm_procs(request, swarm_id):
 
 @auth_required
 @csrf_exempt
+@events.eventify_on_error('host_proc')
 def host_proc(request, hostname, procname):
     """
     Display status of a single supervisord-managed process on a host, in
@@ -107,6 +108,7 @@ def host_proc(request, hostname, procname):
         # itself.
         tasks.delete_proc(hostname, procname)
         return utils.json_response({'name': procname, 'deleted': True})
+
     elif request.method == 'POST':
         parsed = json.loads(request.body)
         # TODO: allow separate title/details from event.eventify
@@ -171,6 +173,9 @@ class ProcTailer(object):
     Given a hostname, port, and procname, connect to the log tailing endpoint
     for that proc and yield a string for each line in the log, as they come.
     """
+
+    CONNECT_TIMEOUT = 5
+
     def __init__(self, hostname, port, procname, username=None, password=None):
         self.hostname = hostname
         self.port = port
@@ -188,7 +193,8 @@ class ProcTailer(object):
         if self.username:
             auth = (self.username, self.password)
 
-        self.resp = requests.get(url, stream=True, auth=auth)
+        self.resp = requests.get(
+            url, stream=True, auth=auth, timeout=self.CONNECT_TIMEOUT)
         self.resp.raise_for_status()
 
     def __iter__(self):
