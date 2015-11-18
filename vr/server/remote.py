@@ -329,13 +329,17 @@ def build_app(build_yaml_path):
                 BuildData(yaml.safe_load(f))
             get('build.tar.gz', 'build.tar.gz')
         finally:
-            logfile = 'compile.log'
-            try:
-                # try to get compile.log even if build fails.
-                with fab_settings(warn_only=True):
-                    get(logfile, logfile)
-            except:
-                print("Could not retrieve", logfile)
+            logfiles = ['compile.log', 'lxcdebug.log']
+            for logfile in logfiles:
+                try:
+                    # try to get compile.log even if build fails.
+                    with fab_settings(warn_only=True):
+                        if files.exists(logfile):
+                            get(logfile, logfile)
+                        else:
+                            print('in remote, logfile, not exist', logfile)
+                except:
+                    print("Could not retrieve", logfile)
 
 
 @task

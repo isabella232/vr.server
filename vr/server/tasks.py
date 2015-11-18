@@ -2,6 +2,7 @@ import contextlib
 import datetime
 import functools
 import logging
+import os.path
 import traceback
 import time
 import json
@@ -19,6 +20,7 @@ from fabric.api import env
 from django.conf import settings
 from django.utils import timezone
 from django.core.files import File
+from django.core.files.base import ContentFile
 
 from vr.builder.main import BuildData
 from vr.imager.command import ImageData
@@ -307,7 +309,18 @@ def try_get_compile_log(build, raise_on_error=True):
         with open('compile.log', 'rb') as f:
             logname = 'builds/build_%s_compile.log' % build.id
             logger.info("logname: " + logname)
-            build.compile_log.save(logname, File(f))
+            compile_contents = f.read()
+            
+            # Append the contents of lxcdebug.log if it's present.
+            if os.path.isfile('lxcdebug.log'):
+                with open('lxcdebug.log', 'rb') as fl:
+                    lxc_contents = fl.read()
+                compile_contents = '\n'.join([
+                    compile_contents, '',
+                    '--- LXC DEBUG LOGS FOLLOW ---', '',
+                    lxc_contents
+                ])
+            build.compile_log.save(logname, ContentFile(compile_contents))
     except Exception as exc:
         logger.error(
             'Could not retrieve compile.log for %s: %r', build, exc)
