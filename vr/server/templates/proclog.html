@@ -8,7 +8,7 @@
 {% block script %}
 <script>
 $(function() {
-  var url = "{% url api_host_proc hostname procname %}";
+  var url = "{% url "api_host_proc" hostname procname %}";
   $.getJSON(url, function(data, sts, xhr) {
     var proc = new VR.Models.Proc(data);
     var container = $('.proc-log');

@@ -29,7 +29,7 @@ $(function() {
           <td class="buttoncell" colspan=2>
 
           {% if object %}
-              <a class="btn btn-danger btn-destructive" href="{% url ingredient_delete object.id %}">Delete</a>
+              <a class="btn btn-danger btn-destructive" href="{% url "ingredient_delete" object.id %}">Delete</a>
           {% endif %}
 
           <button type="submit" class="btn btn-primary">Save</button>
@@ -50,9 +50,9 @@ $(function() {
         {% if swarm.get_latest_reversion %}
           <span>Swarm date: {{ swarm.get_latest_reversion.revision.date_created }}</span><br/>
           {% if swarm.get_latest_reversion.revision.date_created < last_edited %}<span>Possibly outdated</span><br/>{% endif %}
-          <span>Swarm: <a href="{% url edit_swarm swarm.id %}">{{ swarm }}</a></span><br/>
+          <span>Swarm: <a href="{% url "edit_swarm" swarm.id %}">{{ swarm }}</a></span><br/>
         {% else %}
-          <span>No revisions available for <a href="{% url edit_swarm swarm.id %}">{{ swarm }}</a></span><br/>
+          <span>No revisions available for <a href="{% url "edit_swarm" swarm.id %}">{{ swarm }}</a></span><br/>
         {% endif %}
         <hr/>
       {% endfor %}
