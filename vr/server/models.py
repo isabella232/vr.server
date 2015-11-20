@@ -913,7 +913,7 @@ reversion.register(Dashboard)
 
 
 class UserProfile(models.Model):
-    user = models.OneToOneField(User)
+    user = models.OneToOneField(User, related_name='userprofile')
     default_dashboard = models.ForeignKey(Dashboard, related_name='def+',
                                           null=True, blank=True)
     quick_dashboards = models.ManyToManyField(Dashboard, related_name='quick+',

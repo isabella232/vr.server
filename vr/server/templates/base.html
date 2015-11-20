@@ -18,6 +18,7 @@
   {% if request.user.is_authenticated %}
   <script>
   var userId = '{{ request.user.id }}';
+  var profileId = '{{ request.user.userprofile.id }}';
   </script>
   {% endif %}
 </head>

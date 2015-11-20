@@ -98,7 +98,7 @@ def build_app(request):
                              os_image=app.get_os_image())
         build.save()
         do_build(build, request.user)
-        return redirect('dash')
+        return redirect('default_dash')
     return render(request, 'basic_form.html', {
         'form': form,
         'btn_text': 'Build',
@@ -168,7 +168,7 @@ def deploy(request):
         if 'app' in data:
             data.pop('app')
         do_deploy(release, request.user, **data)
-        return redirect('dash')
+        return redirect('default_dash')
 
     return render(request, 'basic_form.html', vars())
 
@@ -263,7 +263,7 @@ def edit_swarm(request, swarm_id=None):
 
         do_swarm(swarm, request.user)
 
-        return redirect('dash')
+        return redirect('default_dash')
 
     return render(request, 'swarm.html', {
         'swarm': swarm,

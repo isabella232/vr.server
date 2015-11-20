@@ -6,33 +6,33 @@ VR.Dash = {};
 VR.Dash.Options = {
     refreshInterval: 60000,
     apps: [],
-    dashboardId: null,
+    dashboardId: null
 };
 
-VR.Dash.init = function(appsContainer, eventsContainer, eventsUrl, procEventsUrl) {
+VR.Dash.init = function(
+    appsContainer, eventsContainer, eventsUrl, procEventsUrl) {
 
-  if(VR.Dash.Options.dashboardId) {
-    $.getJSON(VR.Urls.getTasty('dashboard', VR.Dash.Options.dashboardId), function(data, stat, xhr) {
+  if (VR.Dash.Options.dashboardId) {
+    $.getJSON(VR.Urls.getTasty(
+        'dashboard', VR.Dash.Options.dashboardId), function(data, stat, xhr) {
       _.each(data.apps, function(app) {
         VR.Dash.Options.apps.push({'name': app.name});
       });
     });
     $('#setAsDefault').click(function(ev) {
       var dashId = $(this).data('dashboardid');
-      var payload = {
-        profile: {
-          default_dashboard: VR.Urls.root + 'dashboard/' + dashId + '/'
-        }
-      };
+        var payload = {
+            default_dashboard: VR.Urls.root + 'dashboard/' + dashId + '/'
+        };
       $.ajax({
         type: 'PUT',
-        url: VR.Urls.getTasty('user', window.userId),
+        url: VR.Urls.getTasty('profile', window.profileId),
         data: JSON.stringify(payload),
         dataType: 'json',
         contentType: 'application/json',
         proccessData: false,
         success: function(data, stat, xhr) {
-          if("success" === stat) {
+          if ('success' === stat) {
             document.cookie = 'dashboard=/dashboard/; path=/';
             window.location = '/dashboard/';
           }
@@ -57,16 +57,16 @@ VR.Dash.init = function(appsContainer, eventsContainer, eventsUrl, procEventsUrl
   procEvents.onmessage = $.proxy(function(e) {
       var parsed = JSON.parse(e.data);
       if (parsed.event == 'PROCESS_GROUP_REMOVED') {
-        VR.ProcMessages.trigger('destroyproc:'+parsed.id, parsed);
+        VR.ProcMessages.trigger('destroyproc:' + parsed.id, parsed);
       } else {
-        if(VR.Dash.Options.apps.length > 0) {
+        if (VR.Dash.Options.apps.length > 0) {
           _.each(VR.Dash.Options.apps, function(app) {
-            if(parsed.app_name === app.name) {
-              VR.ProcMessages.trigger('updateproc:'+parsed.id, parsed);
+            if (parsed.app_name === app.name) {
+              VR.ProcMessages.trigger('updateproc:' + parsed.id, parsed);
             }
           });
         } else {
-          VR.ProcMessages.trigger('updateproc:'+parsed.id, parsed);
+          VR.ProcMessages.trigger('updateproc:' + parsed.id, parsed);
         }
       }
   }, this);
@@ -78,12 +78,16 @@ VR.Dash.removeProc = function(procdata) {
   // called when a removal event comes in on the pubsub.  Drill down into the
   // App>Swarm>Proc structure to find the proc and remove it.  On the way out,
   // remove any empty swarms or apps.
-  var swarmName = procdata.config_name+'-'+procdata.proc_name;
+  var swarmName = procdata.config_name + '-' + procdata.proc_name;
 
-  var app = VR.Dash.Apps.find(function(a, idx, list) {return a.get('name') === procdata.app_name;});
+  var app = VR.Dash.Apps.find(function(a, idx, list) {
+      return a.get('name') === procdata.app_name;
+  });
   if (!app) {return;}
 
-  var swarm = app.swarms.find(function(s, idx, list) {return s.get('name') === swarmName;});
+  var swarm = app.swarms.find(function(s, idx, list) {
+      return s.get('name') === swarmName;
+  });
   if (!swarm) {return;}
   swarm.procs.removeByData(procdata);
 
@@ -112,15 +116,15 @@ VR.Dash.getHostData = function() {
 VR.Dash.onHostList = function(data, stat, xhr) {
   _.each(data.objects, function(el) {
       _.each(el.procs, function(data) {
-        if(VR.Dash.Options.apps.length > 0) {
+        if (VR.Dash.Options.apps.length > 0) {
           _.each(VR.Dash.Options.apps, function(app) {
-            if(data.app_name === app.name) {
-              VR.ProcMessages.trigger('updateproc:'+data.id, data);
+            if (data.app_name === app.name) {
+              VR.ProcMessages.trigger('updateproc:' + data.id, data);
             }
           });
         }
         else {
-          VR.ProcMessages.trigger('updateproc:'+data.id, data);
+          VR.ProcMessages.trigger('updateproc:' + data.id, data);
         }
       });
   });
