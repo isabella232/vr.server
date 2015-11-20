@@ -797,6 +797,23 @@ VR.Views.Swarm = Backbone.View.extend({
     }
 });
 
+VR.Views.AppModal = VR.Views.BaseModal.extend({
+    initialize: function(app, template) {
+      this.app = app;
+      this.template = template || VR.Templates.AppModal;
+    },
+
+    render: function() {
+      this.modelUpdated = false;
+      this.$el.html(this.template.goatee(this.app.toJSON()));
+    },
+
+    show: function() {
+      this.render();
+      this.$el.modal('show');
+    }
+});
+
 VR.Views.SwarmModal = VR.Views.BaseModal.extend({
     initialize: function(swarm, template) {
       this.swarm = swarm;
@@ -946,7 +963,15 @@ VR.Views.App = Backbone.View.extend({
     },
 
     events: {
-      'click .apptitle, .titlecell .expandtree': 'toggleExpanded'
+      'click .titlecell .expandtree': 'toggleExpanded',
+      'click .apptitle': 'onClick'
+    },
+
+    onClick: function(ev) {
+      if (!this.modal) {
+        this.modal = new VR.Views.AppModal(this.app);
+      }
+      this.modal.show();
     },
 
     toggleExpanded: function() {
