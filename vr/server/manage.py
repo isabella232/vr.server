@@ -1,14 +1,21 @@
 #!/usr/bin/env python
-from django.core.management import execute_manager
-import imp
-try:
-    imp.find_module('settings') # Assumed to be in the same directory.
-except ImportError:
-    import sys
-    sys.stderr.write("Error: Can't find the file 'settings.py' in the directory containing %r. It appears you've customized things.\nYou'll have to run django-admin.py, passing it your settings module.\n" % __file__)
-    sys.exit(1)
+import os
+import sys
 
-import settings
+
+# Ideally, the value of DJANGO_SETTINGS_MODULE would be "vr.server.settings".
+# Unfortunately, that value doesn't work with the standard ``manage.py`` file
+# provided by Django 1.4+ (this file), due to ``vr`` being a namespaced
+# Python package. Therefore, the following ``sys.path`` trick allows us to use
+# "server.settings" as the value of the Django settings module.
+sys.path.insert(
+    0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../'))
+)
+
 
 if __name__ == "__main__":
-    execute_manager(settings)
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "server.settings")
+
+    from django.core.management import execute_from_command_line
+
+    execute_from_command_line(sys.argv)
