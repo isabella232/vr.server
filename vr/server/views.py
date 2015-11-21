@@ -17,7 +17,7 @@ from django.views.generic import edit
 from django.views.generic import ListView
 from django.utils import simplejson
 
-from reversion import revision, create_revision
+from reversion import create_revision
 from reversion.models import Version
 from reversion.helpers import generate_patch
 
@@ -190,7 +190,7 @@ def proclog(request, hostname, procname):
 
 
 @login_required
-@revision.create_on_success
+@create_revision
 def edit_swarm(request, swarm_id=None):
     if swarm_id:
         # Need to populate form from swarm
