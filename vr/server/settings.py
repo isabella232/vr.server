@@ -243,7 +243,6 @@ INSTALLED_APPS = (
     'djcelery',
     'django_extensions',
     'vr.server',   # Velociraptor UI
-    'south',
     'reversion',
 )
 
