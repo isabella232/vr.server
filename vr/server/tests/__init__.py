@@ -1,14 +1,23 @@
 import os
-import subprocess
 import shlex
-import random
-import string
+import subprocess
+import sys
 
 from vr.common.utils import randchars
 
 
+# Ideally, the value of DJANGO_SETTINGS_MODULE would be "vr.server.settings".
+# Unfortunately, that value doesn't work with the standard ``manage.py`` file
+# provided by Django 1.4+, due to ``vr`` being a namespaced Python package.
+# Therefore, the following ``sys.path`` trick allows us to use
+# "server.settings" as the value of the Django settings module.
+sys.path.insert(
+    0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../'))
+)
+
+
 here = os.path.dirname(os.path.abspath(__file__))
-os.environ['DJANGO_SETTINGS_MODULE'] = 'vr.server.settings'
+os.environ['DJANGO_SETTINGS_MODULE'] = 'server.settings'
 os.environ['APP_SETTINGS_YAML'] = os.path.join(here, 'testconfig.yaml')
 
 
