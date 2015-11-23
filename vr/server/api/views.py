@@ -152,20 +152,20 @@ def event_stream(request):
     """
     Stream worker events out to browser.
     """
-    return http.HttpResponse(vr.events.Listener(
+    return http.StreamingHttpResponse(vr.events.Listener(
         settings.EVENTS_PUBSUB_URL,
         channels=[settings.EVENTS_PUBSUB_CHANNEL],
         buffer_key=settings.EVENTS_BUFFER_KEY,
         last_event_id=request.META.get('HTTP_LAST_EVENT_ID')
-    ), mimetype='text/event-stream')
+    ), content_type='text/event-stream')
 
 
 @auth_required
 def proc_event_stream(request):
-    return http.HttpResponse(events.ProcListener(
+    return http.StreamingHttpResponse(events.ProcListener(
         settings.EVENTS_PUBSUB_URL,
         channel=settings.PROC_EVENTS_CHANNEL,
-    ), mimetype='text/event-stream')
+    ), content_type='text/event-stream')
 
 
 class ProcTailer(object):
@@ -237,6 +237,6 @@ def proc_log_stream(request, hostname, procname):
         password=settings.SUPERVISOR_PASSWORD,
     )
     if request.META['HTTP_ACCEPT'] == 'text/event-stream':
-        return http.HttpResponse(SSETailer(**kwargs),
+        return http.StreamingHttpResponse(SSETailer(**kwargs),
                                  content_type='text/event-stream')
     return http.HttpResponse(ProcTailer(**kwargs), content_type='text/plain')
