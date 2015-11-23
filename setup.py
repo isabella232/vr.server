@@ -19,7 +19,7 @@ setup(
         'django-picklefield==0.2.0',
         'django-redis-cache==0.9.5',
         'django-reversion==1.9.3',
-        'django-tastypie==0.9.12',
+        'django-tastypie==0.12.2',
         'Fabric==1.8.0',
         'gevent>=1.0rc2,<2',
         'gevent-psycopg2==0.0.3',
