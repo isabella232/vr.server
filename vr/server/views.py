@@ -1,6 +1,7 @@
 import textwrap
 import time
 import datetime
+import json
 
 from hashlib import md5
 
@@ -15,10 +16,12 @@ from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views.generic import edit
 from django.views.generic import ListView
-from django.utils import simplejson
 
+# Imported as recommended in the low-level API docs:
+# https://django-reversion.readthedocs.org/en/latest/api.html?#importing-the-low-level-api
+import reversion as revisions
 from reversion import create_revision
-from reversion.models import Version
+
 from reversion.helpers import generate_patch
 
 from vr.server import forms, tasks, events, models
@@ -39,13 +42,13 @@ def json_response(func):
         if isinstance(objects, HttpResponse):
             return objects
         try:
-            data = simplejson.dumps(objects)
+            data = json.dumps(objects)
             if 'callback' in request.REQUEST:
                 # a jsonp response!
                 data = '%s(%s);' % (request.REQUEST['callback'], data)
                 return HttpResponse(data, "text/javascript")
         except:
-            data = simplejson.dumps(str(objects))
+            data = json.dumps(str(objects))
         return HttpResponse(data, "application/json")
     return decorator
 
@@ -190,7 +193,7 @@ def proclog(request, hostname, procname):
 
 
 @login_required
-@create_revision
+@revisions.create_revision()
 def edit_swarm(request, swarm_id=None):
     if swarm_id:
         # Need to populate form from swarm
@@ -214,7 +217,7 @@ def edit_swarm(request, swarm_id=None):
                 ing.pk for ing in swarm.config_ingredients.all()]
         }
         fields = [field for field in swarm._meta.fields]
-        version_list = Version.objects.get_for_object(swarm).reverse()
+        version_list = revisions.get_for_object(swarm).reverse()
         version_diffs = []
         if len(version_list) > 1:
             for version in version_list[1:6]:
@@ -258,8 +261,11 @@ def edit_swarm(request, swarm_id=None):
         swarm.config_ingredients.clear()
         for ingredient in data['config_ingredients']:
             swarm.config_ingredients.add(ingredient)
-        revision.user = request.user
-        revision.comment = "Created from web form."
+
+        # Set the version metadata as recommended in the low-level API docs
+        # https://django-reversion.readthedocs.org/en/latest/api.html?#version-meta-data
+        revisions.set_user(request.user)
+        revisions.set_comment("Created from web form.")
 
         do_swarm(swarm, request.user)
 
@@ -363,7 +369,7 @@ class UpdateConfigIngredient(edit.UpdateView):
         context = super(UpdateConfigIngredient, self).get_context_data(**kwargs)
         fields = [field for field in self.object._meta.fields]
         version_diffs = []
-        version_list = Version.objects.get_for_object(self.object).reverse()
+        version_list = revisions.get_for_object(self.object).reverse()
         if len(version_list) > 1:
             for version in version_list[1:6]:
                 diff_dict = {}
