@@ -13,8 +13,8 @@ setup(
     install_requires=[
         'celery-schedulers==0.0.2',
         'diff-match-patch==20121119',
-        'Django>=1.7,<1.8',
-        'django-celery>=3.0.11,<3.1',
+        'Django>=1.8,<1.9',
+        'django-celery>=3.1.17,<3.2',
         'django-extensions==1.5.9',
         'django-picklefield==0.2.0',
         'django-redis-cache==0.9.5',
