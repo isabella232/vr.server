@@ -9,6 +9,7 @@ from django.conf import settings
 from django.contrib.auth import login as django_login, logout as django_logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
+from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse, reverse_lazy
 from django.db.models import Q
 from django.http import HttpResponseRedirect, HttpResponse
@@ -48,6 +49,19 @@ def json_response(func):
             data = simplejson.dumps(str(objects))
         return HttpResponse(data, "application/json")
     return decorator
+
+
+def app_in_default_dashboard(app, user):
+    """
+    Determines in an app is part of the user's default dashboard.
+    """
+    try:
+        dashboard = user.userprofile.default_dashboard
+    except ObjectDoesNotExist:
+        return False
+    if dashboard and app.id in dashboard.apps.values_list('id', flat=True):
+        return True
+    return False
 
 
 @login_required
@@ -98,7 +112,12 @@ def build_app(request):
                              os_image=app.get_os_image())
         build.save()
         do_build(build, request.user)
-        return redirect('default_dash')
+
+        # If app is part of the user's default dashboard, redirect there.
+        if app_in_default_dashboard(app, request.user):
+            return redirect('default_dash')
+
+        return redirect('dash')
     return render(request, 'basic_form.html', {
         'form': form,
         'btn_text': 'Build',
@@ -168,7 +187,12 @@ def deploy(request):
         if 'app' in data:
             data.pop('app')
         do_deploy(release, request.user, **data)
-        return redirect('default_dash')
+
+        # If app is part of the user's default dashboard, redirect there.
+        if app_in_default_dashboard(release.build.app, request.user):
+            return redirect('default_dash')
+
+        return redirect('dash')
 
     return render(request, 'basic_form.html', vars())
 
@@ -263,7 +287,11 @@ def edit_swarm(request, swarm_id=None):
 
         do_swarm(swarm, request.user)
 
-        return redirect('default_dash')
+        # If app is part of the user's default dashboard, redirect there.
+        if app_in_default_dashboard(swarm.app, request.user):
+            return redirect('default_dash')
+
+        return redirect('dash')
 
     return render(request, 'swarm.html', {
         'swarm': swarm,
