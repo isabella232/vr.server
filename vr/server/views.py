@@ -528,6 +528,11 @@ class AddApp(edit.CreateView):
     model = models.App
     success_url = reverse_lazy('app_list')
 
+    ## Get rid of the following message:
+    # Using ModelFormMixin (base class of AddBuildPack) without the 'fields'
+    # attribute is prohibited.
+    fields = ['name', 'repo_url', 'repo_type', 'buildpack', 'stack']
+
     def form_valid(self, form):
         """
         Override so we can setup django-reversion versioning.
@@ -571,6 +576,11 @@ class AddBuildPack(edit.CreateView):
     template_name = 'buildpack_form.html'
     model = models.BuildPack
     success_url = reverse_lazy('buildpack_list')
+
+    ## Get rid of the following message:
+    # Using ModelFormMixin (base class of AddBuildPack) without the 'fields'
+    # attribute is prohibited.
+    fields = ['repo_url', 'repo_type', 'desc', 'order']
 
     def form_valid(self, form):
         """
