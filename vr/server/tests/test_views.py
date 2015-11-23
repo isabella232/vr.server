@@ -165,7 +165,7 @@ class TestSaveSwarms(unittest.TestCase):
     def test_normal_app_update_redirection(self):
         """
         Test that after swarming an app not in the user's default dashboard,
-        he/she gets redirect to the 'Home' section.
+        he/she gets redirected to the 'Home' section.
 
         See self.setUp() for more info.
         """
@@ -195,7 +195,7 @@ class TestSaveSwarms(unittest.TestCase):
     def test_dashboard_app_update_redirection(self):
         """
         Test that after swarming an app that belongs to the user's default
-        dashboard, he/she gets redirect to /dashboard/.
+        dashboard, he/she gets redirected to /dashboard/.
 
         See self.setUp() for more info.
         """

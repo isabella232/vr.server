@@ -53,7 +53,7 @@ def json_response(func):
 
 def app_in_default_dashboard(app, user):
     """
-    Determines in an app is part of the user's default dashboard.
+    Determines if an app is part of the user's default dashboard.
     """
     try:
         dashboard = user.userprofile.default_dashboard
