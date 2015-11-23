@@ -8,6 +8,7 @@ from vr.common.utils import randchars
 from vr.server.tests import get_user
 from vr.server.utils import yamlize
 
+
 class TestSaveSwarms(unittest.TestCase):
     def setUp(self):
 
@@ -81,6 +82,41 @@ class TestSaveSwarms(unittest.TestCase):
         new_release_id = saved.release_id
         assert previous_release_id != new_release_id
 
+    def test_invalid_tags(self):
+        url = reverse('edit_swarm', kwargs={'swarm_id':self.swarm.id})
+        invalid_tags = [
+            'gittag/v1',
+            'my:tag',
+            '^tag',
+            '~other:tag',
+            'tag?'
+            'other*tag'
+            '\\tag',
+            'a tag'
+        ]
+        payload = {
+            'app_id': self.swarm.app.id,
+            'os_image_id': getattr(self.swarm.release.build.os_image, 'id', ''),
+            'squad_id': self.swarm.squad.id,
+            'config_name': self.swarm.config_name,
+            'config_yaml': yamlize(self.swarm.config_yaml),
+            'env_yaml': yamlize(self.swarm.env_yaml),
+            'volumes': yamlize(self.swarm.volumes),
+            'run_as': self.swarm.run_as or 'nobody',
+            'mem_limit': self.swarm.mem_limit,
+            'memsw_limit': self.swarm.memsw_limit,
+            'proc_name': self.swarm.proc_name,
+            'size': self.swarm.size,
+            'pool': self.swarm.pool or '',
+            'balancer': '',
+            'config_ingredients': [
+                ing.pk for ing in self.swarm.config_ingredients.all()]
+        }
+        for tag in invalid_tags:
+            payload['tag'] = tag
+            resp = self.client.post(url, data=payload)
+            assert 'Invalid tag name' in resp.content
+
     def test_config_yaml_marshaling(self):
 
         url = reverse('edit_swarm', kwargs={'swarm_id':self.swarm.id})
@@ -130,6 +166,7 @@ class TestSaveSwarms(unittest.TestCase):
         }
         resp = self.client.post(url, data=payload)
         assert "Cannot be marshalled to XMLRPC" in resp.content
+
 
 class TestSaveIngredients(unittest.TestCase):
     def setUp(self):

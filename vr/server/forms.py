@@ -1,3 +1,4 @@
+import re
 import xmlrpclib
 
 from django import forms
@@ -188,6 +189,23 @@ class SwarmForm(forms.Form):
             raise forms.ValidationError('Swarms that specify a pool must '
                                         'specify a balancer')
         return data
+
+    def clean_tag(self):
+        # Tag becomes part of a filename/dirname. So, / and NUL are invalid.
+        invalid_in_filename = re.compile(r'[/\x00]')
+
+        # https://www.mercurial-scm.org/wiki/Tag
+        invalid_in_hg = re.compile(r'[:\r\n]')
+
+        # http://git-scm.com/docs/git-check-ref-format
+        invalid_in_git = re.compile(r'[ ~^:?*\[\\]')
+
+        tag = self.cleaned_data.get('tag')
+        if tag and invalid_in_filename.search(tag) \
+                or invalid_in_hg.search(tag) \
+                or invalid_in_git.search(tag):
+            raise forms.ValidationError('Invalid tag name %s' % tag)
+        return tag
 
     def save(self):
         instance = super(SwarmForm, self).save()
