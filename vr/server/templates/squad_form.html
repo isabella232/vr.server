@@ -31,7 +31,7 @@
         {% if docstring %}<p class="docstring"> {{ docstring }}{% endif %}
         {# only show add host button if the squad is saved #}
         {% if object %}
-            <p><a href="{% url squad_delete object.id %}">Delete Squad</a></p>
+            <p><a href="{% url "squad_delete" object.id %}">Delete Squad</a></p>
         {% endif %}
     </div>
 
@@ -40,7 +40,7 @@
     <div class="col-sm-9 hostgrid">
         <h2>Hosts <small>
         {% if object %}
-            <a href="{% url host_add %}">Add Host</a>
+            <a href="{% url "host_add" %}">Add Host</a>
         {% endif %}
         </small></h2>
         <table id="squad-container"></table>

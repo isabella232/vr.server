@@ -7,12 +7,12 @@
 buildpack, you can specify it here.  (Otherwise you can leave the buildpack
 field blank and let it be auto-detected at build time.)</p>
 
-<p><a href="{% url app_add %}">Add an app.</a></p>
+<p><a href="{% url "app_add" %}">Add an app.</a></p>
 
 <h2>All Apps</h2>
 <ul>
 {% for o in object_list %}
-<li> <a href="{% url app_update o.id %}">{{ o }}</a>
+<li> <a href="{% url "app_update" o.id %}">{{ o }}</a>
 {% endfor %}
 </ul>
 

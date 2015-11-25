@@ -14,6 +14,7 @@ from vr.server.utils import yamlize
 class ConfigIngredientForm(forms.ModelForm):
     class Meta:
         model = models.ConfigIngredient
+        exclude = []
 
     class Media:
         js = (
@@ -65,28 +66,33 @@ class BuildForm(forms.Form):
 class BuildUploadForm(forms.ModelForm):
     class Meta:
         model = models.Build
+        exclude = []
 
 
 class SquadForm(forms.ModelForm):
     class Meta:
         model = models.Squad
+        exclude = []
 
 
 class HostForm(forms.ModelForm):
     class Meta:
         model = models.Host
+        exclude = []
 
 
 class ReleaseForm(forms.ModelForm):
     class Meta:
         model = models.Release
         exclude = ('hash',)
+        exclude = []
 
 
 class StackForm(forms.ModelForm):
     build_now = forms.BooleanField(initial=True)
     class Meta:
         model = models.OSStack
+        exclude = []
 
 
 class DeploymentForm(forms.Form):
