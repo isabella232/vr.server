@@ -84,8 +84,7 @@ class HostForm(forms.ModelForm):
 class ReleaseForm(forms.ModelForm):
     class Meta:
         model = models.Release
-        exclude = ('hash',)
-        exclude = []
+        exclude = ['hash']
 
 
 class StackForm(forms.ModelForm):
