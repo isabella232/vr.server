@@ -16,6 +16,7 @@ tmp/*
 run/*
 repos/*
 env/
+.eggs/
 _build/*
 coverage.xml
 nosetests.xml
