@@ -2,7 +2,7 @@ from __future__ import print_function
 
 import json
 
-from django.conf.urls.defaults import url
+from django.conf.urls import url
 from django.http import (HttpResponse, HttpResponseNotAllowed,
                          HttpResponseNotFound)
 from django.contrib.auth.models import User

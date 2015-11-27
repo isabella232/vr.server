@@ -1,4 +1,16 @@
+from django import setup
+
 from vr.server.tests import dbsetup
+
+
+def pytest_configure():
+    """
+    Setup the django instance before to run the tests
+
+    Starting from django 1.7 we need to let django to setup itself.
+    """
+
+    setup()
 
 
 def pytest_addoption(parser):

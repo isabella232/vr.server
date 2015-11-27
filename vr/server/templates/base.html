@@ -37,18 +37,18 @@
         <div class="collapse navbar-collapse">
         {% block nav %}
         {% if not hide_nav %}
-          {% url dash as dash_url %}
-          {% url default_dash as default_dash_url %}
-          {% url build_app as build_url %}
-          {% url release as release_url %}
-          {% url deploy as deploy_url %}
-          {% url log as log_url %}
-          {% url ingredient_list as ingredient_url %}
-          {% url app_list as app_url %}
-          {% url stack_list as stack_url %}
-          {% url buildpack_list as buildpack_url %}
-          {% url host_list as host_url %}
-          {% url squad_list as squad_url %}
+          {% url "dash" as dash_url %}
+          {% url "default_dash" as default_dash_url %}
+          {% url "build_app" as build_url %}
+          {% url "release" as release_url %}
+          {% url "deploy" as deploy_url %}
+          {% url "log" as log_url %}
+          {% url "ingredient_list" as ingredient_url %}
+          {% url "app_list" as app_url %}
+          {% url "stack_list" as stack_url %}
+          {% url "buildpack_list" as buildpack_url %}
+          {% url "host_list" as host_url %}
+          {% url "squad_list" as squad_url %}
           <ul class="nav navbar-nav">
             <li class="{% current_nav dash_url %}"><a href="{{ dash_url }}">Home</a></li>
 
@@ -85,7 +85,7 @@
                 </a>
                 <div class="dropdown-menu">
                     <div class="form-group"><input id="swarm-filter" class="form-control" type="text" placeholder="Search..."></div>
-                    <ul id="swarmlist" style="padding-left:0"><li rel="new_swarm"><a href="{% url new_swarm %}">New</a></li></ul>
+                    <ul id="swarmlist" style="padding-left:0"><li rel="new_swarm"><a href="{% url "new_swarm" %}">New</a></li></ul>
                 </div>
             </li>
 
@@ -106,7 +106,7 @@
           </ul>
           <p class="navbar-text pull-right">
           {% if request.user.is_authenticated %}
-          Logged in as {{ request.user.username }}.  <a href="{% url logout %}">Log out</a>
+          Logged in as {{ request.user.username }}.  <a href="{% url "logout" %}">Log out</a>
           {% else %}
 
           {% endif %}
@@ -144,8 +144,8 @@
 <script>
 {# build some URLs from Django.  vrdash.js and other scripts rely on these #}
 (function () {
-    VR.Urls.events = '{% url api_events %}';
-    VR.Urls.procEvents = '{% url api_proc_events %}';
+    VR.Urls.events = '{% url "api_events" %}';
+    VR.Urls.procEvents = '{% url "api_proc_events" %}';
 })(this);
 </script>
 

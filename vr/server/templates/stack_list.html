@@ -10,12 +10,12 @@ buildpacks.</p>
 <p>Practically, a stack is a series of OS images, with the latest active image
 being the one used in swarms.</p>
 
-<p><a href="{% url stack_add %}">Add a stack.</a></p>
+<p><a href="{% url "stack_add" %}">Add a stack.</a></p>
 
 <h2>All Stacks</h2>
 <ul>
 {% for o in object_list %}
-<li> <a href="{% url stack_update o.id %}">{{ o }}</a>
+<li> <a href="{% url "stack_update" o.id %}">{{ o }}</a>
 {% endfor %}
 </ul>
 

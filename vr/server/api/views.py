@@ -5,10 +5,10 @@ import json
 from functools import wraps
 
 from django.contrib.auth import authenticate
-from django.shortcuts import get_object_or_404
 from django import http
 from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.gzip import gzip_page
 from django.core.urlresolvers import reverse
 import sseclient
 import requests
@@ -52,6 +52,7 @@ def auth_required(view_func):
 
 
 @auth_required
+@gzip_page
 def host(request):
     # list all hosts
     return utils.json_response({
@@ -60,6 +61,7 @@ def host(request):
 
 
 @auth_required
+@gzip_page
 def host_procs(request, hostname):
     """
     Display status of all supervisord-managed processes on a single host, in
@@ -74,6 +76,7 @@ def host_procs(request, hostname):
 
 
 @auth_required
+@gzip_page
 def swarm_procs(request, swarm_id):
     """
     Display status of all processes for a given swarm
@@ -87,6 +90,7 @@ def swarm_procs(request, swarm_id):
 @auth_required
 @csrf_exempt
 @events.eventify_on_error('host_proc')
+@gzip_page
 def host_proc(request, hostname, procname):
     """
     Display status of a single supervisord-managed process on a host, in
@@ -130,6 +134,7 @@ def host_proc(request, hostname, procname):
 
 
 @auth_required
+@gzip_page
 def uptest_latest(request):
     """
     Look up most recent test run and redirect to its record in the API.
@@ -148,24 +153,26 @@ def uptest_latest(request):
 
 
 @auth_required
+@gzip_page
 def event_stream(request):
     """
     Stream worker events out to browser.
     """
-    return http.HttpResponse(vr.events.Listener(
+    return http.StreamingHttpResponse(vr.events.Listener(
         settings.EVENTS_PUBSUB_URL,
         channels=[settings.EVENTS_PUBSUB_CHANNEL],
         buffer_key=settings.EVENTS_BUFFER_KEY,
         last_event_id=request.META.get('HTTP_LAST_EVENT_ID')
-    ), mimetype='text/event-stream')
+    ), content_type='text/event-stream')
 
 
 @auth_required
+@gzip_page
 def proc_event_stream(request):
-    return http.HttpResponse(events.ProcListener(
+    return http.StreamingHttpResponse(events.ProcListener(
         settings.EVENTS_PUBSUB_URL,
         channel=settings.PROC_EVENTS_CHANNEL,
-    ), mimetype='text/event-stream')
+    ), content_type='text/event-stream')
 
 
 class ProcTailer(object):
@@ -228,6 +235,7 @@ class SSETailer(ProcTailer):
 
 
 @auth_required
+@gzip_page
 def proc_log_stream(request, hostname, procname):
     kwargs = dict(
         hostname=hostname,
@@ -237,6 +245,6 @@ def proc_log_stream(request, hostname, procname):
         password=settings.SUPERVISOR_PASSWORD,
     )
     if request.META['HTTP_ACCEPT'] == 'text/event-stream':
-        return http.HttpResponse(SSETailer(**kwargs),
+        return http.StreamingHttpResponse(SSETailer(**kwargs),
                                  content_type='text/event-stream')
     return http.HttpResponse(ProcTailer(**kwargs), content_type='text/plain')
