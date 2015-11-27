@@ -140,8 +140,11 @@ class SwarmForm(forms.Form):
     """
     app_id = forms.ChoiceField(choices=[], label='App')
     tag = forms.CharField(max_length=50)
-    config_name = forms.CharField(max_length=50,
-                                  help_text=models.config_name_help)
+    config_name = forms.RegexField(
+        # At least 3 chars, filesystem-safe
+        regex=re.compile(r'^[a-zA-Z0-9_]{3,}$'),
+        max_length=50,
+        help_text=models.config_name_help)
     config_yaml = forms.CharField(
         required=False,
         widget=forms.widgets.Textarea(attrs={'class': 'codearea'}))
