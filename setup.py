@@ -4,7 +4,7 @@ from setuptools import setup, find_packages
 setup(
     name='vr.server',
     namespace_packages=['vr'],
-    version='4.3',
+    version='4.3.1',
     author='Brent Tubbs',
     author_email='brent.tubbs@gmail.com',
     packages=find_packages(),
@@ -34,7 +34,7 @@ setup(
         'sseclient==0.0.8',
         'six>=1.4',
 
-        'vr.events>=1.2',
+        'vr.events>=1.2.1',
 
         # These will normally be installed from the source code repo as part of
         # buildpack compilation.  Their folders are specified in
