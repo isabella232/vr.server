@@ -1,13 +1,7 @@
 from django.db import models
 from django.core.exceptions import ValidationError
 from django.core.serializers.pyyaml import DjangoSafeDumper
-from south.modelsinspector import add_introspection_rules
 import yaml
-
-
-# Let South know how to handle our custom field type
-add_introspection_rules([], ["^vr\.server\.fields\.YAMLDictField"])
-add_introspection_rules([], ["^vr\.server\.fields\.YAMLListField"])
 
 
 def validate_yaml_dict(value):
@@ -16,6 +10,7 @@ def validate_yaml_dict(value):
         not isinstance(value, dict)):
 
         raise ValidationError
+
 
 class YAMLDictField(models.TextField):
     """
