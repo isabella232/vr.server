@@ -626,6 +626,8 @@ class UpdateBuildPack(edit.UpdateView):
     model = models.BuildPack
     success_url = reverse_lazy('buildpack_list')
 
+    fields = ['repo_url', 'repo_type', 'desc', 'order']
+
     def form_valid(self, form):
         """
         Override so we can setup django-reversion versioning.
