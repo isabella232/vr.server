@@ -17,6 +17,7 @@ import yaml
 import redis
 import reversion
 
+import reversion
 from reversion.models import Version
 
 from vr.server.fields import YAMLDictField, YAMLListField
@@ -775,7 +776,7 @@ class Swarm(models.Model):
 
     def get_latest_reversion(self):
         try:
-            return Version.objects.get_for_object(self).reverse()[0]
+            return reversion.get_for_object(self).reverse()[0]
         except IndexError:
             return None
 
