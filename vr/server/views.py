@@ -575,6 +575,8 @@ class UpdateApp(edit.UpdateView):
     model = models.App
     success_url = reverse_lazy('app_list')
 
+    fields = ['name', 'repo_url', 'repo_type', 'buildpack', 'stack']
+
     def form_valid(self, form):
         """
         Override so we can setup django-reversion versioning.
