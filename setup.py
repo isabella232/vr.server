@@ -49,9 +49,6 @@ setup(
         'vr.imager>=1.2',
         'django-yamlfield',
     ],
-    dependency_links = [
-        'https://github.com/downloads/surfly/gevent/gevent-1.0rc2.tar.gz#egg=gevent-1.0rc2'
-    ],
     entry_points = {
         'console_scripts': [
             'vr_worker = vr.server.commands:start_celery',
