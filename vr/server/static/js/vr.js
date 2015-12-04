@@ -805,7 +805,22 @@ VR.Views.AppModal = VR.Views.BaseModal.extend({
 
     render: function() {
       this.modelUpdated = false;
-      this.$el.html(this.template.goatee(this.app.toJSON()));
+
+      function clean_url(url) {
+          // Remove any credentials in the form:
+          // http://<user>:<pass>@example.com
+          var newurl = url.replace(/\/\/.*@/, '//');
+
+          // Strip .git suffix for kiln repos
+          if (newurl.indexOf('kilnhg.com') >= 0) {
+            newurl = newurl.replace(/.git$/, '');
+          }
+          return newurl;
+      }
+
+      var data = this.app.toJSON();
+      data.repo_url_clean = clean_url(data.repo_url);
+      this.$el.html(this.template.goatee(data));
     },
 
     show: function() {
