@@ -1,5 +1,10 @@
 #!/usr/bin/python
+import sys
+
 from setuptools import setup, find_packages
+
+needs_pytest = {'pytest', 'test'}.intersection(sys.argv)
+pytest_runner = ['pytest_runner'] if needs_pytest else []
 
 setup(
     name='vr.server',
@@ -55,4 +60,9 @@ setup(
         ],
     },
     description=("Velociraptor's Django and Celery components."),
+    setup_requires=[
+    ] + pytest_runner,
+    tests_require=[
+        'pytest',
+    ],
 )
