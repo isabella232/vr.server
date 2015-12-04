@@ -1,6 +1,5 @@
 import os.path
-
-from mock import MagicMock, Mock, patch
+from unittest.mock import MagicMock, Mock, patch
 
 from vr.common.utils import randchars
 from vr.server.models import App, Build, BuildPack, OSImage

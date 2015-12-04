@@ -61,5 +61,6 @@ setup(
     ] + pytest_runner,
     tests_require=[
         'pytest',
+        'backports.unittest_mock',
     ],
 )

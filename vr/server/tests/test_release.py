@@ -1,4 +1,5 @@
-import mock
+from unittest import mock
+
 from django.utils import timezone
 
 from vr.server.models import (App, Build, OSImage, OSStack, Release, Swarm,
