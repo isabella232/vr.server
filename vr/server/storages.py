@@ -81,7 +81,7 @@ def serve_file(request, path):
     """
     try:
         f = default_storage.open(path)
-    except NoFile as e:
+    except NoFile:
         return http.HttpResponseNotFound()
     resp = http.HttpResponse()
     if request.method == 'GET':
