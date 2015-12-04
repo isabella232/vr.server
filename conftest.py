@@ -1,6 +1,7 @@
 import os
 import sys
 
+import pytest
 from django import setup
 
 from vr.server.tests import dbsetup
@@ -22,6 +23,12 @@ def pytest_configure():
     """
     _path_hack()
     setup()
+
+
+@pytest.fixture
+def gridfs(mongodb_instance):
+    from django.conf import settings
+    settings.GRIDFS_PORT = mongodb_instance.port
 
 
 def pytest_addoption(parser):

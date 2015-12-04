@@ -62,5 +62,6 @@ setup(
     tests_require=[
         'pytest',
         'backports.unittest_mock',
+        'jaraco.mongodb>=3.11',
     ],
 )
