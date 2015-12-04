@@ -191,8 +191,6 @@ class ProcTailer(object):
     for that proc and yield a string for each line in the log, as they come.
     """
 
-    CONNECT_TIMEOUT = 5
-
     def __init__(self, hostname, port, procname, username=None, password=None):
         self.hostname = hostname
         self.port = port
@@ -211,7 +209,7 @@ class ProcTailer(object):
             auth = (self.username, self.password)
 
         self.resp = requests.get(
-            url, stream=True, auth=auth, timeout=self.CONNECT_TIMEOUT)
+            url, stream=True, auth=auth)
         self.resp.raise_for_status()
 
     def __iter__(self):
@@ -221,7 +219,7 @@ class ProcTailer(object):
     def next(self):
         while '\n' not in self.buf:
             self.buf += next(self.resp.iter_content(decode_unicode=True))
-        head, sep, tail = self.buf.partition('\n')
+        head, _, tail = self.buf.partition('\n')
         self.buf = tail
         return head + '\n'
 
