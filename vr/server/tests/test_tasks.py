@@ -38,7 +38,7 @@ class TestBuild(object):
         )
         self.build.save()
 
-    def test_get_build_parameters(self):
+    def test_get_build_parameters(self, gridfs):
         build_params = get_build_parameters(self.build)
         assert build_params == {
             'app_name': self.app.name,
