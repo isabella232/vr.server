@@ -85,13 +85,6 @@ USE_TZ = True
 DEPLOY_USER = 'vagrant'
 DEPLOY_PASSWORD = 'vagrant'
 
-# Suppress warnings when we pass a URI to MongoDB that includes the
-#  database name.
-warnings.filterwarnings(
-    'ignore', category=UserWarning,
-    message="must provide a username",
-    module='pymongo.connection')
-
 MONGODB_URL = 'mongodb://localhost/velociraptor'
 
 CELERY_ENABLE_UTC = True

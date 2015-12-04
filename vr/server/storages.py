@@ -5,7 +5,7 @@ from django.core.files.storage import Storage, default_storage
 from django import http
 from django.conf import settings
 
-from pymongo import Connection
+import pymongo
 from gridfs import GridFS, NoFile
 
 
@@ -26,7 +26,7 @@ class GridFSStorage(Storage):
             # Default port is 27017
             port = port or getattr(settings, 'GRIDFS_PORT', 27017)
 
-            connection = Connection(host, port)
+            connection = pymongo.MongoClient(host, port)
 
         # Default db is 'test'
         db = db or getattr(settings, 'GRIDFS_DB', 'test')
