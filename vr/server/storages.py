@@ -90,6 +90,10 @@ def serve_file(request, path):
     resp['Etag'] = f.md5
     resp['Content-Length'] = f.length
 
-    resp['Content-Type'] = (f.content_type or mimetypes.guess_type(f.name)[0]
-                            or 'application/octet-stream')
+    resp['Content-Type'] = (
+        f.content_type
+        or mimetypes.guess_type(f.name)[0]
+        or 'application/octet-stream'
+    )
+
     return resp
