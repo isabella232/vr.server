@@ -181,7 +181,7 @@ STATICFILES_STORAGE = (
     'django.contrib.staticfiles.storage.CachedStaticFilesStorage')
 
 # Use package's static folder if found, else fall back to local
-STATIC_ROOT = pkg_resources.resource_filename('vr', 'static')
+STATIC_ROOT = pkg_resources.resource_filename('vr.server', 'static')
 
 STATIC_URL = '/static/'
 ADMIN_MEDIA_PREFIX = '/static/admin/'
