@@ -29,6 +29,7 @@ def pytest_configure():
 def gridfs(mongodb_instance):
     from django.conf import settings
     settings.GRIDFS_PORT = mongodb_instance.port
+    settings.MONGODB_URL = mongodb_instance.get_uri() + '/velociraptor'
 
 
 def pytest_addoption(parser):
