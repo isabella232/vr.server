@@ -1,5 +1,3 @@
-import unittest
-
 from django.test.client import Client
 from django.core.urlresolvers import reverse
 from django.template.defaultfilters import slugify
@@ -10,8 +8,8 @@ from vr.server.tests import get_user
 from vr.server.utils import yamlize
 
 
-class TestSaveSwarms(unittest.TestCase):
-    def setUp(self):
+class TestSaveSwarms:
+    def setup_method(self, method):
 
         self.app = models.App(
             name=randchars(),
@@ -273,8 +271,8 @@ class TestSaveSwarms(unittest.TestCase):
         assert "Cannot be marshalled to XMLRPC" in resp.content
 
 
-class TestSaveIngredients(unittest.TestCase):
-    def setUp(self):
+class TestSaveIngredients:
+    def setup_method(self, method):
 
         # Get a logged in client ready
         self.user = get_user()
