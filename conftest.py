@@ -1,6 +1,7 @@
 import os
 import sys
 
+import pytest
 from django import setup
 
 from vr.server.tests import dbsetup
@@ -22,6 +23,23 @@ def pytest_configure():
     """
     _path_hack()
     setup()
+
+
+@pytest.fixture
+def gridfs(mongodb_instance):
+    from django.conf import settings
+    settings.GRIDFS_PORT = mongodb_instance.port
+    settings.MONGODB_URL = mongodb_instance.get_uri() + '/velociraptor'
+
+
+@pytest.fixture()
+def redis():
+    try:
+        redis = __import__('redis')
+        redis.StrictRedis(host='localhost', port=6379).echo('this')
+    except Exception as exc:
+        tmpl = "Unable to establish connection to redis ({exc})"
+        pytest.skip(tmpl.format(**locals()))
 
 
 def pytest_addoption(parser):

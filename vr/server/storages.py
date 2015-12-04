@@ -5,7 +5,7 @@ from django.core.files.storage import Storage, default_storage
 from django import http
 from django.conf import settings
 
-from pymongo import Connection
+import pymongo
 from gridfs import GridFS, NoFile
 
 
@@ -26,7 +26,7 @@ class GridFSStorage(Storage):
             # Default port is 27017
             port = port or getattr(settings, 'GRIDFS_PORT', 27017)
 
-            connection = Connection(host, port)
+            connection = pymongo.MongoClient(host, port)
 
         # Default db is 'test'
         db = db or getattr(settings, 'GRIDFS_DB', 'test')
@@ -81,7 +81,7 @@ def serve_file(request, path):
     """
     try:
         f = default_storage.open(path)
-    except NoFile as e:
+    except NoFile:
         return http.HttpResponseNotFound()
     resp = http.HttpResponse()
     if request.method == 'GET':
@@ -90,6 +90,10 @@ def serve_file(request, path):
     resp['Etag'] = f.md5
     resp['Content-Length'] = f.length
 
-    resp['Content-Type'] = (f.content_type or mimetypes.guess_type(f.name)[0]
-                            or 'application/octet-stream')
+    resp['Content-Type'] = (
+        f.content_type
+        or mimetypes.guess_type(f.name)[0]
+        or 'application/octet-stream'
+    )
+
     return resp

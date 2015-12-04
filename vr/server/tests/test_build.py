@@ -9,7 +9,7 @@ from vr.server.tests import randurl
 from vr.common.utils import randchars
 
 
-def test_build_usable():
+def test_build_usable(gridfs):
     app_url = randurl()
     a = models.App(name=randchars(), repo_url=app_url, repo_type='hg')
     a.save()
@@ -26,7 +26,7 @@ def test_build_usable():
     assert b.is_usable() == True
 
 
-def test_build_unusable_status():
+def test_build_unusable_status(gridfs):
     app_url = randurl()
     a = models.App(name=randchars(), repo_url=app_url, repo_type='hg')
     a.save()

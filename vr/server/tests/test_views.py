@@ -1,5 +1,3 @@
-import unittest
-
 from django.test.client import Client
 from django.core.urlresolvers import reverse
 from django.template.defaultfilters import slugify
@@ -10,8 +8,8 @@ from vr.server.tests import get_user
 from vr.server.utils import yamlize
 
 
-class TestSaveSwarms(unittest.TestCase):
-    def setUp(self):
+class TestSaveSwarms:
+    def setup_method(self, method):
 
         self.app = models.App(
             name=randchars(),
@@ -99,7 +97,7 @@ class TestSaveSwarms(unittest.TestCase):
         self.client = Client()
         self.client.post(reverse('login'), {'username': self.user.username, 'password':'password123'})
 
-    def test_simple_update(self):
+    def test_simple_update(self, redis):
 
         url = reverse('edit_swarm', kwargs={'swarm_id':self.swarm.id})
         payload = {
@@ -162,7 +160,7 @@ class TestSaveSwarms(unittest.TestCase):
             resp = self.client.post(url, data=payload)
             assert 'Invalid tag name' in resp.content
 
-    def test_normal_app_update_redirection(self):
+    def test_normal_app_update_redirection(self, redis):
         """
         Test that after swarming an app not in the user's default dashboard,
         he/she gets redirected to the 'Home' section.
@@ -192,7 +190,7 @@ class TestSaveSwarms(unittest.TestCase):
         resp = self.client.post(url, data=payload)
         assert resp._headers['location'][1] == 'http://testserver/'
 
-    def test_dashboard_app_update_redirection(self):
+    def test_dashboard_app_update_redirection(self, redis):
         """
         Test that after swarming an app that belongs to the user's default
         dashboard, he/she gets redirected to /dashboard/.
@@ -273,8 +271,8 @@ class TestSaveSwarms(unittest.TestCase):
         assert "Cannot be marshalled to XMLRPC" in resp.content
 
 
-class TestSaveIngredients(unittest.TestCase):
-    def setUp(self):
+class TestSaveIngredients:
+    def setup_method(self, method):
 
         # Get a logged in client ready
         self.user = get_user()

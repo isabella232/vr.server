@@ -1,6 +1,5 @@
 import os.path
-
-from mock import MagicMock, Mock, patch
+from unittest.mock import MagicMock, Mock, patch
 
 from vr.common.utils import randchars
 from vr.server.models import App, Build, BuildPack, OSImage
@@ -39,7 +38,7 @@ class TestBuild(object):
         )
         self.build.save()
 
-    def test_get_build_parameters(self):
+    def test_get_build_parameters(self, gridfs):
         build_params = get_build_parameters(self.build)
         assert build_params == {
             'app_name': self.app.name,
@@ -128,7 +127,8 @@ class TestSwarmReleaseBranches(object):
     @patch.object(tasks, 'Swarm')
     def test_swarm_release_calls_swarm_deploy_to_host(self,
                                                       Swarm,
-                                                      swarm_deploy_to_host):
+                                                      swarm_deploy_to_host,
+                                                      redis):
         swarm = MagicMock()
         swarm.size = 2
         swarm.get_prioritized_hosts.return_value = [MagicMock(), MagicMock()]
