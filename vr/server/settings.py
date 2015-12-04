@@ -32,6 +32,8 @@ parentpath = os.path.dirname(here)
 
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
+if not DEBUG:
+    ALLOWED_HOSTS = ['*']
 
 ADMINS = ()
 
