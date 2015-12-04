@@ -1,6 +1,17 @@
+import os
+import sys
+
 from django import setup
 
 from vr.server.tests import dbsetup
+
+
+def _path_hack():
+    """
+    hack the PYTHONPATH to ensure that re-entrant processes
+    have access to packages loaded by pytest-runner.
+    """
+    os.environ['PYTHONPATH'] = os.pathsep.join(sys.path)
 
 
 def pytest_configure():
@@ -9,7 +20,7 @@ def pytest_configure():
 
     Starting from django 1.7 we need to let django to setup itself.
     """
-
+    _path_hack()
     setup()
 
 
