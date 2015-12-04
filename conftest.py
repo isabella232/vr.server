@@ -32,6 +32,16 @@ def gridfs(mongodb_instance):
     settings.MONGODB_URL = mongodb_instance.get_uri() + '/velociraptor'
 
 
+@pytest.fixture()
+def redis():
+    try:
+        redis = __import__('redis')
+        redis.StrictRedis(host='localhost', port=6379).echo('this')
+    except Exception as exc:
+        tmpl = "Unable to establish connection to redis ({exc})"
+        pytest.skip(tmpl.format(**locals()))
+
+
 def pytest_addoption(parser):
     parser.addoption('--nodb', action='store_true',
             default=False,

@@ -127,7 +127,8 @@ class TestSwarmReleaseBranches(object):
     @patch.object(tasks, 'Swarm')
     def test_swarm_release_calls_swarm_deploy_to_host(self,
                                                       Swarm,
-                                                      swarm_deploy_to_host):
+                                                      swarm_deploy_to_host,
+                                                      redis):
         swarm = MagicMock()
         swarm.size = 2
         swarm.get_prioritized_hosts.return_value = [MagicMock(), MagicMock()]
