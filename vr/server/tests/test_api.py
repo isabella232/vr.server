@@ -119,7 +119,8 @@ class TestSaveSwarms(unittest.TestCase):
         # Get a logged in client ready
         self.user = get_user()
         self.client = Client()
-        self.client.post(reverse('login'), {'username': self.user.username, 'password':'password123'})
+        data = dict(username=self.user.username, password='password123')
+        self.client.post(reverse('login'), data)
 
     def test_simple_update(self):
 
@@ -131,7 +132,8 @@ class TestSaveSwarms(unittest.TestCase):
         # make a change, PUT it, and assert that it's in the DB.
         doc['config_name'] = 'test_config_name'
         payload = json.dumps(doc)
-        resp = self.client.put(url, data=payload, content_type='application/json')
+        resp = self.client.put(url, data=payload,
+            content_type='application/json')
 
         saved = models.Swarm.objects.get(id=self.swarm.id)
         assert saved.config_name == 'test_config_name'
@@ -153,7 +155,8 @@ class TestSaveSwarms(unittest.TestCase):
         # make a change, PUT it, and assert that it's in the DB.
         doc['config_name'] = 'test_config_name'
         payload = json.dumps(doc)
-        resp = self.client.put(url, data=payload, content_type='application/json')
+        resp = self.client.put(url, data=payload,
+            content_type='application/json')
 
         saved = models.Swarm.objects.get(id=self.swarm.id)
         assert saved.config_name == 'test_config_name'
