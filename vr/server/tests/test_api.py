@@ -85,16 +85,16 @@ class TestSaveSwarms(unittest.TestCase):
         self.app = models.App(
             name=randchars(),
             repo_url=randchars(),
-            repo_type=randchars(), 
+            repo_type=randchars(),
             )
         self.app.save()
 
         self.build = models.Build(
-            app=self.app, 
+            app=self.app,
             tag=randchars(),
             file=randchars(),
             status='success',
-            hash=randchars(), 
+            hash=randchars(),
             )
         self.build.save()
 
