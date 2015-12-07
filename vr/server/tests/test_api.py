@@ -21,11 +21,8 @@ class BasicAuthClient(Client):
     username and password on init.
     """
     def __init__(self, username, password, *args, **kwargs):
-        self.auth_headers = {
-            'HTTP_AUTHORIZATION': 'Basic ' + base64.b64encode('%s:%s' %
-                                                              (username,
-                                                               password)),
-        }
+        token = base64.b64encode('{username}:{password}'.format(**locals()))
+        self.auth_headers = dict(HTTP_AUTHORIZATION='Basic ' + token)
         super(BasicAuthClient, self).__init__(*args, **kwargs)
 
     def request(self, *args, **kwargs):
