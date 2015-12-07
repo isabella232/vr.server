@@ -38,12 +38,7 @@ setup(
         'setproctitle',
         'sseclient==0.0.8',
         'six>=1.4',
-
         'vr.events>=1.2.1',
-
-        # These will normally be installed from the source code repo as part of
-        # buildpack compilation.  Their folders are specified in
-        # requirements.txt
         'vr.common>=4.3',
         'vr.builder>=1.3',
         'vr.imager>=1.2',
