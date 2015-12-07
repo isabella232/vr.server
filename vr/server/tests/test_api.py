@@ -59,8 +59,8 @@ def test_basic_auth_bad_password():
 def test_session_auth_accepted():
     u = get_user()
     c = Client()
-    c.post(reverse('login'), {'username': u.username, 'password':
-                              'password123'})
+    data = dict(username=u.username, password='password123')
+    c.post(reverse('login'), data)
     url = get_api_url('hosts', 'api_dispatch_list')
     response = c.get(url)
     assert response.status_code == 200
