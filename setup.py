@@ -58,5 +58,6 @@ setup(
         'pytest',
         'backports.unittest_mock',
         'jaraco.mongodb>=3.11',
+        'python-dateutil>=2.4',
     ],
 )
