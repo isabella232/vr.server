@@ -23,9 +23,7 @@ def dbsetup():
     sh('psql -f %s -U postgres' % sql)
 
     # Now create tables
-    manage = 'vr.server.manage'
-    sh('python -m %s syncdb --noinput' % manage)
-    sh('python -m %s migrate' % manage)
+    sh('python -m vr.server.manage syncdb --noinput')
 
 
 def randurl():
