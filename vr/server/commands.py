@@ -1,6 +1,9 @@
 import os
 import shlex
 
+from six.moves import input
+
+
 # Make sure Django settings are loaded.
 os.environ['DJANGO_SETTINGS_MODULE'] = 'vr.server.settings'
 
@@ -22,4 +25,4 @@ def run_migrations():
     management.call_command('migrate', *args)
 
     if os.getenv('SLEEP_FOREVER') == 'true':
-        raw_input()
+        input()
