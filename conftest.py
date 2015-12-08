@@ -32,6 +32,14 @@ def gridfs(mongodb_instance):
     settings.MONGODB_URL = mongodb_instance.get_uri() + '/velociraptor'
 
 
+@pytest.fixture
+def postgresql(postgresql_instance, request):
+    from django.conf import settings
+    settings.DATABASES['default']['PORT'] = str(postgresql_instance.port)
+    if not request.session.config.option.nodb:
+        dbsetup(postgresql_instance.port)
+
+
 @pytest.fixture()
 def redis():
     try:
@@ -46,8 +54,3 @@ def pytest_addoption(parser):
     parser.addoption('--nodb', action='store_true',
             default=False,
             help="Don't destroy/create DB")
-
-
-def pytest_sessionstart(session):
-    if not session.config.option.nodb:
-        dbsetup()

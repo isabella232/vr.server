@@ -1,6 +1,8 @@
 import os.path
 from unittest.mock import MagicMock, Mock, patch
 
+import pytest
+
 from vr.common.utils import randchars
 from vr.server.models import App, Build, BuildPack, OSImage
 from vr.server.settings import MEDIA_URL
@@ -9,6 +11,7 @@ from vr.server.tasks import get_build_parameters
 from vr.server import tasks
 
 
+@pytest.mark.usefixtures('postgresql')
 class TestBuild(object):
 
     def setup(self):

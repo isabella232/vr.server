@@ -2,6 +2,7 @@ import base64
 import json
 import unittest
 
+import pytest
 from django.test.client import Client
 from django.core.urlresolvers import reverse
 
@@ -37,7 +38,7 @@ def test_no_auth_denied():
     assert response.status_code == 401
 
 
-def test_basic_auth_accepted():
+def test_basic_auth_accepted(postgresql):
     u = get_user()
     c = BasicAuthClient(u.username, 'password123')
     url = get_api_url('hosts', 'api_dispatch_list')
@@ -45,7 +46,7 @@ def test_basic_auth_accepted():
     assert response.status_code == 200
 
 
-def test_basic_auth_bad_password():
+def test_basic_auth_bad_password(postgresql):
     u = get_user()
     c = BasicAuthClient(u.username, 'BADPASSWORD')
     url = get_api_url('hosts', 'api_dispatch_list')
@@ -53,7 +54,7 @@ def test_basic_auth_bad_password():
     assert response.status_code == 401
 
 
-def test_session_auth_accepted():
+def test_session_auth_accepted(postgresql):
     u = get_user()
     c = Client()
     data = dict(username=u.username, password='password123')
@@ -63,7 +64,7 @@ def test_session_auth_accepted():
     assert response.status_code == 200
 
 
-def test_config_xmlrpc_marshaling():
+def test_config_xmlrpc_marshaling(postgresql):
     u = get_user()
     c = BasicAuthClient(u.username, 'password123')
     url = get_api_url('ingredients', 'api_dispatch_list')
@@ -77,6 +78,7 @@ def test_config_xmlrpc_marshaling():
     assert "int exceeds XML-RPC limits" in resp.content
 
 
+@pytest.mark.usefixtures('postgresql')
 class TestSaveSwarms(unittest.TestCase):
     def setUp(self):
         self.app = models.App(
