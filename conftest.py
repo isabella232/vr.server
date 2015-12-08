@@ -34,10 +34,14 @@ def gridfs(mongodb_instance):
 
 @pytest.fixture
 def postgresql(request):
-    postgresql_instance = request.getfuncargvalue('postgresql_instance')
-    from django.conf import settings
-    settings.DATABASES['default']['PORT'] = str(postgresql_instance.port)
-    dbsetup(postgresql_instance.port)
+    if not request.config.getoption('--use-local-db'):
+        postgresql_instance = request.getfuncargvalue('postgresql_instance')
+        from django.conf import settings
+        port = postgresql_instance.port
+        settings.DATABASES['default']['PORT'] = str(postgresql_instance.port)
+    else:
+        port=None
+    dbsetup(port)
 
 
 @pytest.fixture()
@@ -48,3 +52,11 @@ def redis():
     except Exception as exc:
         tmpl = "Unable to establish connection to redis ({exc})"
         pytest.skip(tmpl.format(**locals()))
+
+
+def pytest_addoption(parser):
+    parser.addoption(
+        '--use-local-db', action='store_true',
+        default=False,
+        help="Use a local, already configured database",
+    )
