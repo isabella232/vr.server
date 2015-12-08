@@ -36,8 +36,7 @@ def gridfs(mongodb_instance):
 def postgresql(postgresql_instance, request):
     from django.conf import settings
     settings.DATABASES['default']['PORT'] = str(postgresql_instance.port)
-    if not request.session.config.option.nodb:
-        dbsetup(postgresql_instance.port)
+    dbsetup(postgresql_instance.port)
 
 
 @pytest.fixture()
@@ -48,9 +47,3 @@ def redis():
     except Exception as exc:
         tmpl = "Unable to establish connection to redis ({exc})"
         pytest.skip(tmpl.format(**locals()))
-
-
-def pytest_addoption(parser):
-    parser.addoption('--nodb', action='store_true',
-            default=False,
-            help="Don't destroy/create DB")
