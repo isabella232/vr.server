@@ -1,3 +1,4 @@
+# pylint: disable=attribute-defined-outside-init,too-many-instance-attributes
 from unittest import mock
 
 from django.utils import timezone
@@ -20,9 +21,8 @@ class TestCurrentRelease(object):
             self.os_image.save()
 
         self.app = App(name=randchars(), repo_url=randchars(), repo_type='hg',
-                      stack=self.stack)
+                       stack=self.stack)
         self.app.save()
-
 
         self.version = 'v1'
         self.build = Build(app=self.app, os_image=self.os_image,
@@ -111,7 +111,6 @@ class TestCurrentRelease(object):
         swarm.save()
 
         assert swarm.get_current_release(self.version) == release
-
 
     def test_swarm_creates_release(self):
 

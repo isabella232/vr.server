@@ -17,7 +17,6 @@ def sh(cmd):
 
 
 def dbsetup():
-    here = os.path.dirname(os.path.abspath(__file__))
     os.chdir(here)
     sql = os.path.join(here, 'dbsetup.sql')
     sh('psql -f %s -U postgres' % sql)
