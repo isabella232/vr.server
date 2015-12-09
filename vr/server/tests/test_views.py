@@ -1,3 +1,5 @@
+import pytest
+
 from django.test.client import Client
 from django.core.urlresolvers import reverse
 from django.template.defaultfilters import slugify
@@ -6,6 +8,9 @@ from vr.server import models
 from vr.common.utils import randchars
 from vr.server.tests import get_user
 from vr.server.utils import yamlize
+
+
+pytestmark = pytest.mark.usefixtures('postgresql')
 
 
 class TestSaveSwarms:

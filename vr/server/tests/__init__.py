@@ -10,19 +10,22 @@ os.environ['APP_SETTINGS_YAML'] = os.path.join(here, 'testconfig.yaml')
 
 
 from django.contrib.auth.models import User
+from django.core.management import call_command
 
 
 def sh(cmd):
     subprocess.call(shlex.split(cmd), stderr=subprocess.STDOUT)
 
 
-def dbsetup():
+def dbsetup(port=None):
     os.chdir(here)
     sql = os.path.join(here, 'dbsetup.sql')
-    sh('psql -f %s -U postgres' % sql)
+    port = ' -p {port} -h localhost'.format(**locals()) if port else ''
+    cmd = 'psql -f %s -U postgres' % sql + port
+    res = sh(cmd)
 
     # Now create tables
-    sh('python -m vr.server.manage syncdb --noinput')
+    call_command('syncdb', '--noinput')
 
 
 def randurl():

@@ -1,5 +1,7 @@
+import pytest
 import yaml
 from django.utils import timezone
+
 
 from vr.server.models import App, Build, Release
 from vr.server.tasks import build_proc_info
@@ -9,6 +11,7 @@ from vr.common.utils import randchars, tmpdir
 # If there's a release with current config, and a good build, it should be
 # returned by Swarm.get_current_release()
 
+@pytest.mark.usefixtures('postgresql')
 class TestDeploy(object):
 
     def setup(self):

@@ -1,11 +1,15 @@
 # pylint: disable=attribute-defined-outside-init,too-many-instance-attributes
 from unittest import mock
 
+import pytest
 from django.utils import timezone
 
 from vr.server.models import (App, Build, OSImage, OSStack, Release, Swarm,
                               Squad, release_eq)
 from vr.common.utils import randchars
+
+
+pytestmark = pytest.mark.usefixtures('postgresql')
 
 
 class TestCurrentRelease(object):

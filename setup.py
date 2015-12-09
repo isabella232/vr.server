@@ -9,7 +9,7 @@ pytest_runner = ['pytest_runner'] if needs_pytest else []
 setup(
     name='vr.server',
     namespace_packages=['vr'],
-    version='4.3.5',
+    version='4.3.6',
     author='Brent Tubbs',
     author_email='brent.tubbs@gmail.com',
     packages=find_packages(),
@@ -59,5 +59,6 @@ setup(
         'backports.unittest_mock',
         'jaraco.mongodb>=3.11',
         'python-dateutil>=2.4',
+        'jaraco.postgres>=1.3.1',
     ],
 )

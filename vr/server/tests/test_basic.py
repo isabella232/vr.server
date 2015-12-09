@@ -17,7 +17,7 @@ def test_login_required():
     assert r.status_code == 302
 
 
-def test_login():
+def test_login(postgresql):
     u = get_user()
     url = reverse('login')
     c = Client()
@@ -36,7 +36,7 @@ def test_config_ingredient_marshaling():
         ci.save()
 
 
-def test_release_config_marshaling():
+def test_release_config_marshaling(postgresql):
     app = models.App(
         name=randchars(),
         repo_url=randchars(),
@@ -58,7 +58,7 @@ def test_release_config_marshaling():
         release.save()
 
 
-def test_swarm_config_marshaling():
+def test_swarm_config_marshaling(postgresql):
     app = models.App(
         name=randchars(),
         repo_url=randchars(),

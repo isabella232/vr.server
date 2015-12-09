@@ -2,6 +2,7 @@ import base64
 import json
 import unittest
 
+import pytest
 from django.test.client import Client
 from django.core.urlresolvers import reverse
 
@@ -21,11 +22,8 @@ class BasicAuthClient(Client):
     username and password on init.
     """
     def __init__(self, username, password, *args, **kwargs):
-        self.auth_headers = {
-            'HTTP_AUTHORIZATION': 'Basic ' + base64.b64encode('%s:%s' %
-                                                              (username,
-                                                               password)),
-        }
+        token = base64.b64encode('{username}:{password}'.format(**locals()))
+        self.auth_headers = dict(HTTP_AUTHORIZATION='Basic ' + token)
         super(BasicAuthClient, self).__init__(*args, **kwargs)
 
     def request(self, *args, **kwargs):
@@ -40,7 +38,7 @@ def test_no_auth_denied():
     assert response.status_code == 401
 
 
-def test_basic_auth_accepted():
+def test_basic_auth_accepted(postgresql):
     u = get_user()
     c = BasicAuthClient(u.username, 'password123')
     url = get_api_url('hosts', 'api_dispatch_list')
@@ -48,7 +46,7 @@ def test_basic_auth_accepted():
     assert response.status_code == 200
 
 
-def test_basic_auth_bad_password():
+def test_basic_auth_bad_password(postgresql):
     u = get_user()
     c = BasicAuthClient(u.username, 'BADPASSWORD')
     url = get_api_url('hosts', 'api_dispatch_list')
@@ -56,17 +54,17 @@ def test_basic_auth_bad_password():
     assert response.status_code == 401
 
 
-def test_session_auth_accepted():
+def test_session_auth_accepted(postgresql):
     u = get_user()
     c = Client()
-    c.post(reverse('login'), {'username': u.username, 'password':
-                              'password123'})
+    data = dict(username=u.username, password='password123')
+    c.post(reverse('login'), data)
     url = get_api_url('hosts', 'api_dispatch_list')
     response = c.get(url)
     assert response.status_code == 200
 
 
-def test_config_xmlrpc_marshaling():
+def test_config_xmlrpc_marshaling(postgresql):
     u = get_user()
     c = BasicAuthClient(u.username, 'password123')
     url = get_api_url('ingredients', 'api_dispatch_list')
@@ -80,22 +78,23 @@ def test_config_xmlrpc_marshaling():
     assert "int exceeds XML-RPC limits" in resp.content
 
 
+@pytest.mark.usefixtures('postgresql')
 class TestSaveSwarms(unittest.TestCase):
 
     def setUp(self):
         self.app = models.App(
             name=randchars(),
             repo_url=randchars(),
-            repo_type=randchars(), 
+            repo_type=randchars(),
             )
         self.app.save()
 
         self.build = models.Build(
-            app=self.app, 
+            app=self.app,
             tag=randchars(),
             file=randchars(),
             status='success',
-            hash=randchars(), 
+            hash=randchars(),
             )
         self.build.save()
 
@@ -123,7 +122,8 @@ class TestSaveSwarms(unittest.TestCase):
         # Get a logged in client ready
         self.user = get_user()
         self.client = Client()
-        self.client.post(reverse('login'), {'username': self.user.username, 'password':'password123'})
+        data = dict(username=self.user.username, password='password123')
+        self.client.post(reverse('login'), data)
 
     def test_simple_update(self):
 
@@ -135,7 +135,8 @@ class TestSaveSwarms(unittest.TestCase):
         # make a change, PUT it, and assert that it's in the DB.
         doc['config_name'] = 'test_config_name'
         payload = json.dumps(doc)
-        resp = self.client.put(url, data=payload, content_type='application/json')
+        resp = self.client.put(url, data=payload,
+            content_type='application/json')
 
         saved = models.Swarm.objects.get(id=self.swarm.id)
         assert saved.config_name == 'test_config_name'
@@ -157,7 +158,8 @@ class TestSaveSwarms(unittest.TestCase):
         # make a change, PUT it, and assert that it's in the DB.
         doc['config_name'] = 'test_config_name'
         payload = json.dumps(doc)
-        resp = self.client.put(url, data=payload, content_type='application/json')
+        resp = self.client.put(url, data=payload,
+            content_type='application/json')
 
         saved = models.Swarm.objects.get(id=self.swarm.id)
         assert saved.config_name == 'test_config_name'
