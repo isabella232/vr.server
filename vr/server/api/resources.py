@@ -303,7 +303,7 @@ class ReleaseResource(ReversionModelResource):
         except models.Swarm.DoesNotExist:
             return HttpResponseNotFound()
 
-        data = json.loads(request.raw_post_data)
+        data = json.loads(request.body)
         do_deploy(release, request.user, data['config_name'], data['host'],
                   data['proc'], data['port'])
 

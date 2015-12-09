@@ -81,6 +81,7 @@ def test_config_xmlrpc_marshaling():
 
 
 class TestSaveSwarms(unittest.TestCase):
+
     def setUp(self):
         self.app = models.App(
             name=randchars(),
@@ -160,3 +161,18 @@ class TestSaveSwarms(unittest.TestCase):
 
         saved = models.Swarm.objects.get(id=self.swarm.id)
         assert saved.config_name == 'test_config_name'
+
+    def test_release(self):
+        u = get_user()
+        c = BasicAuthClient(u.username, 'password123')
+        url = get_api_url('releases', 'api_deploy_release', pk=self.release.id)
+        response = c.post(
+            url,
+            content_type="application/json",
+            data=json.dumps({
+                'config_name': 'config_name',
+                'host': 'host',
+                'proc': 'proc',
+                'port': 'port',
+            }))
+        assert response.status_code == 202
