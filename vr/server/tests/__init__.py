@@ -22,7 +22,7 @@ def dbsetup(port=None):
     sql = os.path.join(here, 'dbsetup.sql')
     port = ' -p {port} -h localhost'.format(**locals()) if port else ''
     cmd = 'psql -f %s -U postgres' % sql + port
-    res = sh(cmd)
+    sh(cmd)
 
     # Now create tables
     call_command('syncdb', '--noinput')
