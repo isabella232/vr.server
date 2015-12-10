@@ -8,7 +8,6 @@ if 'runserver' in sys.argv:
 
 from socket import getfqdn
 import os
-import warnings
 import logging
 import pkg_resources
 
