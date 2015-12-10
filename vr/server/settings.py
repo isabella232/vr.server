@@ -6,13 +6,12 @@ if 'runserver' in sys.argv:
     monkey.patch_all()
     importlib.import_module('psycogreen.gevent').patch_psycopg()
 
-from socket import getfqdn
 import os
 import logging
+import datetime
+import socket
+
 import pkg_resources
-
-from datetime import timedelta
-
 import djcelery
 from celery.schedules import crontab
 import pymongo
@@ -31,7 +30,7 @@ if not DEBUG:
 ADMINS = ()
 
 MANAGERS = ADMINS
-SERVER_EMAIL = 'velociraptor@' + getfqdn()
+SERVER_EMAIL = 'velociraptor@' + socket.getfqdn()
 CELERY_SEND_TASK_ERROR_EMAILS = True
 
 DATABASES = {
@@ -109,14 +108,14 @@ PROC_EVENTS_CHANNEL = 'proc_events'
 CELERYBEAT_SCHEDULE = {
     'scooper': {
         'task': 'vr.server.tasks.scooper',
-        'schedule': timedelta(minutes=240),
+        'schedule': datetime.timedelta(minutes=240),
         'options': {
             'expires': 120,
         },
     },
     'test_all_the_things': {
         'task': 'vr.server.tasks.uptest_all_procs',
-        'schedule': timedelta(minutes=60),
+        'schedule': datetime.timedelta(minutes=60),
         'options': {
             'expires': 120,
         },
@@ -312,6 +311,6 @@ setup_logger()
 if BUILD_EXPIRATION_DAYS is not None:
     CELERYBEAT_SCHEDULE['build_cleanup'] = {
         'task': 'vr.server.tasks.clean_old_builds',
-        'schedule': timedelta(days=1),
+        'schedule': datetime.timedelta(days=1),
         'options': {'expires': 120}
     }
