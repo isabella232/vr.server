@@ -21,12 +21,6 @@ import pymongo
 
 here = os.path.dirname(os.path.realpath(__file__))
 
-
-# Add current folder to the sys path so that the 'deployment' app in the child
-# folder ccan be imported.
-if here not in sys.path:
-    sys.path.insert(0, here)
-
 parentpath = os.path.dirname(here)
 
 
