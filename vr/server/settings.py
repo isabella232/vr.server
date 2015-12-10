@@ -1,10 +1,10 @@
 import sys
+import importlib
 
 if 'runserver' in sys.argv:
     from gevent import monkey
     monkey.patch_all()
-    import gevent_psycopg2
-    gevent_psycopg2.monkey_patch()
+    importlib.import_module('psycogreen.gevent').patch_psycopg()
 
 from socket import getfqdn
 import os

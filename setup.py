@@ -27,7 +27,7 @@ setup(
         'django-tastypie==0.12.2',
         'Fabric3',
         'gevent>=1.1rc1,<2',
-        'gevent-psycopg2==0.0.3',
+        'psycogreen',
         'gunicorn==0.17.2',
         'psycopg2>=2.4.4,<2.5',
         'pymongo>=2.5.2,<4',
