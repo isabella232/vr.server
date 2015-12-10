@@ -36,7 +36,7 @@ urlpatterns = patterns('',
 
     url(r'^files/(?P<path>.+)', 'vr.server.storages.serve_file', name='serve_file'),
 
-    url(r'^api/', include('api.urls')),
+    url(r'^api/', include('vr.server.api.urls')),
 
     # Ingredient CRUD
     url(r'^ingredient/$', login_required(views.ListConfigIngredient.as_view()),

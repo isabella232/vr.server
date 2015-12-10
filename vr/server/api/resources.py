@@ -56,7 +56,7 @@ class ReversionModelResource(ModelResource):
 
 
 class SquadResource(ReversionModelResource):
-    hosts = fields.ToManyField('api.resources.HostResource', 'hosts',
+    hosts = fields.ToManyField('vr.server.api.resources.HostResource', 'hosts',
                                full=True)
 
     class Meta:
@@ -79,7 +79,7 @@ v1.register(SquadResource())
 
 
 class IngredientResource(ReversionModelResource):
-    swarms = fields.ToManyField('api.resources.SwarmResource', 'swarms',
+    swarms = fields.ToManyField('vr.server.api.resources.SwarmResource', 'swarms',
                                 blank=True, null=True, readonly=True)
 
     class Meta:
@@ -131,7 +131,7 @@ v1.register(BuildPackResource())
 
 
 class BuildResource(ReversionModelResource):
-    app = fields.ToOneField('api.resources.AppResource', 'app')
+    app = fields.ToOneField('vr.server.api.resources.AppResource', 'app')
     class Meta:
         queryset = models.Build.objects.all().prefetch_related('app')
         resource_name = 'builds'
@@ -170,17 +170,17 @@ v1.register(BuildResource())
 
 
 class SwarmResource(ReversionModelResource):
-    app = fields.ToOneField('api.resources.AppResource', 'app')
-    squad = fields.ToOneField('api.resources.SquadResource', 'squad')
+    app = fields.ToOneField('vr.server.api.resources.AppResource', 'app')
+    squad = fields.ToOneField('vr.server.api.resources.SquadResource', 'squad')
 
     # Leave 'release' blank when you want to set 'version' to something new, and
     # the model will intelligently create a new release for you.
-    release = fields.ToOneField('api.resources.ReleaseResource', 'release',
+    release = fields.ToOneField('vr.server.api.resources.ReleaseResource', 'release',
                                 blank=True, null=True)
 
     shortname = fields.CharField('shortname')
     volumes = fields.ListField('volumes', null=True)
-    config_ingredients = fields.ToManyField('api.resources.IngredientResource',
+    config_ingredients = fields.ToManyField('vr.server.api.resources.IngredientResource',
                                             'config_ingredients')
     compiled_config = fields.DictField('get_config')
     compiled_env = fields.DictField('get_env')
@@ -271,7 +271,7 @@ v1.register(SwarmResource())
 
 
 class ReleaseResource(ReversionModelResource):
-    build = fields.ToOneField('api.resources.BuildResource', 'build')
+    build = fields.ToOneField('vr.server.api.resources.BuildResource', 'build')
     compiled_name = fields.CharField('get_name')
 
     class Meta:
@@ -315,7 +315,7 @@ v1.register(ReleaseResource())
 
 
 class TestResultResource(ModelResource):
-    testrun = fields.ToOneField('api.resources.TestRunResource', 'run',
+    testrun = fields.ToOneField('vr.server.api.resources.TestRunResource', 'run',
                                 related_name='tests')
 
     class Meta:
@@ -330,7 +330,7 @@ v1.register(TestResultResource())
 
 
 class TestRunResource(ModelResource):
-    testresults = fields.ToManyField('api.resources.TestResultResource',
+    testresults = fields.ToManyField('vr.server.api.resources.TestResultResource',
                                      'tests', full=True)
 
     class Meta:
@@ -346,7 +346,7 @@ v1.register(TestRunResource())
 
 
 class HostResource(ReversionModelResource):
-    squad = fields.ToOneField('api.resources.SquadResource', 'squad',
+    squad = fields.ToOneField('vr.server.api.resources.SquadResource', 'squad',
                               null=True, blank=True)
 
     class Meta:
@@ -371,7 +371,7 @@ v1.register(HostResource())
 
 
 class LogResource(ModelResource):
-    user = fields.ToOneField('api.resources.UserResource', 'user', full=True)
+    user = fields.ToOneField('vr.server.api.resources.UserResource', 'user', full=True)
 
     class Meta:
         queryset = models.DeploymentLogEntry.objects.all()
@@ -392,7 +392,7 @@ v1.register(LogResource())
 
 class UserResource(ModelResource):
     profile = fields.ToOneField(
-        'api.resources.ProfileResource', 'userprofile', full=True, null=True,
+        'vr.server.api.resources.ProfileResource', 'userprofile', full=True, null=True,
         blank=True)
     class Meta:
         queryset = User.objects.all()
@@ -411,10 +411,10 @@ v1.register(UserResource())
 
 class ProfileResource(ModelResource):
     default_dashboard = fields.ToOneField(
-        'api.resources.DashboardResource', 'default_dashboard', null=True,
+        'vr.server.api.resources.DashboardResource', 'default_dashboard', null=True,
         blank=True)
     quick_dashboards = fields.ToManyField(
-        'api.resources.DashboardResource', 'quick_dashboards', null=True,
+        'vr.server.api.resources.DashboardResource', 'quick_dashboards', null=True,
         blank=True)
 
     class Meta:
@@ -427,7 +427,7 @@ v1.register(ProfileResource())
 
 class DashboardResource(ReversionModelResource):
     apps = fields.ToManyField(
-        'api.resources.AppResource', 'apps', null=True, blank=True, full=True)
+        'vr.server.api.resources.AppResource', 'apps', null=True, blank=True, full=True)
     class Meta:
         queryset = models.Dashboard.objects.all()
         resource_name = 'dashboard'

@@ -20,11 +20,6 @@ import pymongo
 here = os.path.dirname(os.path.realpath(__file__))
 
 
-# Add the folder of vr.server to the sys path so that
-# the 'api.urls' package may be imported by Django.
-if here not in sys.path:
-    sys.path.insert(0, here)
-
 parentpath = os.path.dirname(here)
 
 
