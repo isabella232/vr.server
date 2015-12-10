@@ -30,7 +30,6 @@ setup(
         'gevent-psycopg2==0.0.3',
         'gunicorn==0.17.2',
         'mercurial>=2.6.1',
-        'paramiko>=1.8.0,<2.0',
         'psycopg2>=2.4.4,<2.5',
         'pymongo>=2.5.2,<4',
         'redis>=2.6.2,<3',
