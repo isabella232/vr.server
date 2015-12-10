@@ -51,6 +51,9 @@ setup(
             'vr_migrate = vr.server.commands:run_migrations',
         ],
     },
+    dependency_links=[
+        'https://github.com/jaraco/fabric/archive/mathiasertl.zip#egg=Fabric3-1.10.2',
+    ],
     description=("Velociraptor's Django and Celery components."),
     setup_requires=[
     ] + pytest_runner,
