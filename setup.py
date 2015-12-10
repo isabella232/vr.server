@@ -25,7 +25,7 @@ setup(
         'django-redis-cache==0.9.5',
         'django-reversion==1.9.3',
         'django-tastypie==0.12.2',
-        'Fabric==1.8.0',
+        'Fabric3',
         'gevent>=1.1rc1,<2',
         'gevent-psycopg2==0.0.3',
         'gunicorn==0.17.2',
