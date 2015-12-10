@@ -1,6 +1,5 @@
 import base64
 import json
-import unittest
 
 import pytest
 from django.test.client import Client
@@ -79,9 +78,9 @@ def test_config_xmlrpc_marshaling(postgresql):
 
 
 @pytest.mark.usefixtures('postgresql')
-class TestSaveSwarms(unittest.TestCase):
+class TestSaveSwarms:
 
-    def setUp(self):
+    def setup_method(self, method):
         self.app = models.App(
             name=randchars(),
             repo_url=randchars(),
@@ -164,7 +163,7 @@ class TestSaveSwarms(unittest.TestCase):
         saved = models.Swarm.objects.get(id=self.swarm.id)
         assert saved.config_name == 'test_config_name'
 
-    def test_release(self):
+    def test_release(self, redis):
         u = get_user()
         c = BasicAuthClient(u.username, 'password123')
         url = get_api_url('releases', 'api_deploy_release', pk=self.release.id)
