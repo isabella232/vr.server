@@ -25,7 +25,7 @@ setup(
         'django-redis-cache==0.9.5',
         'django-reversion==1.9.3',
         'django-tastypie==0.12.2',
-        'Fabric3',
+        'Fabric3bis',
         'gevent>=1.1rc1,<2',
         'psycogreen',
         'gunicorn==0.17.2',
@@ -54,9 +54,6 @@ setup(
             'vr_migrate = vr.server.commands:run_migrations',
         ],
     },
-    dependency_links=[
-        'https://github.com/jaraco/fabric/archive/mathiasertl.zip#egg=Fabric3-1.10.2',
-    ],
     description=("Velociraptor's Django and Celery components."),
     setup_requires=[
     ] + pytest_runner,
