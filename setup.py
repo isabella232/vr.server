@@ -25,11 +25,10 @@ setup(
         'django-redis-cache==0.9.5',
         'django-reversion==1.9.3',
         'django-tastypie==0.12.2',
-        'Fabric3',
+        'Fabric3bis',
         'gevent>=1.1rc1,<2',
-        'gevent-psycopg2==0.0.3',
+        'psycogreen',
         'gunicorn==0.17.2',
-        'mercurial>=2.6.1',
         'psycopg2>=2.4.4,<2.5',
         'pymongo>=2.5.2,<4',
         'redis>=2.6.2,<3',
@@ -43,6 +42,11 @@ setup(
         'vr.imager>=1.2',
         'django-yamlfield',
     ],
+    extras_require={
+        ':python_version=="2.7"': [
+            'mercurial>=2.6.1',
+        ],
+    },
     entry_points = {
         'console_scripts': [
             'vr_worker = vr.server.commands:start_celery',

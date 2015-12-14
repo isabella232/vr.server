@@ -1,8 +1,8 @@
 from django.conf.urls import patterns, url, include
 
-from api.resources import v1
+from .resources import v1
 
-urlpatterns = patterns('api.views',
+urlpatterns = patterns('vr.server.api.views',
 
     # SSE streams
     url(r'^streams/events/', 'event_stream', name='api_events'),
