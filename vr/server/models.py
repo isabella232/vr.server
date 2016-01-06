@@ -13,12 +13,8 @@ from django.core.exceptions import ValidationError
 from django.contrib.auth.models import User
 from django.conf import settings
 from django.utils import timezone
-import yaml
 import redis
 import reversion
-
-import reversion
-from reversion.models import Version
 
 from vr.server.fields import YAMLDictField, YAMLListField
 from vr.common import repo, models as common_models
