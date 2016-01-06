@@ -807,7 +807,6 @@ class TestRun(models.Model):
     def __unicode__(self):
         return self.start.isoformat()
 
-    # TODO: convert this to a normal method (after first finding all callers)
     @property
     def results(self):
         """
