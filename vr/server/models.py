@@ -617,9 +617,9 @@ class Swarm(models.Model):
 
         def is_mine(proc):
             return (
-                p.config_name == self.config_name and
-                p.proc_name == self.proc_name and
-                p.app_name == self.app.name
+                proc.config_name == self.config_name and
+                proc.proc_name == self.proc_name and
+                proc.app_name == self.app.name
             )
 
         return [p for p in procs if is_mine(p)]
