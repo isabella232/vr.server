@@ -692,8 +692,8 @@ class Swarm(models.Model):
 
         def get_current_build(app, os_image, tag):
             """
-            Given an app, OS image,  and a tag, look for a build that matches
-            all three, and was successfully built (or is currently building).
+            Given an app, OS image, and a tag, look for a build that matches
+            all three and was successfully built (or is currently building).
             If not found, return None.
             """
             # check if there's a build for the given app, OS image, and tag
