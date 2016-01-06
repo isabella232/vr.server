@@ -7,18 +7,17 @@ import xmlrpclib
 
 import six
 import yaml
-
+import redis
+import reversion
 from django.db import models
 from django.core.exceptions import ValidationError
 from django.contrib.auth.models import User
 from django.conf import settings
 from django.utils import timezone
-import redis
-import reversion
-
-from vr.server.fields import YAMLDictField, YAMLListField
 from vr.common import repo, models as common_models
 from vr.common.utils import parse_redis_url
+
+from vr.server.fields import YAMLDictField, YAMLListField
 
 log = logging.getLogger(__name__)
 
