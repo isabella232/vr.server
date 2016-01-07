@@ -641,6 +641,7 @@ def uptest_host(hostname, test_run_id=None):
     Given a hostname, look up all its procs and then run uptests on them.
     """
 
+    print('Uptest host {}'.format(hostname))
     host = Host.objects.get(name=hostname)
     procs = host.get_procs()
     _, results = uptest_host_procs(hostname, [p.name for p in procs])
@@ -820,6 +821,7 @@ def swarm_delete_proc(swarm_id, hostname, procname, port, swarm_trace_id=None):
 
 @task
 def uptest_all_procs():
+    print('Uptest all procs')
     # Fan out a task for each active host
     # callback post_uptest_all_procs at the end
     hosts = Host.objects.filter(active=True)
