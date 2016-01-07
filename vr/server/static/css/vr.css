@@ -729,3 +729,7 @@ th.rowlabel {
   line-height: 15px;
 }
 
+footer .container {
+    width: 100%;
+    font-size: smaller;
+}

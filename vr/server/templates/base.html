@@ -102,7 +102,6 @@
                 </ul>
             </li>
             <li class="{% current_nav log_url %}"><a href="{{ log_url }}">Log</a></li>
-
           </ul>
           <p class="navbar-text pull-right">
           {% if request.user.is_authenticated %}
@@ -130,6 +129,11 @@
         {% block content %}
         {% endblock content %}
     </div>
+    <footer class="footer">
+      <div class="container">
+        <p class="text-muted pull-right">Version {{ version }}</p>
+      </div>
+    </footer>
     <script src="{% static 'js/jquery.min.js' %}"></script>
     <script src="{% static 'js/misc.js' %}"></script>
     <script src="{% static 'js/underscore-min.js' %}"></script>
