@@ -130,6 +130,11 @@ CELERYBEAT_SCHEDULE = {
     },
 }
 
+CELERY_ROUTES = {
+    'vr.server.tasks.uptest_all_procs': {'queue': 'scheduled_uptests'},
+    'vr.server.tasks.uptest_host': {'queue': 'scheduled_uptests'}
+}
+
 SUPERVISOR_PORT = 9001
 SUPERVISOR_USERNAME = 'vagrant'
 SUPERVISOR_PASSWORD = 'vagrant'
