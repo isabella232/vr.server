@@ -35,3 +35,5 @@ celerybeat-schedule
 celerybeat.pid
 TODO
 TAGS
+MongoDBInstance
+.cache/

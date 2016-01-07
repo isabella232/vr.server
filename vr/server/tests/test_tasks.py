@@ -1,14 +1,17 @@
+# pylint: disable=attribute-defined-outside-init,too-many-instance-attributes
+# pylint: disable=unused-argument,superfluous-parens,no-self-use
+# pylint: disable=protected-access
 import os.path
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import MagicMock, Mock, patch, call
 
 import pytest
 
 from vr.common.utils import randchars
-from vr.server.models import App, Build, BuildPack, OSImage
+from vr.server.models import App, Build, BuildPack, OSImage, Host
 from vr.server.settings import MEDIA_URL
 from vr.server.tasks import get_build_parameters
 
-from vr.server import tasks
+from vr.server import tasks, remote
 
 
 @pytest.mark.usefixtures('postgresql')
@@ -148,3 +151,83 @@ class TestSwarmReleaseBranches(object):
         #
         # assert len(swarm_deploy_to_host.subtask.mock_calls) == 2
         assert swarm_deploy_to_host.subtask.called
+
+
+@pytest.mark.usefixtures('postgresql')
+class TestScooper(object):
+
+    def setup(self):
+        self.host = Host(
+            name='localhost',
+            active=True
+            # squad
+        )
+        self.host.save()
+
+    def teardown(self):
+        self.host.delete()
+
+    @patch.object(tasks, '_clean_host')
+    def test_scooper(self, mock_clean_host):
+        tasks.scooper()
+        mock_clean_host.apply_async.assert_called_once_with(
+            (self.host.name, ), expires=120)
+
+    @patch.object(remote, 'files')
+    @patch.object(remote, 'get_procs')
+    @patch.object(remote, 'get_builds')
+    @patch.object(remote, 'delete_build')
+    def test_clean_host_no_unused(
+            self, mock_delete_build, mock_get_builds,
+            mock_get_procs, mock_files):
+        mock_get_builds.return_value = [
+            'app-build1',
+            'app-build2',
+        ]
+        mock_get_procs.return_value = [
+            'app-build1-proc1',
+            'app-build1-proc2',
+            'app-build2-proc1',
+        ]
+        mock_files.exists.return_value = True
+        tasks._clean_host(self.host.name)
+        assert not mock_delete_build.called
+
+    @patch.object(remote, 'files')
+    @patch.object(remote, 'get_procs')
+    @patch.object(remote, 'get_builds')
+    @patch.object(remote, 'delete_build')
+    def test_clean_host(
+            self, mock_delete_build, mock_get_builds,
+            mock_get_procs, mock_files):
+        mock_get_builds.return_value = [
+            'app-build1',
+            'app-build2',
+        ]
+        mock_get_procs.return_value = [
+            # app-build1 is unused
+            'app-build2-proc1',
+        ]
+        mock_files.exists.return_value = True
+        tasks._clean_host(self.host.name)
+        mock_delete_build.assert_called_once_with('app-build1')
+
+    @patch.object(remote, 'get_build_procs')
+    @patch.object(remote, 'delete_proc')
+    @patch.object(remote, 'sudo')
+    def test_delete_build(
+            self, mock_sudo, mock_delete_proc, mock_get_build_procs):
+        mock_get_build_procs.return_value = [
+            'app-build-proc1',
+            'app-build-proc2',
+        ]
+
+        with pytest.raises(SystemExit):
+            remote.delete_build('app-build', cascade=False)
+
+        remote.delete_build('app-build', cascade=True)
+        mock_delete_proc.assert_has_calls([
+            call(None, 'app-build-proc1'),
+            call(None, 'app-build-proc2'),
+        ])
+        mock_sudo.assert_called_once_with('rm -rf /apps/builds/app-build')

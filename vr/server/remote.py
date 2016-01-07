@@ -260,7 +260,7 @@ def delete_build(build, cascade=False):
                              "and cascade=False" % build)
         else:
             for proc in build_procs:
-                delete_proc(proc)
+                delete_proc(env.host_string, proc)
     sudo('rm -rf %s/%s' % (BUILDS_ROOT, build))
 
 
