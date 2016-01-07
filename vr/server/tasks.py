@@ -863,6 +863,7 @@ def _clean_host(hostname):
 
     with always_disconnect():
         remote.clean_builds_folders()
+        remote.clean_images_folders()
 
 
 @task

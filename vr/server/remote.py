@@ -19,12 +19,14 @@ from fabric.contrib import files
 from fabric.context_managers import cd
 
 from vr.common.models import ProcData
-from vr.common.paths import (BUILDS_ROOT, PROCS_ROOT, get_proc_path,
-                             get_container_name, get_container_path)
+from vr.common.paths import (
+    BUILDS_ROOT, IMAGES_ROOT, PROCS_ROOT, get_proc_path,
+    get_container_name, get_container_path)
 from vr.common.utils import randchars
 from vr.builder.main import BuildData
 
-from vr.server.models import Host
+from vr.server.models import Host, Build, App
+
 
 def get_template(name):
     return pkg_resources.resource_filename('vr.common', 'templates/' + name)
@@ -264,19 +266,57 @@ def delete_build(build, cascade=False):
     sudo('rm -rf %s/%s' % (BUILDS_ROOT, build))
 
 
+def _get_builds_in_use():
+    procs = get_procs()
+    builds_in_use = set([proc_to_build(p) for p in procs])
+    return builds_in_use
+
+
 def clean_builds_folders():
     """
     Check in builds_root for builds not being used by releases.
     """
 
+    print('Cleaning builds')
     if files.exists(BUILDS_ROOT, use_sudo=True):
-        procs = get_procs()
-        builds = set(get_builds())
-
-        builds_in_use = set([proc_to_build(p) for p in procs])
-        unused_builds = builds.difference(builds_in_use)
+        builds_in_use = _get_builds_in_use()
+        all_builds = set(get_builds())
+        unused_builds = all_builds.difference(builds_in_use)
         for build in unused_builds:
             delete_build(build)
+
+
+def clean_images_folders():
+    """
+    Check in images_root for images not being used by releases.
+    """
+
+    print('Cleaning images')
+    try:
+        all_images = set(get_images())
+
+        builds_in_use = _get_builds_in_use()
+        images_in_use = set()
+        for app_tag in builds_in_use:
+            app_name, tag = app_tag.split('-', 1)
+            try:
+                app = App.objects.get(name=app_name)
+            except App.DoesNotExist:
+                print('Unknown image {}'.format(app_name))
+                continue
+
+            for b in Build.objects.filter(
+                app=app,
+                tag=tag,
+            ):
+                images_in_use.add(b.os_image.name)
+
+        unused_images = all_images.difference(images_in_use)
+        print('Removing images {}'.format(unused_images))
+        # TODO actually do remove images
+
+    except Exception as exc:
+        print('Failed to remove images: {}'.format(exc))
 
 
 @task
@@ -295,6 +335,14 @@ def get_builds():
     Return the names of all the builds on the host.
     """
     return sudo('ls -1 %s' % BUILDS_ROOT).split()
+
+
+@task
+def get_images():
+    """
+    Return the names of all the images on the host.
+    """
+    return sudo('ls -1 %s' % IMAGES_ROOT).split()
 
 
 @contextlib.contextmanager
