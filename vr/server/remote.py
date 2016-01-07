@@ -309,7 +309,8 @@ def clean_images_folders():
                 app=app,
                 tag=tag,
             ):
-                images_in_use.add(b.os_image.name)
+                if b.os_image:
+                    images_in_use.add(b.os_image.name)
 
         unused_images = all_images.difference(images_in_use)
         print('Removing images {}'.format(unused_images))
