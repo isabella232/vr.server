@@ -153,19 +153,20 @@ class BuildResource(ReversionModelResource):
 
     def do_build(self, request, **kwargs):
 
-        if request.method == 'POST':
-            try:
-                build = models.Build.objects.get(id=int(kwargs['pk']))
-            except models.Build.DoesNotExist:
-                return HttpResponseNotFound()
+        if request.method != 'POST':
+            return HttpResponseNotAllowed(["POST"])
 
-            do_build(build, request.user)
+        try:
+            build = models.Build.objects.get(id=int(kwargs['pk']))
+        except models.Build.DoesNotExist:
+            return HttpResponseNotFound()
 
-            # Status 202 means "The request has been accepted for processing, but
-            # the processing has not been completed."
-            return HttpResponse(status=202)
+        do_build(build, request.user)
 
-        return HttpResponseNotAllowed(["POST"])
+        # Status 202 means "The request has been accepted for processing, but
+        # the processing has not been completed."
+        return HttpResponse(status=202)
+
 v1.register(BuildResource())
 
 

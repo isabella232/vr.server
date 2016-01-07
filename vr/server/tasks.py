@@ -284,13 +284,13 @@ def _do_build(build, build_yaml):
             build.buildpack_url = build_result.buildpack_url
             build.buildpack_version = build_result.buildpack_version
             build.status = 'success'
-            try_get_compile_log(build, raise_on_error=True)
+            try_get_compile_log(build)
 
         except:
             logger.exception('Build failed')
             build.status = 'failed'
             # Don't raise, or we'll mask the real error
-            try_get_compile_log(build, raise_on_error=False)
+            try_get_compile_log(build, on_exc='pass')
             raise
 
         finally:
@@ -301,16 +301,17 @@ def _do_build(build, build_yaml):
     send_event(str(build), msg, tags=['build', 'success'])
 
 
-def try_get_compile_log(build, raise_on_error=True):
-    '''Try to get the compile.log for the build and save it. If we get
-    an error, we can decide to ignore it.'''
+def try_get_compile_log(build, on_exc='raise'):
+    '''
+    Try to get the compile.log for the build and save it.
+    '''
     try:
         # grab and store the compile log.
         with open('compile.log', 'rb') as f:
             logname = 'builds/build_%s_compile.log' % build.id
             logger.info("logname: " + logname)
             compile_contents = f.read()
-            
+
             # Append the contents of lxcdebug.log if it's present.
             if os.path.isfile('lxcdebug.log'):
                 with open('lxcdebug.log', 'rb') as fl:
@@ -324,8 +325,7 @@ def try_get_compile_log(build, raise_on_error=True):
     except Exception as exc:
         logger.error(
             'Could not retrieve compile.log for %s: %r', build, exc)
-        if raise_on_error:
-            raise
+        exec(on_exc)
 
 
 def get_build_parameters(build):

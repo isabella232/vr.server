@@ -7,22 +7,17 @@ import xmlrpclib
 
 import six
 import yaml
-
+import redis
+import reversion
 from django.db import models
 from django.core.exceptions import ValidationError
 from django.contrib.auth.models import User
 from django.conf import settings
 from django.utils import timezone
-import yaml
-import redis
-import reversion
-
-import reversion
-from reversion.models import Version
-
-from vr.server.fields import YAMLDictField, YAMLListField
 from vr.common import repo, models as common_models
 from vr.common.utils import parse_redis_url
+
+from vr.server.fields import YAMLDictField, YAMLListField
 
 log = logging.getLogger(__name__)
 
@@ -617,9 +612,9 @@ class Swarm(models.Model):
 
         def is_mine(proc):
             return (
-                p.config_name == self.config_name and
-                p.proc_name == self.proc_name and
-                p.app_name == self.app.name
+                proc.config_name == self.config_name and
+                proc.proc_name == self.proc_name and
+                proc.app_name == self.app.name
             )
 
         return [p for p in procs if is_mine(p)]
@@ -697,8 +692,8 @@ class Swarm(models.Model):
 
         def get_current_build(app, os_image, tag):
             """
-            Given an app, OS image,  and a tag, look for a build that matches
-            all three, and was successfully built (or is currently building).
+            Given an app, OS image, and a tag, look for a build that matches
+            all three and was successfully built (or is currently building).
             If not found, return None.
             """
             # check if there's a build for the given app, OS image, and tag
@@ -812,7 +807,6 @@ class TestRun(models.Model):
     def __unicode__(self):
         return self.start.isoformat()
 
-    # TODO: convert this to a normal method (after first finding all callers)
     @property
     def results(self):
         """
