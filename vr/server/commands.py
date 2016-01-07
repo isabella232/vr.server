@@ -1,3 +1,4 @@
+import argparse
 import os
 import shlex
 
@@ -9,7 +10,29 @@ from django.core import management
 
 def start_celery():
     setup()
-    management.call_command('celeryd')
+
+    parser = argparse.ArgumentParser(description='Start the worker daemon')
+
+    parser.add_argument('--queues', default=None,
+                        help='limit this instance to the given queues')
+
+    parser.add_argument('--exclude-queues', default=None,
+                        help='queues to exclude in this instance')
+
+    kwargs = dict()
+    args = parser.parse_args()
+
+    if args.queues is not None:
+        kwargs['queues'] = args.queues
+    elif 'VR_QUEUES' in os.environ:
+        kwargs['queues'] = os.getenv('VR_QUEUES')
+
+    if args.exclude_queues is not None:
+        kwargs['exclude-queues'] = args.exclude_queues
+    elif 'VR_EXCLUDE_QUEUES' in os.environ:
+        kwargs['exclude-queues'] = os.getenv('VR_EXCLUDE_QUEUES')
+
+    management.call_command('celeryd', **kwargs)
 
 def start_celerybeat():
     setup()
