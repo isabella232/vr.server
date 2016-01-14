@@ -17,7 +17,15 @@ def sh(cmd):
     subprocess.call(shlex.split(cmd), stderr=subprocess.STDOUT)
 
 
+_DB_SETUP = False
+
+
 def dbsetup(port=None):
+    global _DB_SETUP
+    # Initialize DB only once per test run
+    if _DB_SETUP:
+        return
+    _DB_SETUP = True
     os.chdir(here)
     sql = os.path.join(here, 'dbsetup.sql')
     port = ' -p {port} -h localhost'.format(**locals()) if port else ''
