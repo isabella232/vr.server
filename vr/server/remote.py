@@ -9,7 +9,9 @@ import traceback
 import posixpath
 import pkg_resources
 import json
+import os
 import re
+import time
 import contextlib
 
 import yaml
@@ -26,6 +28,11 @@ from vr.common.utils import randchars
 from vr.builder.main import BuildData
 
 from vr.server.models import Host, Build, App
+
+
+# How many seconds ago must an image be accessed, before being removed
+# from host?
+MAX_IMAGE_AGE_SECS = 90 * 24 * 60 * 60
 
 
 def get_template(name):
@@ -286,6 +293,22 @@ def clean_builds_folders():
             delete_build(build)
 
 
+def _is_image_obsolete(img_path):
+    if not os.path.exists(img_path):
+        return False
+    now = time.time()
+    atime = os.stat(img_path).st_atime
+    return now - atime > MAX_IMAGE_AGE_SECS
+
+
+def _rm_image(img_path):
+    assert img_path, 'Empty img_path'
+    assert not img_path == '/', 'img_path is root!'
+    print('Removing image {}'.format(img_path))
+    # Be careful!
+    sudo('rm -rf %s' + img_path)
+
+
 def clean_images_folders():
     """
     Check in images_root for images not being used by releases.
@@ -312,9 +335,18 @@ def clean_images_folders():
                 if b.os_image:
                     images_in_use.add(b.os_image.name)
 
+        # Set of unused images (dirnames wrt IMAGES_ROOT)
         unused_images = all_images.difference(images_in_use)
-        print('Removing images {}'.format(unused_images))
-        # TODO actually do remove images
+
+        # Get the ones that have not been used for a while
+        obsolete_image_paths = set()
+        for img in unused_images:
+            img_path = os.path.join(IMAGES_ROOT, img)
+            if _is_image_obsolete(img_path):
+                obsolete_image_paths.add(img_path)
+
+        for img_path in obsolete_image_paths:
+            _rm_image(img_path)
 
     except Exception as exc:
         print('Failed to remove images: {}'.format(exc))

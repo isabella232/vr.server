@@ -3,6 +3,9 @@
 # pylint: disable=protected-access
 import os.path
 from unittest.mock import MagicMock, Mock, patch, call
+import tempfile
+from path import path
+import time
 
 import pytest
 
@@ -164,8 +167,13 @@ class TestScooper(object):
         )
         self.host.save()
 
+        # Modify IMAGES_ROOT and restore it after test
+        self._img_root = remote.IMAGES_ROOT
+        remote.IMAGES_ROOT = tempfile.gettempdir()
+
     def teardown(self):
         self.host.delete()
+        remote.IMAGES_ROOT = self._img_root
 
     @patch.object(tasks, '_clean_host')
     def test_scooper(self, mock_clean_host):
@@ -227,7 +235,37 @@ class TestScooper(object):
 
         remote.delete_build('app-build', cascade=True)
         mock_delete_proc.assert_has_calls([
-            call(None, 'app-build-proc1'),
-            call(None, 'app-build-proc2'),
+            call(remote.env.host_string, 'app-build-proc1'),
+            call(remote.env.host_string, 'app-build-proc2'),
         ])
         mock_sudo.assert_called_once_with('rm -rf /apps/builds/app-build')
+
+    @patch.object(remote, 'get_images')
+    @patch.object(remote, '_get_builds_in_use')
+    @patch.object(remote, '_rm_image')
+    def test_clean_images_folders(
+            self, mock_rm_image, mock_get_builds_in_use, mock_get_images):
+        mock_get_images.return_value = [
+            'recent_img',
+            'non_existing_img',
+            'old_img',
+        ]
+
+        # Make sure img is recent
+        atime = time.time() - remote.MAX_IMAGE_AGE_SECS + 1
+        (path(remote.IMAGES_ROOT) / 'recent_img').mkdir_p().utime(
+            (atime, atime))
+
+        # Make sure img does not exist
+        (path(remote.IMAGES_ROOT) / 'non_existing_img').rmtree_p()
+
+        # Make sure img is old
+        atime = time.time() - remote.MAX_IMAGE_AGE_SECS - 1
+        old_img_path = (
+            path(remote.IMAGES_ROOT) / 'old_img'
+        ).mkdir_p().utime((atime, atime))
+
+        mock_get_builds_in_use.return_value = []
+
+        remote.clean_images_folders()
+        mock_rm_image.assert_called_once_with(old_img_path)
