@@ -138,7 +138,7 @@ class BuildPackResource(ReversionModelResource):
 @register_instance
 class StackResource(ReversionModelResource):
     class Meta:
-        queryset = models.Stack.objects.all()
+        queryset = models.OSStack.objects.all()
         resource_name = 'stacks'
         filtering = {
             'id': ALL,
