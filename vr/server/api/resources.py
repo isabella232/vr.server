@@ -31,6 +31,12 @@ from vr.server.api.views import auth_required
 
 v1 = Api(api_name='v1')
 
+
+def register_instance(cls):
+    v1.register(cls())
+    return cls
+
+
 class ReversionModelResource(ModelResource):
     """ Add django-reversion calls to methods that write to the db.
     """
@@ -55,6 +61,7 @@ class ReversionModelResource(ModelResource):
             return super(ReversionModelResource, self).obj_delete(bundle, **kwargs)
 
 
+@register_instance
 class SquadResource(ReversionModelResource):
     hosts = fields.ToManyField('vr.server.api.resources.HostResource', 'hosts',
                                full=True)
@@ -73,11 +80,7 @@ class SquadResource(ReversionModelResource):
         detail_uri_name = 'name'
 
 
-
-
-v1.register(SquadResource())
-
-
+@register_instance
 class IngredientResource(ReversionModelResource):
     swarms = fields.ToManyField('vr.server.api.resources.SwarmResource', 'swarms',
                                 blank=True, null=True, readonly=True)
@@ -93,9 +96,9 @@ class IngredientResource(ReversionModelResource):
             auth.SessionAuthentication(),
         )
         authorization = Authorization()
-v1.register(IngredientResource())
 
 
+@register_instance
 class AppResource(ReversionModelResource):
 
     class Meta:
@@ -111,9 +114,9 @@ class AppResource(ReversionModelResource):
         )
         authorization = Authorization()
         detail_uri_name = 'name'
-v1.register(AppResource())
 
 
+@register_instance
 class BuildPackResource(ReversionModelResource):
     class Meta:
         queryset = models.BuildPack.objects.all()
@@ -127,9 +130,9 @@ class BuildPackResource(ReversionModelResource):
             auth.SessionAuthentication(),
         )
         authorization = Authorization()
-v1.register(BuildPackResource())
 
 
+@register_instance
 class StackResource(ReversionModelResource):
     class Meta:
         queryset = models.Stack.objects.all()
@@ -144,9 +147,9 @@ class StackResource(ReversionModelResource):
         )
         authorization = Authorization()
         detail_uri_name = 'name'
-v1.register(StackResource())
 
 
+@register_instance
 class BuildResource(ReversionModelResource):
     app = fields.ToOneField('vr.server.api.resources.AppResource', 'app')
     class Meta:
@@ -184,9 +187,8 @@ class BuildResource(ReversionModelResource):
         # the processing has not been completed."
         return HttpResponse(status=202)
 
-v1.register(BuildResource())
 
-
+@register_instance
 class SwarmResource(ReversionModelResource):
     app = fields.ToOneField('vr.server.api.resources.AppResource', 'app')
     squad = fields.ToOneField('vr.server.api.resources.SquadResource', 'squad')
@@ -285,9 +287,9 @@ class SwarmResource(ReversionModelResource):
             base_object_list = base_object_list.filter(pool=pool)
 
         return base_object_list
-v1.register(SwarmResource())
 
 
+@register_instance
 class ReleaseResource(ReversionModelResource):
     build = fields.ToOneField('vr.server.api.resources.BuildResource', 'build')
     compiled_name = fields.CharField('get_name')
@@ -329,9 +331,8 @@ class ReleaseResource(ReversionModelResource):
         # the processing has not been completed."
         return HttpResponse(status=202)
 
-v1.register(ReleaseResource())
 
-
+@register_instance
 class TestResultResource(ModelResource):
     testrun = fields.ToOneField('vr.server.api.resources.TestRunResource', 'run',
                                 related_name='tests')
@@ -344,9 +345,9 @@ class TestResultResource(ModelResource):
             auth.SessionAuthentication(),
         )
         authorization = Authorization()
-v1.register(TestResultResource())
 
 
+@register_instance
 class TestRunResource(ModelResource):
     testresults = fields.ToManyField('vr.server.api.resources.TestResultResource',
                                      'tests', full=True)
@@ -360,9 +361,9 @@ class TestRunResource(ModelResource):
             auth.SessionAuthentication(),
         )
         authorization = Authorization()
-v1.register(TestRunResource())
 
 
+@register_instance
 class HostResource(ReversionModelResource):
     squad = fields.ToOneField('vr.server.api.resources.SquadResource', 'squad',
                               null=True, blank=True)
@@ -385,9 +386,9 @@ class HostResource(ReversionModelResource):
         bundle.data['procs'] = [p.as_dict() for p in
                                 bundle.obj.get_procs(check_cache=True)]
         return bundle
-v1.register(HostResource())
 
 
+@register_instance
 class LogResource(ModelResource):
     user = fields.ToOneField('vr.server.api.resources.UserResource', 'user', full=True)
 
@@ -405,9 +406,9 @@ class LogResource(ModelResource):
             auth.SessionAuthentication(),
         )
         authorization = Authorization()
-v1.register(LogResource())
 
 
+@register_instance
 class UserResource(ModelResource):
     profile = fields.ToOneField(
         'vr.server.api.resources.ProfileResource', 'userprofile', full=True, null=True,
@@ -424,9 +425,9 @@ class UserResource(ModelResource):
             auth.SessionAuthentication(),
         )
         authorization = Authorization()
-v1.register(UserResource())
 
 
+@register_instance
 class ProfileResource(ModelResource):
     default_dashboard = fields.ToOneField(
         'vr.server.api.resources.DashboardResource', 'default_dashboard', null=True,
@@ -440,9 +441,8 @@ class ProfileResource(ModelResource):
         resource_name = 'profile'
         authorization = Authorization()
 
-v1.register(ProfileResource())
 
-
+@register_instance
 class DashboardResource(ReversionModelResource):
     apps = fields.ToManyField(
         'vr.server.api.resources.AppResource', 'apps', null=True, blank=True, full=True)
@@ -450,4 +450,3 @@ class DashboardResource(ReversionModelResource):
         queryset = models.Dashboard.objects.all()
         resource_name = 'dashboard'
         authorization = Authorization()
-v1.register(DashboardResource())
