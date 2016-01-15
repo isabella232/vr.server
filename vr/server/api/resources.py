@@ -130,6 +130,23 @@ class BuildPackResource(ReversionModelResource):
 v1.register(BuildPackResource())
 
 
+class StackResource(ReversionModelResource):
+    class Meta:
+        queryset = models.Stack.objects.all()
+        resource_name = 'stacks'
+        filtering = {
+            'id': ALL,
+            'name': ALL,
+        }
+        authentication = auth.MultiAuthentication(
+            auth.BasicAuthentication(),
+            auth.SessionAuthentication(),
+        )
+        authorization = Authorization()
+        detail_uri_name = 'name'
+v1.register(StackResource())
+
+
 class BuildResource(ReversionModelResource):
     app = fields.ToOneField('vr.server.api.resources.AppResource', 'app')
     class Meta:
