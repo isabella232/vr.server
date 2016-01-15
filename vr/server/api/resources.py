@@ -100,13 +100,16 @@ class IngredientResource(ReversionModelResource):
 
 @register_instance
 class AppResource(ReversionModelResource):
-
+    buildpack = fields.ToOneField('vr.server.api.resources.BuildPackResource', 'buildpack')
+    stack = fields.ToOneField('vr.server.api.resources.StackResource', 'stack')
     class Meta:
-        queryset = models.App.objects.all()
+        queryset = models.App.objects.all().prefetch_related('buildpack', 'stack')
         resource_name = 'apps'
         filtering = {
             'id': ALL,
             'name': ALL,
+            'buildpack': ALL_WITH_RELATIONS,
+            'stack': ALL_WITH_RELATIONS,
         }
         authentication = auth.MultiAuthentication(
             auth.BasicAuthentication(),
