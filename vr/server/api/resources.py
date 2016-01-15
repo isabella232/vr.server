@@ -100,8 +100,10 @@ class IngredientResource(ReversionModelResource):
 
 @register_instance
 class AppResource(ReversionModelResource):
-    buildpack = fields.ToOneField('vr.server.api.resources.BuildPackResource', 'buildpack')
-    stack = fields.ToOneField('vr.server.api.resources.StackResource', 'stack')
+    buildpack = fields.ToOneField('vr.server.api.resources.BuildPackResource',
+        'buildpack', null=True)
+    stack = fields.ToOneField('vr.server.api.resources.StackResource',
+        'stack', null=True)
     class Meta:
         queryset = models.App.objects.all().prefetch_related('buildpack', 'stack')
         resource_name = 'apps'
