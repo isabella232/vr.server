@@ -60,6 +60,7 @@ class BuildForm(forms.Form):
         super(BuildForm, self).__init__(*args, **kwargs)
         choices = [(a.id, a) for a in models.App.objects.all()]
         self.fields['app_id'].choices = choices
+        self.fields['app_id'].widget.attrs.update(autofocus='')
 
 
 class BuildUploadForm(forms.ModelForm):
