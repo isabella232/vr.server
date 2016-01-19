@@ -51,7 +51,6 @@ class ConfigIngredientForm(forms.ModelForm):
         return env_yaml
 
 
-
 class BuildForm(forms.Form):
 
     app_id = forms.ChoiceField(choices=[], label='App')
@@ -59,8 +58,8 @@ class BuildForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         super(BuildForm, self).__init__(*args, **kwargs)
-        self.fields['app_id'].choices = [(a.id, a) for a in
-                                         models.App.objects.all()]
+        choices = [(a.id, a) for a in models.App.objects.all()]
+        self.fields['app_id'].choices = choices
 
 
 class BuildUploadForm(forms.ModelForm):
