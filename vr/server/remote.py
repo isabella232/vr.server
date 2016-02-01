@@ -188,7 +188,7 @@ def run_uptests(hostname, proc_name, user='nobody'):
         # incorrect password is supplied and abort_on_prompts is True.
         return [{
             'Name': None,
-            'Output': error.out,
+            'Output': repr(error.out),
             'Passed': False,
         }]
 
