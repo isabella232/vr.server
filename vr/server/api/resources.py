@@ -120,6 +120,25 @@ class AppResource(ReversionModelResource):
         authorization = Authorization()
         detail_uri_name = 'name'
 
+    def dehydrate(self, bundle):
+        canon_url = self.resolve_url(bundle.data['repo_url'])
+        bundle.data['resolved_url'] = canon_url or bundle.data['repo_url']
+        return bundle
+
+    def resolve_url(self, spec_url):
+        """
+        Assuming Mercurial and assuming an appropriate plugin is
+        installed, resolve the specified URL to a canonical URL.
+
+        Failsafe - never raises an exception, but returns None
+        """
+        cmd = ['hg', 'expand-scheme', spec_url]
+        try:
+            import subprocess
+            return subprocess.check_output(cmd).strip()
+        except Exception:
+            pass
+
 
 @register_instance
 class BuildPackResource(ReversionModelResource):

@@ -177,3 +177,44 @@ class TestSaveSwarms:
                 'port': 'port',
             }))
         assert response.status_code == 202
+
+
+class TestAppURL:
+
+    @pytest.fixture
+    def simple_app(self, postgresql):
+        app = models.App(
+            name=randchars(),
+            repo_url=randchars(),
+            repo_type=randchars(),
+        )
+        app.save()
+        return app
+
+    @pytest.fixture
+    def client(self):
+        user = get_user()
+        client = Client()
+        data = dict(username=user.username, password='password123')
+        client.post(reverse('login'), data)
+        return client
+
+    def test_resolved_url(self, simple_app, client, monkeypatch):
+        def clean_url(cmd):
+            return "https://clean.example.com/path\n"
+        monkeypatch.setattr('subprocess.check_output', clean_url)
+
+        url = get_api_url('apps', 'api_dispatch_detail', name=simple_app.name)
+        resp = client.get(url)
+        doc = json.loads(resp.content)
+        assert doc['resolved_url'] == 'https://clean.example.com/path'
+
+    def test_no_resolved_url(self, simple_app, client, monkeypatch):
+        def raise_exc(cmd):
+            raise Exception("Failed to run command")
+        monkeypatch.setattr('subprocess.check_output', raise_exc)
+
+        url = get_api_url('apps', 'api_dispatch_detail', name=simple_app.name)
+        resp = client.get(url)
+        doc = json.loads(resp.content)
+        assert doc['resolved_url'] == doc['repo_url']
