@@ -94,7 +94,7 @@ VR.Models.Proc = Backbone.Model.extend({
     initialize: function() {
       this.on('change', this.updateUrl);
       VR.ProcMessages.on('updateproc:' + this.id, this.set, this);
-      VR.ProcMessages.on('destroyproc:'+this.id, this.onDestroyMsg, this); 
+      VR.ProcMessages.on('destroyproc:'+this.id, this.onDestroyMsg, this);
 
       _.bindAll(this);
     },
@@ -113,7 +113,7 @@ VR.Models.Proc = Backbone.Model.extend({
                   proc.set(data);
                 },
         dataType: 'json'
-      });    
+      });
     },
 
     stop: function() { this.doAction('stop'); },
@@ -231,7 +231,7 @@ VR.Models.Host = VR.Models.Tasty.extend({
   },
 
   onProcData: function(ev, data) {
-    // backbone will instsantiate a new Proc and handle deduplication in the collection for us, 
+    // backbone will instsantiate a new Proc and handle deduplication in the collection for us,
     // if procs have a consistent 'id' attribute, which they do.
     this.procs.add(data);
   },
@@ -293,7 +293,7 @@ VR.Models.Swarm = VR.Models.Tasty.extend({
       // we need to take that proc data and build up a Tastypie query to fetch
       // full swarm data from the API.
 
-      var url = VR.Urls.root 
+      var url = VR.Urls.root
           +'swarms/?'
           +'app__name='+procData.app_name
           +'&config_name='+procData.config_name
@@ -310,12 +310,12 @@ VR.Models.Swarm = VR.Models.Tasty.extend({
     },
 
     onProcData: function(ev, data) {
-      // called when proc data comes down from above 
+      // called when proc data comes down from above
       this.hosts.onProcData(ev, data);
     },
 
     onHostsEvent: function(event, model, collection, options) {
-      // all events on our hosts list should be bubbled up to be events on 
+      // all events on our hosts list should be bubbled up to be events on
       // the swarm itself.
       this.trigger.apply(this, arguments);
 
@@ -382,7 +382,7 @@ VR.Models.SwarmList = Backbone.Collection.extend({
       // Don't ask the API for swarm data on procs that aren't in swarms.
       if (procData.config_name != 'UNKNOWN') {
         /**
-         * Note: this is no longer being called for every proc 
+         * Note: this is no longer being called for every proc
          * and only when a swarm is clicked
          * swarm.fetchByProcData(procData);
          */
@@ -435,7 +435,7 @@ VR.Models.App = VR.Models.Tasty.extend({
 
 VR.Models.AppList = Backbone.Collection.extend({
     model: VR.Models.App,
-    
+
     initialize: function() {
       this.on('change', this.updateUrl);
       VR.ProcMessages.on('all', this.onProcData, this);
@@ -455,7 +455,7 @@ VR.Models.AppList = Backbone.Collection.extend({
       }
       // else create, add, and return.
       app = new VR.Models.App({
-        name: name, 
+        name: name,
         "class": "appbox",
         resource_uri: VR.Urls.getTasty('apps', name)
       });
@@ -518,7 +518,7 @@ VR.Views.Apps = Backbone.View.extend({
         if (!inserted && title > app.get('name')) {
             $(row).before(v.el);
             inserted = true;
-        } 
+        }
     });
 
     // If still not inserted, just append to container
@@ -597,7 +597,7 @@ VR.Views.ProcModal = VR.Views.BaseModal.extend({
         this.$el.html(VR.Templates.ProcModal.goatee(data));
         this.fresh = false;
       }
-      
+
       // insert/update details table.
       var detailsRows = VR.Templates.ProcModalRows.goatee(data);
       this.$el.find('.proc-details-table').html(detailsRows);
@@ -693,7 +693,7 @@ VR.Views.ProcLog = Backbone.View.extend({
       // clean out lines
       this.lines = [];
     }
-}); 
+});
 
 
 VR.Views.Host = Backbone.View.extend({
@@ -1065,7 +1065,7 @@ VR.Views.Event = Backbone.View.extend({
       // When you click an Event, you should see an EventModal modal.  These
       // are created on the fly when first requested.
       if (!this.modal) {
-        this.modal = new VR.Views.EventModal(this.model, this.modalTemplate);   
+        this.modal = new VR.Views.EventModal(this.model, this.modalTemplate);
       }
 
       this.modal.show();
@@ -1129,14 +1129,14 @@ VR.Events = {
 
     this.collection = new VR.Models.Events();
     this.listview = new VR.Views.Events(
-        this.collection, 
-        container 
+        this.collection,
+        container
     );
   },
 
   onEvent: function(e) {
     var data = JSON.parse(e.data);
-    // Messages may be hidden. 
+    // Messages may be hidden.
     if (!_.contains(data.tags, 'hidden')) {
       data.time = new Date(data.time);
       data.prettytime = data.time.format("mm/dd HH:MM:ss");
