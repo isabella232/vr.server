@@ -836,7 +836,9 @@ def uptest_all_procs():
         print('Running test run_id={}'.format(run.id))
 
         def make_test_task(host):
-            return uptest_host.subtask((host.name, run.id), expires=120)
+            print('Creating test task for host={} run_id={}'.format(
+                host.name, run.id))
+            return uptest_host.subtask((host.name, run.id), expires=300)
         chord((make_test_task(h) for h in hosts))(post_uptest_all_procs.subtask((run.id,)))
 
     else:
