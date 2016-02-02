@@ -819,7 +819,7 @@ VR.Views.AppModal = VR.Views.BaseModal.extend({
       }
 
       var data = this.app.toJSON();
-      data.repo_url_clean = clean_url(data.repo_url);
+      data.repo_url_clean = clean_url(data.resolved_url);
       this.$el.html(this.template.goatee(data));
     },
 
