@@ -641,7 +641,7 @@ def uptest_host(hostname, test_run_id=None):
     Given a hostname, look up all its procs and then run uptests on them.
     """
 
-    print('Uptest host {}'.format(hostname))
+    print('Uptest host {} run_id={}'.format(hostname, test_run_id))
     host = Host.objects.get(name=hostname)
     procs = host.get_procs()
     _, results = uptest_host_procs(hostname, [p.name for p in procs])
@@ -824,21 +824,28 @@ def uptest_all_procs():
     print('Uptest all procs')
     # Fan out a task for each active host
     # callback post_uptest_all_procs at the end
-    hosts = Host.objects.filter(active=True)
+    # Note: uptests can take a long time, so use .all() to fetch data
+    # from DB immediately
+    hosts = Host.objects.filter(active=True).all()
 
     # Only bother doing anything if there are active hosts
     if hosts:
         # Create a test run record.
         run = TestRun(start=timezone.now())
         run.save()
+        print('Running test run_id={}'.format(run.id))
 
         def make_test_task(host):
             return uptest_host.subtask((host.name, run.id), expires=120)
         chord((make_test_task(h) for h in hosts))(post_uptest_all_procs.subtask((run.id,)))
 
+    else:
+        print('No hosts to test')
+
 
 @task
 def post_uptest_all_procs(results, test_run_id):
+    print('Post uptest all procs')
     # record test run end time
     run = TestRun.objects.get(id=test_run_id)
     run.end = timezone.now()
@@ -851,8 +858,13 @@ def post_uptest_all_procs(results, test_run_id):
         # Show output for each failed test in each failed result
         msg = '\n\n'.join(f.get_formatted_fails() for f in fail_results)
 
+        print('Got failures')
+        print(msg)
         send_event('scheduled uptest failures', msg,
                    tags=['scheduled', 'failed'])
+
+    else:
+        print('No failures')
 
 
 @task
