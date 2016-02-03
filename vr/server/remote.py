@@ -109,79 +109,81 @@ def write_proc_conf(settings):
 
 @task
 def run_uptests(hostname, proc_name, user='nobody'):
-    host = Host.objects.get(name=hostname)
-    proc = host.get_proc(proc_name)
-    settings = proc.settings
-    if settings is None:
-        print('{0.name} (pid {0.pid}) running on {0.hostname} '
-              'is not a VR process.  Skipping...'.format(proc))
-        return []
-
-    proc_path = get_proc_path(settings)
-
-    new_container_path = posixpath.join(proc_path, 'rootfs')
-    if files.exists(new_container_path, use_sudo=True):
-        tests_path = posixpath.join(new_container_path, 'app/uptests',
-                                    settings.proc_name)
-    else:
-        build_path = get_build_path(settings)
-        tests_path = posixpath.join(build_path, 'uptests', settings.proc_name)
     try:
-        if files.exists(tests_path, use_sudo=True):
-
-            # Containers set up by new-style 'runners' will be in a 'rootfs'
-            # subpath under the proc_path.  Old style containers are right in
-            # the proc_path.  We have to launch the uptester slightly
-            # differently
-            if files.exists(new_container_path, use_sudo=True):
-                proc_yaml_path = posixpath.join(proc_path, 'proc.yaml')
-                cmd = get_runner(settings) + ' uptest ' + proc_yaml_path
-            else:
-                cmd = legacy_uptests_command(proc_path, settings.proc_name,
-                                             env.host_string, settings.port,
-                                             user)
-            result = sudo(cmd)
-            # Though the uptester emits JSON to stdout, it's possible for the
-            # container or env var setup to emit some other output before the
-            # uptester even runs.  Stuff like this:
-
-            # 'bash: /app/env.sh: No such file or directory'
-
-            # Split that off and prepend it as an extra first uptest result.
-            # Since results should be a JSON list, look for any characters
-            # preceding the first square bracket.
-
-            m = re.match('(?P<prefix>[^\[]*)(?P<json>.*)', result, re.S)
-
-            # If the regular expression doesn't even match, return the raw
-            # string.
-            if m is None:
-                return [{
-                    'Passed': False,
-                    'Name': 'uptester',
-                    'Output': result,
-                }]
-
-            parts = m.groupdict()
-            try:
-                parsed = json.loads(parts['json'])
-                if len(parts['prefix']):
-                    parsed.insert(0, {
-                        'Passed': False,
-                        'Name': 'uptester',
-                        'Output': parts['prefix']
-                    })
-                return parsed
-            except ValueError:
-                # If we still fail parsing the json, return a dict of our own
-                # with all the output inside.
-                return [{
-                    'Passed': False,
-                    'Name': 'uptester',
-                    'Output': result
-                }]
-        else:
+        host = Host.objects.get(name=hostname)
+        proc = host.get_proc(proc_name)
+        settings = proc.settings
+        if settings is None:
+            print('{0.name} (pid {0.pid}) running on {0.hostname} '
+                  'is not a VR process.  Skipping...'.format(proc))
             return []
+
+        proc_path = get_proc_path(settings)
+
+        new_container_path = posixpath.join(proc_path, 'rootfs')
+        if files.exists(new_container_path, use_sudo=True):
+            tests_path = posixpath.join(new_container_path, 'app/uptests',
+                                        settings.proc_name)
+        else:
+            build_path = get_build_path(settings)
+            tests_path = posixpath.join(
+                build_path, 'uptests', settings.proc_name)
+
+        if not files.exists(tests_path, use_sudo=True):
+            return []
+
+        # Containers set up by new-style 'runners' will be in a 'rootfs'
+        # subpath under the proc_path.  Old style containers are right in
+        # the proc_path.  We have to launch the uptester slightly
+        # differently
+        if files.exists(new_container_path, use_sudo=True):
+            proc_yaml_path = posixpath.join(proc_path, 'proc.yaml')
+            cmd = get_runner(settings) + ' uptest ' + proc_yaml_path
+        else:
+            cmd = legacy_uptests_command(
+                proc_path, settings.proc_name, env.host_string,
+                settings.port, user)
+
+        result = sudo(cmd)
+        # Though the uptester emits JSON to stdout, it's possible for the
+        # container or env var setup to emit some other output before the
+        # uptester even runs.  Stuff like this:
+
+        # 'bash: /app/env.sh: No such file or directory'
+
+        # Split that off and prepend it as an extra first uptest result.
+        # Since results should be a JSON list, look for any characters
+        # preceding the first square bracket.
+
+        m = re.match('(?P<prefix>[^\[]*)(?P<json>.*)', result, re.S)
+
+        # If the regular expression doesn't even match, return the raw
+        # string.
+        if m is None:
+            return [{
+                'Passed': False,
+                'Name': 'uptester',
+                'Output': result,
+            }]
+
+        parts = m.groupdict()
+        try:
+            parsed = json.loads(parts['json'])
+            if len(parts['prefix']):
+                parsed.insert(0, {
+                    'Passed': False,
+                    'Name': 'uptester',
+                    'Output': parts['prefix']
+                })
+            return parsed
+        except ValueError:
+            # If we still fail parsing the json, return a dict of our own
+            # with all the output inside.
+            return [{
+                'Passed': False,
+                'Name': 'uptester',
+                'Output': result
+            }]
 
     except Error as error:
         # An error occurred in the command invocation, including if an
