@@ -838,7 +838,7 @@ def uptest_all_procs():
         def make_test_task(host):
             print('Creating test task for host={} run_id={}'.format(
                 host.name, run.id))
-            return uptest_host.subtask((host.name, run.id), expires=300)
+            return uptest_host.subtask((host.name, run.id), expires=1800)
         chord((make_test_task(h) for h in hosts))(post_uptest_all_procs.subtask((run.id,)))
 
     else:
@@ -886,7 +886,7 @@ def _clean_host(hostname):
 def scooper():
     # Clean up all active hosts
     for host in Host.objects.filter(active=True):
-        _clean_host.apply_async((host.name,), expires=120)
+        _clean_host.apply_async((host.name,), expires=1800)
 
 
 @task
