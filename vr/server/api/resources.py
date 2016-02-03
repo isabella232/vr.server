@@ -2,6 +2,8 @@ from __future__ import print_function
 
 import json
 
+from backports.functools_lru_cache import lru_cache
+
 from django.conf.urls import url
 from django.http import (HttpResponse, HttpResponseNotAllowed,
                          HttpResponseNotFound)
@@ -125,7 +127,9 @@ class AppResource(ReversionModelResource):
         bundle.data['resolved_url'] = canon_url or bundle.data['repo_url']
         return bundle
 
-    def resolve_url(self, spec_url):
+    @staticmethod
+    @lru_cache(maxsize=None)
+    def resolve_url(spec_url):
         """
         Assuming Mercurial and assuming an appropriate plugin is
         installed, resolve the specified URL to a canonical URL.

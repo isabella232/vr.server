@@ -41,6 +41,7 @@ setup(
         'vr.builder>=1.3',
         'vr.imager>=1.2',
         'django-yamlfield',
+        'backports.functools_lru_cache',
     ],
     extras_require={
         ':python_version=="2.7"': [
