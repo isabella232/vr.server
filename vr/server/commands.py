@@ -19,6 +19,9 @@ def start_celery():
     parser.add_argument('--exclude-queues', default=None,
                         help='queues to exclude in this instance')
 
+    parser.add_argument('--loglevel', default='warning',
+                        help='Specify celery loglevel')
+
     kwargs = dict()
     args = parser.parse_args()
 
@@ -31,6 +34,9 @@ def start_celery():
         kwargs['exclude-queues'] = args.exclude_queues
     elif 'VR_EXCLUDE_QUEUES' in os.environ:
         kwargs['exclude-queues'] = os.getenv('VR_EXCLUDE_QUEUES')
+
+    if args.loglevel is not None:
+        kwargs['loglevel'] = args.loglevel
 
     management.call_command('celeryd', **kwargs)
 
