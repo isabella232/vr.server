@@ -184,10 +184,12 @@ class TestScooper(object):
     @patch.object(remote, 'files')
     @patch.object(remote, 'get_procs')
     @patch.object(remote, 'get_builds')
+    @patch.object(remote, 'get_images')
     @patch.object(remote, 'delete_build')
     def test_clean_host_no_unused(
-            self, mock_delete_build, mock_get_builds,
+            self, mock_delete_build, mock_get_images, mock_get_builds,
             mock_get_procs, mock_files):
+        mock_get_images.return_value = []
         mock_get_builds.return_value = [
             'app-build1',
             'app-build2',
@@ -204,10 +206,12 @@ class TestScooper(object):
     @patch.object(remote, 'files')
     @patch.object(remote, 'get_procs')
     @patch.object(remote, 'get_builds')
+    @patch.object(remote, 'get_images')
     @patch.object(remote, 'delete_build')
     def test_clean_host(
-            self, mock_delete_build, mock_get_builds,
+            self, mock_delete_build, mock_get_images, mock_get_builds,
             mock_get_procs, mock_files):
+        mock_get_images.return_value = []
         mock_get_builds.return_value = [
             'app-build1',
             'app-build2',
