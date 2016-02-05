@@ -43,11 +43,6 @@ setup(
         'django-yamlfield',
         'backports.functools_lru_cache',
     ],
-    extras_require={
-        ':python_version=="2.7"': [
-            'mercurial>=2.6.1',
-        ],
-    },
     entry_points = {
         'console_scripts': [
             'vr_worker = vr.server.commands:start_celery',
