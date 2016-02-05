@@ -179,7 +179,7 @@ class TestScooper(object):
     def test_scooper(self, mock_clean_host):
         tasks.scooper()
         mock_clean_host.apply_async.assert_called_once_with(
-            (self.host.name, ), expires=120)
+            (self.host.name, ), expires=1800)
 
     @patch.object(remote, 'files')
     @patch.object(remote, 'get_procs')
