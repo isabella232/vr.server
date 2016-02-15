@@ -1,6 +1,8 @@
 from __future__ import print_function
 
 import json
+import os
+import shlex
 
 from backports.functools_lru_cache import lru_cache
 
@@ -136,7 +138,9 @@ class AppResource(ReversionModelResource):
 
         Failsafe - never raises an exception, but returns None
         """
-        cmd = ['hg', 'expand-scheme', spec_url]
+        default = 'hg expand-scheme'
+        expand_cmd = os.environ.get('SCHEME_EXPAND_COMMAND', default)
+        cmd = shlex.split(expand_cmd) + [spec_url]
         try:
             import subprocess
             return subprocess.check_output(cmd).strip()
