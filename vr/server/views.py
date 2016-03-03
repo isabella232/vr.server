@@ -32,6 +32,9 @@ import logging
 logger = logging.getLogger('velociraptor')
 
 
+VERSION_DIFFS_LIMIT = 10
+
+
 def json_response(func):
     """
     A decorator thats takes a view response and turns it
@@ -216,6 +219,30 @@ def proclog(request, hostname, procname):
     return render(request, 'proclog.html', vars())
 
 
+def _get_version_diffs_for_obj(obj, limit):
+    version_list = revisions.get_for_object(obj)
+    fields = [field for field in obj._meta.fields]
+    version_diffs = []
+    if len(version_list) > 1:
+        old_versions = version_list[1:limit + 1]
+        for iversion, version in enumerate(old_versions):
+            newer_version = version_list[iversion]
+            diff_dict = {}
+            for field in fields:
+                diff = generate_patch(newer_version, version, field.name)
+                if diff:
+                    diff_dict[field.name] = (
+                        version.field_dict[field.name],
+                        newer_version.field_dict[field.name],
+                    )
+            version_diffs.append({
+                'diff_dict': diff_dict,
+                'user': version.revision.user,
+                'date': version.revision.date_created,
+            })
+    return version_diffs
+
+
 @login_required
 @revisions.create_revision()
 def edit_swarm(request, swarm_id=None):
@@ -240,19 +267,7 @@ def edit_swarm(request, swarm_id=None):
             'config_ingredients': [
                 ing.pk for ing in swarm.config_ingredients.all()]
         }
-        fields = [field for field in swarm._meta.fields]
-        version_list = revisions.get_for_object(swarm).reverse()
-        version_diffs = []
-        if len(version_list) > 1:
-            for version in version_list[1:6]:
-                diff_dict = {}
-                for field in fields:
-                    diff = generate_patch(version_list[0], version, field.name)
-                    if diff:
-                        diff_dict[field.name] = version.field_dict[field.name]
-                version_diffs.append({'diff_dict': diff_dict,
-                                      'user': version.revision.user,
-                                      'date': version.revision.date_created})
+        version_diffs = _get_version_diffs_for_obj(swarm, VERSION_DIFFS_LIMIT)
         compiled_config = yamlize(swarm.get_config())
         compiled_env = yamlize(swarm.get_env())
 
@@ -304,6 +319,7 @@ def edit_swarm(request, swarm_id=None):
         'form': form,
         'btn_text': 'Swarm',
         'version_diffs': version_diffs,
+        'version_diffs_limit': VERSION_DIFFS_LIMIT,
         'compiled_config': compiled_config,
         'compiled_env': compiled_env
     })
@@ -395,24 +411,9 @@ class UpdateConfigIngredient(edit.UpdateView):
         - related swarms
         """
         context = super(UpdateConfigIngredient, self).get_context_data(**kwargs)
-        fields = [field for field in self.object._meta.fields]
-        version_diffs = []
-        version_list = revisions.get_for_object(self.object).reverse()
-        if len(version_list) > 1:
-            for version in version_list[1:6]:
-                diff_dict = {}
-                for field in fields:
-                    diff = generate_patch(version_list[0], version, field.name)
-                    if diff:
-                        diff_dict[field.name] = version.field_dict[field.name]
-                version_diffs.append({'diff_dict': diff_dict,
-                                      'user': version.revision.user,
-                                      'date': version.revision.date_created})
+        version_diffs = _get_version_diffs_for_obj(self.object, VERSION_DIFFS_LIMIT)
         context['version_diffs'] = version_diffs
-        try:
-            context['last_edited'] = version_list[0].revision.date_created
-        except:
-            context['last_edited'] = "No data"
+        context['version_diffs_limit'] = VERSION_DIFFS_LIMIT
         context['related_swarms'] = self.object.swarm_set.all()
         return context
 
