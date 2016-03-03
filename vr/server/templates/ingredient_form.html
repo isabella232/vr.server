@@ -40,32 +40,31 @@ $(function() {
   </div>
 </div>
 <div class="tab-pane form-horizontal" id="swarms">
-  <h2>Related swarms</h2>
-  <div class="row">
+    <h2>Related swarms</h2>
+    <div class="row">
+        <div class="col-sm-offset-2 col-sm-10">
     {% if related_swarms %}
-    <div class="col-sm-2"></div>
-    <div class="col-sm-10">
       {% for swarm in related_swarms %}
+            <div class="well">
         {% if swarm.get_latest_reversion %}
-          <span>Swarm date: {{ swarm.get_latest_reversion.revision.date_created }}</span><br/>
-          {% if swarm.get_latest_reversion.revision.date_created < last_edited %}<span>Possibly outdated</span><br/>{% endif %}
-          <span>Swarm: <a href="{% url "edit_swarm" swarm.id %}">{{ swarm }}</a></span><br/>
+                <div><em>Swarm date:</em> {{ swarm.get_latest_reversion.revision.date_created }}</div>
+            {% if swarm.get_latest_reversion.revision.date_created < last_edited %}
+                <div><em>Possibly outdated [ingredient last edited on {{ last_edited }}]</em></div>
+            {% endif %}
+                <div>Swarm: <a href="{% url "edit_swarm" swarm.id %}">{{ swarm }}</a></div>
         {% else %}
-          <span>No revisions available for <a href="{% url "edit_swarm" swarm.id %}">{{ swarm }}</a></span><br/>
+                <div>No revisions available for <a href="{% url "edit_swarm" swarm.id %}">{{ swarm }}</a></div>
         {% endif %}
-        <hr/>
+            </div>
       {% endfor %}
-    </div>
     {% else %}
-      <div class="col-sm-2"></div>
-      <div class="col-sm-10">
-        <p>No related swarms found.</p>
-      </div>
+            <p>No related swarms found.</p>
     {% endif %}
-  </div>
+        </div>
+    </div>
 </div>
 <div class="tab-pane form-horizontal" id="versions">
-  <h2>Previous Versions</h2>
+    <h2>Previous Versions</h2>
   {% include "version_diffs.html" %}
 </div>
 

@@ -251,6 +251,17 @@ div.label {
     color: black;
 }
 
+table.version-diff td.value {
+    width: 40%;
+}
+table.version-diff td.fieldname {
+    width: 20%;
+}
+table.version-diff pre {
+    border: none;
+    background-color: inherit;
+}
+
 /* APPS, SWARMS, PROCS */
 
 th.rowlabel {

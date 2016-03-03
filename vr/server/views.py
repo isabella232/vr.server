@@ -17,6 +17,7 @@ from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views.generic import edit
 from django.views.generic import ListView
+import urllib
 
 # Imported as recommended in the low-level API docs:
 # https://django-reversion.readthedocs.org/en/latest/api.html?#importing-the-low-level-api
@@ -219,11 +220,16 @@ def proclog(request, hostname, procname):
     return render(request, 'proclog.html', vars())
 
 
+def _clean_diff(diff):
+    return '\n'.join(filter(None, urllib.unquote(diff).splitlines()))
+
+
 def _get_version_diffs_for_obj(obj, limit):
     version_list = revisions.get_for_object(obj)
     fields = [field for field in obj._meta.fields]
-    version_diffs = []
+    version_diffs, last_edited = [], None
     if len(version_list) > 1:
+        last_edited = version_list[0].revision.date_created
         old_versions = version_list[1:limit + 1]
         for iversion, version in enumerate(old_versions):
             newer_version = version_list[iversion]
@@ -234,13 +240,14 @@ def _get_version_diffs_for_obj(obj, limit):
                     diff_dict[field.name] = (
                         version.field_dict[field.name],
                         newer_version.field_dict[field.name],
+                        _clean_diff(diff),
                     )
             version_diffs.append({
                 'diff_dict': diff_dict,
                 'user': version.revision.user,
                 'date': version.revision.date_created,
             })
-    return version_diffs
+    return version_diffs, last_edited
 
 
 @login_required
@@ -267,7 +274,8 @@ def edit_swarm(request, swarm_id=None):
             'config_ingredients': [
                 ing.pk for ing in swarm.config_ingredients.all()]
         }
-        version_diffs = _get_version_diffs_for_obj(swarm, VERSION_DIFFS_LIMIT)
+        version_diffs, _last_edited = _get_version_diffs_for_obj(
+            swarm, VERSION_DIFFS_LIMIT)
         compiled_config = yamlize(swarm.get_config())
         compiled_env = yamlize(swarm.get_env())
 
@@ -406,14 +414,16 @@ class UpdateConfigIngredient(edit.UpdateView):
     def get_context_data(self, **kwargs):
         """
         Augment the data passed to the template with:
-        - version_diffs: Version history (last 6 versions)
+        - version_diffs: Version history
         - last_edited: Last time when the ingredient was modified
         - related swarms
         """
         context = super(UpdateConfigIngredient, self).get_context_data(**kwargs)
-        version_diffs = _get_version_diffs_for_obj(self.object, VERSION_DIFFS_LIMIT)
+        version_diffs, last_edited = _get_version_diffs_for_obj(
+            self.object, VERSION_DIFFS_LIMIT)
         context['version_diffs'] = version_diffs
         context['version_diffs_limit'] = VERSION_DIFFS_LIMIT
+        context['last_edited'] = last_edited or 'No data'
         context['related_swarms'] = self.object.swarm_set.all()
         return context
 

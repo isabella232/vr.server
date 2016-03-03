@@ -771,7 +771,7 @@ class Swarm(models.Model):
 
     def get_latest_reversion(self):
         try:
-            return reversion.get_for_object(self).reverse()[0]
+            return reversion.get_for_object(self)[0]
         except IndexError:
             return None
 
