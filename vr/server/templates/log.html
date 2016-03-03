@@ -6,16 +6,17 @@
 <div class="row-fluid">
 
   <div class="col-md-8">
-    <h1 class="float">Deployment Log</h1>
+    <h1>Deployment Log</h1>
 
-    <ul class="deployment-log">
+    <table class="deployment-log">
     {% for entry in object_list %}
-      <li>
-        <span class="label label-{{entry.type}}">{{ entry.time|date:"D M j, g:i A T"}}</span>
-        {{ entry.user.username }}: {{ entry.message }}
-      </li>
+      <tr>
+        <td class="label label-{{entry.type}}">{{ entry.time|date:"D M j, g:i A T"}}</td>
+        <td class="label label-user">{{ entry.user.username }}</td>
+        <td>{{ entry.message }}</td>
+      </tr>
     {% endfor %}
-    </ul>
+    </table>
 
     {% if is_paginated %}
     <ul class="pager">
@@ -143,7 +144,13 @@ jQuery(function() {
             if(results.length > 0) {
               _.each(results, function(el) {
                 var time = new Date(el.time).format('ddd mmm dd, h:MM TT', true);
-                $('.deployment-log').append('<li><span class="label label-' + el.type + '">' + time + ' UTC</span> ' + el.user.username + ': ' + el.message + '</li>');
+                $('.deployment-log').append(
+                    '<tr>' +
+                        '<td class="label label-' + el.type + '">' + time + ' UTC</td>' +
+                        '<td class="label label-user">' + el.user.username + '</td>' +
+                        '<td>' + el.message + '</td>' +
+                    '</tr>'
+                );
               });
             } else {
               $('.deployment-log').append('<li>No results found</li>');

@@ -214,15 +214,9 @@ clickable-text {
 }
 
 /* deployment log styles */
-ul.deployment-log {
-  list-style: none;
-  margin: 10px 0 0 0;
-  float: left;
-  clear: both;
-}
 
-.deployment-log li {
-  margin: 7px 0;
+.deployment-log td {
+  margin: 7px;
 }
 
 div.label {
@@ -251,6 +245,10 @@ div.label {
 }
 .label-build:hover {
   background-color: #888;
+}
+.label-user {
+    background-color: #D8F0F7;
+    color: black;
 }
 
 /* APPS, SWARMS, PROCS */
