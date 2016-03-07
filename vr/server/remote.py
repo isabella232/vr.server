@@ -50,7 +50,7 @@ class Error(Exception):
     @property
     def title(self):
         return ("Command failed with exit code {self.return_code}: "
-            "{self.command}".format(self=self))
+                "{self.command}".format(self=self))
 
     def __getattr__(self, attr):
         return getattr(self.out, attr)
@@ -296,19 +296,17 @@ def clean_builds_folders():
 
 
 def _is_image_obsolete(img_path):
-    if not os.path.exists(img_path):
-        return False
+    atime = int(sudo('stat -c "%X" {}'.format(img_path)))
     now = time.time()
-    atime = os.stat(img_path).st_atime
     return now - atime > MAX_IMAGE_AGE_SECS
 
 
 def _rm_image(img_path):
     assert img_path, 'Empty img_path'
-    assert not img_path == '/', 'img_path is root!'
+    assert img_path != '/', 'img_path is root!'
     print('Removing image {}'.format(img_path))
     # Be careful!
-    sudo('rm -rf %s' + img_path)
+    sudo('rm -rf {}'.format(img_path))
 
 
 def clean_images_folders():
@@ -339,6 +337,8 @@ def clean_images_folders():
 
         # Set of unused images (dirnames wrt IMAGES_ROOT)
         unused_images = all_images.difference(images_in_use)
+        print('Found {} unused images: {}'.format(
+            len(unused_images), unused_images))
 
         # Get the ones that have not been used for a while
         obsolete_image_paths = set()
@@ -346,12 +346,14 @@ def clean_images_folders():
             img_path = os.path.join(IMAGES_ROOT, img)
             if _is_image_obsolete(img_path):
                 obsolete_image_paths.add(img_path)
+        print('Found {} obsolete image paths: {}'.format(
+            len(obsolete_image_paths), obsolete_image_paths))
 
         for img_path in obsolete_image_paths:
             _rm_image(img_path)
 
-    except Exception as exc:
-        print('Failed to remove images: {}'.format(exc))
+    except Exception:
+        print('Failed to remove images: {}'.format(traceback.format_exc()))
 
 
 @task
