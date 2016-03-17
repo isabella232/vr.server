@@ -316,6 +316,10 @@ def clean_images_folders():
 
     print('Cleaning images')
     try:
+        if not files.exists(IMAGES_ROOT, use_sudo=True):
+            # Nothing to do
+            return
+
         all_images = set(get_images())
 
         builds_in_use = _get_builds_in_use()
