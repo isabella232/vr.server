@@ -257,6 +257,15 @@ div.label {
     background-color: #D8F0F7;
     color: black;
 }
+.label.label-stop {
+    background-color: #990099;
+}
+.label.label-start {
+    background-color: #cccc00;
+}
+.label.label-restart {
+    background-color: #999900;
+}
 
 table.version-diff td.value {
     width: 40%;
