@@ -137,7 +137,9 @@ def do_build(build, user):
     pubsub.
     """
     tasks.build_app.delay(build_id=build.id)
-    events.eventify(user, 'build', build)
+    events.eventify(
+        user, 'build', build,
+        resource_uri='/admin/server/builds/{}/'.format(build.id))
 
 
 @login_required
@@ -169,7 +171,9 @@ def release(request):
         env_yaml.update(release.env_yaml or {})
         release.env_yaml = env_yaml
         form.save()
-        events.eventify(request.user, 'release', release)
+        events.eventify(
+            request.user, 'release', release,
+            resource_uri='/admin/server/release/{}/'.format(release.id))
         return HttpResponseRedirect(reverse('deploy'))
 
     builds = models.Build.objects
@@ -212,7 +216,9 @@ def do_deploy(release, user, config_name, hostname, proc, port):
     tasks.deploy.delay(release_id=release.id, config_name=config_name,
                        hostname=hostname, proc=proc, port=port)
     procname = '%(release)s-%(proc)s-%(port)s to %(hostname)s' % vars()
-    events.eventify(user, 'deploy', procname)
+    events.eventify(
+        user, 'deploy', procname,
+        resource_uri='/admin/server/release/{}/'.format(release.id))
 
 
 @login_required
@@ -387,8 +393,10 @@ def do_swarm(swarm, user):
             'pool': swarm.pool,
             'trace_id': swarm_trace_id,
         }
-    events.eventify(user, 'swarm', swarm.shortname(),
-                    detail=ev_detail, swarm_id=swarm_trace_id)
+    events.eventify(
+        user, 'swarm', swarm.shortname(),
+        detail=ev_detail, swarm_id=swarm_trace_id,
+        resource_uri='/swarm/{}/'.format(swarm.id))
     tasks.swarm_start.delay(swarm.id, swarm_trace_id)
     return swarm_trace_id
 
@@ -693,7 +701,9 @@ def edit_stack(request, stack_id=None):
                 provisioning_script_url=form.instance.provisioning_script.url,
             )
             image.save()
-            events.eventify(request.user, 'build image', image)
+            events.eventify(
+                request.user, 'build image', image,
+                resource_uri='/stack/{}/'.format(image.id))
             tasks.build_image.delay(image.id)
         return redirect('dash')
     return render(request, 'stack_form.html', {'form': form,

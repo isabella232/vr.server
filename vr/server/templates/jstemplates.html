@@ -161,7 +161,8 @@
           <a class="close" data-dismiss="modal">×</a>
           <h3 class="modal-title event-title <%classtags%>">
               <i class="event-icon large"></i>
-              <%title%> 
+              <%#resource_uri%><a href="<%resource_uri%>"><%title%></a><%/resource_uri%>
+              <%^resource_uri%><%title%><%/resource_uri%>
           </h3>
           <div class="event-time-short"><%time%></div>
       </div>
