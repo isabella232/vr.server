@@ -16,17 +16,15 @@ class GridFSStorage(Storage):
         # which can themselves be overridden with explicit arguments passed to
         # the constructor.
 
-        # If passed a pymongo connection object, then skip all the host/port
-        # stuff.  This allows for re-using a Connection, which is important in
-        # a gevent-type situation.
-        if connection is None:
-            # Default host is 'localhost'
-            host = host or getattr(settings, 'GRIDFS_HOST', 'localhost')
+        # Default host is 'localhost'
+        host = host or getattr(settings, 'GRIDFS_HOST', 'localhost')
 
-            # Default port is 27017
-            port = port or getattr(settings, 'GRIDFS_PORT', 27017)
+        # Default port is 27017
+        port = port or getattr(settings, 'GRIDFS_PORT', 27017)
 
-            connection = pymongo.MongoClient(host, port)
+        # Allow an existing Connection to be supplied, which is
+        # important in a gevent-type situation.
+        connection = connection or pymongo.MongoClient(host, port)
 
         # Default db is 'test'
         db = db or getattr(settings, 'GRIDFS_DB', 'test')
