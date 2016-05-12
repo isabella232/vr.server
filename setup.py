@@ -9,7 +9,7 @@ pytest_runner = ['pytest_runner'] if needs_pytest else []
 setup(
     name='vr.server',
     namespace_packages=['vr'],
-    version='4.11.4',
+    version='4.11.5',
     author='Brent Tubbs',
     author_email='brent.tubbs@gmail.com',
     packages=find_packages(),
@@ -26,6 +26,7 @@ setup(
         'django-reversion==1.9.3',
         'django-tastypie==0.12.2',
         'Fabric3bis',
+        'flower>=0.9.0,<1',
         'gevent>=1.1rc1,<2',
         'psycogreen',
         'gunicorn==0.17.2',
