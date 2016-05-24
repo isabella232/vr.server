@@ -239,8 +239,12 @@ class SwarmResource(ReversionModelResource):
     version = fields.CharField('version')
 
     class Meta:
-        queryset = models.Swarm.objects.all().prefetch_related(
-            'app', 'squad', 'release', 'config_ingredients')
+        queryset = models.Swarm.objects.select_related(
+            'app', 'squad', 'release'
+        ).prefetch_related(
+            'config_ingredients', 'squad__hosts',
+            'release__build', 'release__build__app',
+        ).all()
         resource_name = 'swarms'
         filtering = {
             'ingredients': ALL_WITH_RELATIONS,
