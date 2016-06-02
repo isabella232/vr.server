@@ -26,7 +26,6 @@ setup(
         'django-reversion==1.9.3',
         'django-tastypie==0.12.2',
         'Fabric3bis',
-        'flower>=0.9.0,<1',
         'gevent>=1.1rc1,<2',
         'psycogreen',
         'gunicorn==0.17.2',
