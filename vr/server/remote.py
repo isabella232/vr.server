@@ -155,7 +155,7 @@ def run_uptests(hostname, proc_name, user='nobody'):
         # Since results should be a JSON list, look for any characters
         # preceding the first square bracket.
 
-        m = re.match('(?P<prefix>[^\[]*)(?P<json>.*)', result, re.S)
+        m = re.match(r'(?P<prefix>[^\[]*)(?P<json>.*)', result, re.S)
 
         # If the regular expression doesn't even match, return the raw
         # string.
