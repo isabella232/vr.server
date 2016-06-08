@@ -206,7 +206,7 @@ def build_image(image_id, callback=None):
     img_msg = "Started image build %s" % image + '\n\n' + image_yaml
     send_event(str(image), img_msg, tags=['buildimage'])
 
-
+    t0 = time.time()
     with tmpdir():
         try:
             with open('image.yaml', 'wb') as f:
@@ -240,8 +240,10 @@ def build_image(image_id, callback=None):
             finally:
                 image.save()
 
-    send_event(str(image), "Completed image %s" % image, tags=['buildimage',
-                                                               'success'])
+    elapsed_time = time.time() - t0
+    send_event(
+        str(image), "Completed image %s in %d seconds" % (image, elapsed_time),
+        tags=['buildimage', 'success'])
 
     # start callback if there is one.
     if callback is not None:
@@ -249,6 +251,7 @@ def build_image(image_id, callback=None):
 
 
 def _do_build(build, build_yaml):
+    t0 = time.time()
     # enter a temp folder
     with tmpdir():
         try:
@@ -297,7 +300,8 @@ def _do_build(build, build_yaml):
             build.end_time = timezone.now()
             build.save()
 
-    msg = "Completed build %s" % build
+    elapsed_time = time.time() - t0
+    msg = "Completed build %s in %d seconds" % (build, elapsed_time)
     send_event(str(build), msg, tags=['build', 'success'])
 
 
