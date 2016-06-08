@@ -7,7 +7,6 @@ import traceback
 import time
 import json
 
-from hashlib import md5
 from collections import defaultdict
 
 from six.moves import range
@@ -27,6 +26,7 @@ from vr.imager.command import ImageData
 from vr.common import utils
 from vr.common.models import Proc
 from vr.common.utils import tmpdir
+from vr.server.utils import build_swarm_trace_id
 from vr.server import events, balancer, remote
 from vr.server.models import (Release, Build, Swarm, Host, PortLock, TestRun,
                               TestResult, BuildPack, OSImage)
@@ -140,11 +140,12 @@ def build_proc_info(release, config_name, hostname, proc, port):
 def deploy(release_id, config_name, hostname, proc, port, swarm_trace_id=None):
     with remove_port_lock(hostname, port):
         release = Release.objects.get(id=release_id)
-        msg_title = '%s-%s-%s' % (release.build.app.name, release.build.tag, proc)
-        logger.info('beginning deploy of %s-%s-%s to %s' % (release, proc,
-                                                             port,
-                                                             hostname))
+        logger.info(
+            '[%s] Deploy %s-%s-%s to %s',
+            swarm_trace_id, release, proc, port, hostname)
 
+        msg_title = '%s-%s-%s' % (
+            release.build.app.name, release.build.tag, proc)
         msg = 'deploying %s-%s-%s to %s' % (release, proc, port, hostname)
         send_event(title=msg_title, msg=msg, tags=['deploy'],
                    swarm_id=swarm_trace_id)
@@ -174,6 +175,7 @@ def deploy(release_id, config_name, hostname, proc, port, swarm_trace_id=None):
 @task
 @event_on_exception(['build'])
 def build_app(build_id, callback=None, swarm_trace_id=None):
+    logger.info("[%s] Build %s start", swarm_trace_id, build_id)
     build = Build.objects.get(id=build_id)
     build.start()
     build.save()
@@ -196,6 +198,7 @@ def build_app(build_id, callback=None, swarm_trace_id=None):
 @task
 @event_on_exception(['image'])
 def build_image(image_id, callback=None):
+    logger.info("Build image %s start", image_id)
     image = OSImage.objects.get(id=image_id)
     image_yaml = ImageData({
         'base_image_url': image.base_image_url,
@@ -364,6 +367,7 @@ def get_build_parameters(build):
 @task
 @event_on_exception(['proc', 'deleted'])
 def delete_proc(host, proc, callback=None, swarm_trace_id=None):
+    logger.info("[%s] Delete proc %s on host %s", swarm_trace_id, proc, host)
     env.host_string = host
     env.abort_on_prompts = True
     env.user = settings.DEPLOY_USER
@@ -404,10 +408,15 @@ def swarm_wait_for_build(swarm, build, swarm_trace_id=None):
     swarm is waiting to finish, push the swarm's ID onto the build's waiting
     list.
     """
+    logger.info(
+        "[%s] Swarm %s waiting for build %s",
+        swarm_trace_id, swarm.id, build.id)
     msg = 'Swarm %s waiting for completion of build %s' % (swarm, build)
-    send_event('%s waiting' % swarm, msg, ['wait'], swarm_trace_id=swarm_trace_id)
+    send_event(
+        '%s waiting' % swarm, msg, ['wait'], swarm_trace_id=swarm_trace_id)
     with tmpredis() as r:
-        key = getattr(settings, 'BUILD_WAIT_PREFIX', 'buildwait_') + str(build.id)
+        key = getattr(
+            settings, 'BUILD_WAIT_PREFIX', 'buildwait_') + str(build.id)
         r.lpush(key, create_wait_value(swarm.id, swarm_trace_id))
         r.expire(key, getattr(settings, 'BUILD_WAIT_AGE', 3600))
 
@@ -432,7 +441,7 @@ def swarm_start(swarm_id, swarm_trace_id=None):
     Given a swarm_id, kick off the chain of tasks necessary to get this swarm
     deployed.
     """
-    logger.info("Swarm start %s", swarm_id)
+    logger.info("[%s] Swarm %s start", swarm_trace_id, swarm_id)
     try:
         swarm = Swarm.objects.get(id=swarm_id)
     except Swarm.DoesNotExist:
@@ -449,7 +458,7 @@ def swarm_start(swarm_id, swarm_trace_id=None):
     build = swarm.release.build
 
     if not swarm_trace_id:
-        swarm_trace_id = md5(str(swarm) + str(time.time())).hexdigest()
+        swarm_trace_id = build_swarm_trace_id(swarm)
 
     if build.is_usable():
         # Build is good.  Do a release.
@@ -474,6 +483,7 @@ def swarm_release(swarm_id, swarm_trace_id=None):
     release with that build + current config, and call subtasks to make sure
     there are enough deployments.
     """
+    logger.info("[%s] Swarm %s release", swarm_trace_id, swarm_id)
     send_debug_event('swarm release')
     swarm = Swarm.objects.get(id=swarm_id)
     build = swarm.release.build
@@ -567,6 +577,9 @@ def swarm_deploy_to_host(swarm_id, host_id, ports, swarm_trace_id=None):
 
     swarm = Swarm.objects.get(id=swarm_id)
     host = Host.objects.get(id=host_id)
+    logger.info(
+        "[%s] Swarm %s deploy to host %s",
+        swarm_trace_id, swarm_id, host.name)
     for port in ports:
         deploy(
             swarm.release.id,
@@ -601,6 +614,8 @@ def swarm_post_deploy(deploy_results, swarm_id, swarm_trace_id):
 
 @task
 def swarm_assign_uptests(swarm_id, swarm_trace_id=None):
+    logger.info("[%s] Swarm %s uptests", swarm_trace_id, swarm_id)
+
     swarm = Swarm.objects.get(id=swarm_id)
     all_procs = swarm.get_procs()
     current_procs = [p for p in all_procs if p.hash == swarm.release.hash]
@@ -683,6 +698,7 @@ def swarm_post_uptest(uptest_results, swarm_id, swarm_trace_id):
     Chord callback that runs after uptests have completed.  Checks that they
     were successful, and then calls routing function.
     """
+    logger.info("[%s] Swarm %s post uptests", swarm_trace_id, swarm_id)
 
     # uptest_results will be a list of tuples in form (host, results), where
     # 'results' is a list of dictionaries, one for each test script.
@@ -742,6 +758,7 @@ def swarm_route(swarm_id, correct_nodes, callback=None, swarm_trace_id=None):
     # list itself, because if it built the list itself it couldn't be sure that
     # all the nodes had been uptested.  It's possible that one could have crept
     # in throuh a non-swarm deployment, for example.
+    logger.info("[%s] Swarm %s route", swarm_trace_id, swarm_id)
 
     swarm = Swarm.objects.get(id=swarm_id)
     if swarm.pool:
@@ -775,6 +792,8 @@ def swarm_cleanup(swarm_id, swarm_trace_id):
     """
     Delete any procs in the swarm that aren't from the current release.
     """
+    logger.info("[%s] Swarm %s cleanup", swarm_trace_id, swarm_id)
+
     swarm = Swarm.objects.get(id=swarm_id)
     all_procs = swarm.get_procs()
     current_procs = [p for p in all_procs if p.hash == swarm.release.hash]
@@ -800,6 +819,8 @@ def swarm_cleanup(swarm_id, swarm_trace_id):
 
 @task
 def swarm_finished(result, swarm_id, swarm_trace_id):
+    logger.info("[%s] Swarm %s finished", swarm_trace_id, swarm_id)
+
     swarm = Swarm.objects.get(id=swarm_id)
     title = msg = 'Swarm %s finished' % swarm
     send_event(title, msg,
@@ -814,6 +835,10 @@ def swarm_delete_proc(swarm_id, hostname, procname, port, swarm_trace_id=None):
     # it's called when deleting old procs, and other times it's called when we
     # just have too many of the current proc.  If it handles its own routing,
     # this function can be used in both places.
+    logger.info(
+        "[%s] Swarm %s delete proc on host %s",
+        swarm_trace_id, swarm_id, hostname)
+
     swarm = Swarm.objects.get(id=swarm_id)
     if swarm.pool:
         node = '%s:%s' % (hostname, port)

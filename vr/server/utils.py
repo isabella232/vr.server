@@ -1,5 +1,7 @@
+from hashlib import md5
 import datetime
 import json
+import time
 
 import six
 
@@ -59,3 +61,7 @@ def task_to_dict(task):
 def yamlize(dct):
     "Shortcut for convenience."
     return yaml.safe_dump(dct, default_flow_style=False)
+
+
+def build_swarm_trace_id(swarm):
+    return md5(str(swarm) + str(time.time())).hexdigest()

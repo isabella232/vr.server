@@ -1,10 +1,7 @@
-import textwrap
-import time
 import datetime
 import json
-
-from hashlib import md5
-
+import logging
+import textwrap
 
 from django.conf import settings
 from django.contrib.auth import login as django_login, logout as django_logout
@@ -27,9 +24,8 @@ from reversion import create_revision
 from reversion.helpers import generate_patch
 
 from vr.server import forms, tasks, events, models
-from vr.server.utils import yamlize
+from vr.server.utils import yamlize, build_swarm_trace_id
 
-import logging
 logger = logging.getLogger('velociraptor')
 
 
@@ -365,7 +361,7 @@ def do_swarm(swarm, user):
     Put a swarming job on the queue, and a notification about it on the pubsub.
     """
     # Create a swarm trace id that takes our swarm and time
-    swarm_trace_id = md5(str(swarm) + str(time.time())).hexdigest()
+    swarm_trace_id = build_swarm_trace_id(swarm)
     ev_detail = textwrap.dedent(
         """%(user)s swarmed %(shortname)s
 
