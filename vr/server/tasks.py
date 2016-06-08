@@ -885,7 +885,7 @@ def uptest_all_procs():
 
 
 @task
-def post_uptest_all_procs(results, test_run_id):
+def post_uptest_all_procs(_results, test_run_id):
     print('Post uptest all procs')
     # record test run end time
     run = TestRun.objects.get(id=test_run_id)
