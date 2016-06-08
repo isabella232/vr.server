@@ -325,7 +325,12 @@ def clean_images_folders():
         builds_in_use = _get_builds_in_use()
         images_in_use = set()
         for app_tag in builds_in_use:
-            app_name, tag = app_tag.split('-', 1)
+            try:
+                app_name, tag = app_tag.split('-', 1)
+            except ValueError:
+                print('Invalid app name: {}'.format(app_tag))
+                continue
+
             try:
                 app = App.objects.get(name=app_name)
             except App.DoesNotExist:
