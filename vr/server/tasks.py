@@ -823,11 +823,11 @@ def swarm_cleanup(swarm_id, swarm_trace_id):
         chord(delete_subtasks)(
             swarm_finished.subtask((swarm_id, swarm_trace_id,)))
     else:
-        swarm_finished.delay([], swarm_id, swarm_trace_id)
+        swarm_finished.delay(swarm_id, swarm_trace_id)
 
 
 @task
-def swarm_finished(result, swarm_id, swarm_trace_id):
+def swarm_finished(swarm_id, swarm_trace_id):
     logger.info("[%s] Swarm %s finished", swarm_trace_id, swarm_id)
 
     swarm = Swarm.objects.get(id=swarm_id)
