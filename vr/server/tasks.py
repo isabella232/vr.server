@@ -388,7 +388,9 @@ def delete_proc(host, proc, callback=None, swarm_trace_id=None):
                tags=['proc', 'deleted'],
                swarm_id=swarm_trace_id)
 
-    if callback:
+    if callback is not None:
+        logger.info(
+            "[%s] Delete proc calling subtask %s", swarm_trace_id, callback)
         subtask(callback).delay()
 
 
@@ -814,6 +816,9 @@ def swarm_cleanup(swarm_id, swarm_trace_id):
         for p in stale_procs:
             # We don't need to worry about removing these nodes from a pool at
             # this point, so just call delete_proc instead of swarm_delete_proc
+            logger.info(
+                "[%s] Swarm %s stale proc %s on host %s",
+                swarm_trace_id, swarm_id, p.name, p.host.name)
             delete_subtasks.append(
                 delete_proc.subtask((p.host.name, p.name),
                                     {'swarm_trace_id': swarm_trace_id})
@@ -852,6 +857,9 @@ def swarm_delete_proc(swarm_id, hostname, procname, port, swarm_trace_id=None):
     if swarm.pool:
         node = '%s:%s' % (hostname, port)
         if node in balancer.get_nodes(swarm.balancer, swarm.pool):
+            logger.info(
+                "[%s] Swarm %s delete node %s",
+                swarm_trace_id, swarm_id, node)
             balancer.delete_nodes(swarm.balancer, swarm.pool, [node])
 
     delete_proc(hostname, procname, swarm_trace_id=swarm_trace_id)
