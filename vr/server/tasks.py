@@ -78,8 +78,11 @@ class event_on_exception(object):
                 try:
                     send_event(title=e.title, msg=e.out,
                                tags=self.tags, swarm_trace_id=swarm_trace_id)
-                finally:
-                    raise
+                except:
+                    pass
+
+                # Re-raise exception
+                raise e
 
             except (Exception, SystemExit) as e:
                 logger.warning('Notifying error: %r', e)
@@ -88,8 +91,11 @@ class event_on_exception(object):
                 try:
                     send_event(title=str(e), msg=traceback.format_exc(),
                                tags=self.tags, swarm_trace_id=swarm_trace_id)
-                finally:
-                    raise
+                except:
+                    pass
+
+                # Re-raise exception
+                raise e
 
         return wrapper
 
@@ -165,7 +171,8 @@ def deploy(release_id, config_name, hostname, proc, port, swarm_trace_id=None):
 
             # write the proc.yaml locally
             with open('proc.yaml', 'wb') as f:
-                info = build_proc_info(release, config_name, hostname, proc, port)
+                info = build_proc_info(
+                    release, config_name, hostname, proc, port)
                 f.write(yaml.safe_dump(info, default_flow_style=False))
 
             with always_disconnect():
@@ -427,7 +434,8 @@ def build_start_waiting_swarms(build_id):
     off the list and call swarm_start for it.
     """
     with tmpredis() as r:
-        key = getattr(settings, 'BUILD_WAIT_PREFIX', 'buildwait_') + str(build_id)
+        key = getattr(
+            settings, 'BUILD_WAIT_PREFIX', 'buildwait_') + str(build_id)
         swarm_id, swarm_trace_id = read_wait_value(r.lpop(key))
         while swarm_id:
             swarm_start.delay(swarm_id, swarm_trace_id)
@@ -812,7 +820,8 @@ def swarm_cleanup(swarm_id, swarm_trace_id):
             )
 
     if delete_subtasks:
-        chord(delete_subtasks)(swarm_finished.subtask((swarm_id, swarm_trace_id,)))
+        chord(delete_subtasks)(
+            swarm_finished.subtask((swarm_id, swarm_trace_id,)))
     else:
         swarm_finished.delay([], swarm_id, swarm_trace_id)
 
@@ -868,7 +877,8 @@ def uptest_all_procs():
             print('Creating test task for host={} run_id={}'.format(
                 host.name, run.id))
             return uptest_host.subtask((host.name, run.id), expires=1800)
-        chord((make_test_task(h) for h in hosts))(post_uptest_all_procs.subtask((run.id,)))
+        chord((make_test_task(h) for h in hosts))(
+            post_uptest_all_procs.subtask((run.id,)))
 
     else:
         print('No hosts to test')
@@ -926,8 +936,8 @@ def clean_old_builds():
         cutoff = (timezone.now() -
                   datetime.timedelta(days=settings.BUILD_EXPIRATION_DAYS))
 
-        old_builds = Build.objects.filter(end_time__lt=cutoff,
-                                          file__isnull=False).order_by('-end_time')
+        old_builds = Build.objects.filter(
+            end_time__lt=cutoff, file__isnull=False).order_by('-end_time')
         old_builds = set(old_builds)
 
         # Now filter out any builds that are currently in use
@@ -953,7 +963,6 @@ def clean_old_builds():
         # OK, we now have a set of builds that are older than both our cutoffs,
         # and definitely not in use.  Delete their files to free up space.
         for build in old_builds:
-            # TODO: ensure that the mongo storage honors the delete method
             build.file.delete()
             build.status = 'expired'
             build.save()
