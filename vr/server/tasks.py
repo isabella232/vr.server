@@ -716,7 +716,7 @@ def swarm_post_uptest(uptest_results, swarm_id, swarm_trace_id):
     for host_results in uptest_results:
         if isinstance(host_results, Exception):
             raise host_results
-        host, proc_results = host_results
+        _host, proc_results = host_results
 
         # results is now a dict
         for proc, results in proc_results.items():
