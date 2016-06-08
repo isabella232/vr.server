@@ -492,8 +492,8 @@ def swarm_release(swarm_id, swarm_trace_id=None):
     there are enough deployments.
     """
     logger.info("[%s] Swarm %s release", swarm_trace_id, swarm_id)
-    send_debug_event('swarm release')
     swarm = Swarm.objects.get(id=swarm_id)
+    send_debug_event('Swarm %s release' % swarm)
     build = swarm.release.build
 
     # Bail out if the build doesn't have a file
@@ -823,11 +823,11 @@ def swarm_cleanup(swarm_id, swarm_trace_id):
         chord(delete_subtasks)(
             swarm_finished.subtask((swarm_id, swarm_trace_id,)))
     else:
-        swarm_finished.delay(swarm_id, swarm_trace_id)
+        swarm_finished.delay([], swarm_id, swarm_trace_id)
 
 
 @task
-def swarm_finished(swarm_id, swarm_trace_id):
+def swarm_finished(_results, swarm_id, swarm_trace_id):
     logger.info("[%s] Swarm %s finished", swarm_trace_id, swarm_id)
 
     swarm = Swarm.objects.get(id=swarm_id)
