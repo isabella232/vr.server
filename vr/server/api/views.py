@@ -7,13 +7,16 @@ from functools import wraps
 from django.contrib.auth import authenticate
 from django import http
 from django.conf import settings
+from django.http import HttpResponseNotFound
 from django.views.decorators.csrf import csrf_exempt
 from django.core.urlresolvers import reverse
+from django.shortcuts import get_object_or_404
 import sseclient
 import requests
 
 import vr.events
 from vr.server import utils, tasks, events, models
+from vr.common.models import ProcError
 
 
 def streaming_response(src):
@@ -109,8 +112,12 @@ def host_proc(request, hostname, procname):
     Display status of a single supervisord-managed process on a host, in
     JSON
     """
-    host = models.Host.objects.get(name=hostname)
-    proc = host.get_proc(procname)
+    host = get_object_or_404(models.Host, name=hostname)
+    try:
+        proc = host.get_proc(procname)
+    except ProcError:
+        return HttpResponseNotFound()
+
     if request.method == 'DELETE':
         events.eventify(request.user, 'destroy', proc.name)
         # check for and remove port lock if present
