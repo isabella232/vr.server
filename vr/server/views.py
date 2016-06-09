@@ -21,7 +21,7 @@ import urllib
 import reversion as revisions
 from reversion import create_revision
 
-from reversion.helpers import generate_patch
+from reversion.helpers import generate_patch, generate_patch_html
 
 from vr.server import forms, tasks, events, models
 from vr.server.utils import yamlize, build_swarm_trace_id
@@ -222,10 +222,6 @@ def proclog(request, hostname, procname):
     return render(request, 'proclog.html', vars())
 
 
-def _clean_diff(diff):
-    return '\n'.join(filter(None, urllib.unquote(diff).splitlines()))
-
-
 def _get_version_diffs_for_obj(obj, limit):
     version_list = revisions.get_for_object(obj)
     fields = [field for field in obj._meta.fields]
@@ -237,17 +233,19 @@ def _get_version_diffs_for_obj(obj, limit):
             newer_version = version_list[iversion]
             diff_dict = {}
             for field in fields:
-                diff = generate_patch(newer_version, version, field.name)
-                if diff:
+                if generate_patch(version, newer_version, field.name):
+                    # If versions differ, generate a pretty html diff
+                    diff_html = generate_patch_html(
+                        version, newer_version, field.name)
                     diff_dict[field.name] = (
                         version.field_dict[field.name],
                         newer_version.field_dict[field.name],
-                        _clean_diff(diff),
+                        diff_html,
                     )
             version_diffs.append({
                 'diff_dict': diff_dict,
-                'user': version.revision.user,
-                'date': version.revision.date_created,
+                'user': newer_version.revision.user,
+                'date': newer_version.revision.date_created,
             })
     return version_diffs, last_edited
 
