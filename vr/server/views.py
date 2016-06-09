@@ -14,7 +14,6 @@ from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views.generic import edit
 from django.views.generic import ListView
-import urllib
 
 # Imported as recommended in the low-level API docs:
 # https://django-reversion.readthedocs.org/en/latest/api.html?#importing-the-low-level-api
