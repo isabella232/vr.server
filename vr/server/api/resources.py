@@ -1,6 +1,8 @@
 from __future__ import print_function
 
+import contextlib
 import json
+import logging
 import os
 import shlex
 
@@ -11,6 +13,7 @@ from django.http import (HttpResponse, HttpResponseNotAllowed,
                          HttpResponseNotFound)
 from django.contrib.auth.models import User
 
+import reversion as revisions
 from reversion import create_revision
 
 from tastypie.resources import ModelResource
@@ -25,6 +28,7 @@ from vr.server import models
 from vr.server.views import do_swarm, do_build, do_deploy
 from vr.server.api.views import auth_required
 
+logger = logging.getLogger('velociraptor.api')
 
 # XXX Note that procs don't have a resource in this file.  It turns out that
 # Tastypie is not as good at handling non-ORM resources as I was led to
@@ -41,28 +45,47 @@ def register_instance(cls):
     return cls
 
 
+@contextlib.contextmanager
+def revision_ctx(bundle, comment):
+    with create_revision():
+        try:
+            # We are not sure if request.user is in bundle all the times
+            revisions.set_user(bundle.request.user)
+        except:
+            logger.exception('Cannot set user in revision')
+        revisions.set_comment(comment)
+        yield
+
+
 class ReversionModelResource(ModelResource):
     """ Add django-reversion calls to methods that write to the db.
     """
     def obj_create(self, bundle, **kwargs):
-        with create_revision():
-            return super(ReversionModelResource, self).obj_create(bundle, **kwargs)
+        with revision_ctx(bundle, 'Created from the API.'):
+            return super(
+                ReversionModelResource, self).obj_create(bundle, **kwargs)
 
     def obj_update(self, bundle, skip_errors=False, **kwargs):
-        with create_revision():
-            return super(ReversionModelResource, self).obj_update(bundle, skip_errors, **kwargs)
+        with revision_ctx(bundle, 'Updated from the API.'):
+            return super(
+                ReversionModelResource, self).obj_update(
+                    bundle, skip_errors, **kwargs)
 
     def obj_delete_list(self, bundle, **kwargs):
-        with create_revision():
-            return super(ReversionModelResource, self).obj_delete_list(bundle, **kwargs)
+        with revision_ctx(bundle, 'Deleted list from the API.'):
+            return super(
+                ReversionModelResource, self).obj_delete_list(bundle, **kwargs)
 
     def obj_delete_list_for_update(self, bundle, **kwargs):
-        with create_revision():
-            return super(ReversionModelResource, self).obj_delete_list_for_update(bundle, **kwargs)
+        with revision_ctx(bundle, 'Deleted list for update from the API.'):
+            return super(
+                ReversionModelResource, self).obj_delete_list_for_update(
+                    bundle, **kwargs)
 
     def obj_delete(self, bundle, **kwargs):
-        with create_revision():
-            return super(ReversionModelResource, self).obj_delete(bundle, **kwargs)
+        with revision_ctx(bundle, 'Deleted from the API.'):
+            return super(
+                ReversionModelResource, self).obj_delete(bundle, **kwargs)
 
 
 @register_instance

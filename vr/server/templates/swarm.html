@@ -52,10 +52,9 @@
             {% formfield form.memsw_limit %}
             {% formfield form.config_ingredients %}
                 </div>
-                <div class="tab-pane form-horizontal col-sm-8" id="preview">
+                <div class="tab-pane form-horizontal col-sm-12" id="preview">
                     <div class="row">
-                        <div class="col-sm-2"></div>
-                        <div class="col-sm-10">
+                        <div class="col-sm-8">
                             <h4>Compiled Config</h4>
                             <pre id="compiled_config">{{ compiled_config }}</pre>
 
@@ -69,7 +68,7 @@
             {% formfield form.balancer %}
                 </div>
 
-                <div class="tab-pane form-horizontal col-sm-8" id="versions">
+                <div class="tab-pane form-horizontal col-sm-12" id="versions">
             {% include "version_diffs.html" %}
                 </div>
             </div>

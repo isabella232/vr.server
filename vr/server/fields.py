@@ -9,7 +9,7 @@ def validate_yaml_dict(value):
         value != '' and
         not isinstance(value, dict)):
 
-        raise ValidationError
+        raise ValidationError('Invalid dict')
 
 
 class YAMLDictField(models.TextField):
@@ -76,7 +76,7 @@ def validate_yaml_list(value):
         value != '' and
         not isinstance(value, (list, tuple))):
 
-        raise ValidationError
+        raise ValidationError('Invalid list')
 
 
 class YAMLListField(models.TextField):

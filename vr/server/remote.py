@@ -7,13 +7,13 @@ from __future__ import print_function
 
 import traceback
 import posixpath
-import pkg_resources
 import json
 import os
 import re
 import time
 import contextlib
 
+import pkg_resources
 import yaml
 from fabric.api import (sudo as sudo_, get, put, task, env, settings as
                         fab_settings)
@@ -155,7 +155,7 @@ def run_uptests(hostname, proc_name, user='nobody'):
         # Since results should be a JSON list, look for any characters
         # preceding the first square bracket.
 
-        m = re.match('(?P<prefix>[^\[]*)(?P<json>.*)', result, re.S)
+        m = re.match(r'(?P<prefix>[^\[]*)(?P<json>.*)', result, re.S)
 
         # If the regular expression doesn't even match, return the raw
         # string.
@@ -215,13 +215,18 @@ def legacy_uptests_command(proc_path, proc, host, port, user):
         'host': host,
         'port': port,
     }
-    tmpl = """exec lxc-start --name %(container_name)s -f %(lxc_config_path)s -- su --preserve-environment --shell /bin/bash -c "cd /app;source /env.sh; exec %(cmd)s" %(user)s"""
+    tmpl = (
+        """exec lxc-start --name %(container_name)s -f %(lxc_config_path)s """
+        """-- su --preserve-environment --shell /bin/bash """
+        """-c "cd /app;source /env.sh; exec %(cmd)s" %(user)s"""
+    )
     return tmpl % {
         'cmd': cmd,
         'user': user,
         'container_name': posixpath.basename(proc_path) + '-uptest',
         'lxc_config_path': posixpath.join(proc_path, 'proc.lxc'),
     }
+
 
 @task
 def delete_proc(hostname, proc):
@@ -325,7 +330,12 @@ def clean_images_folders():
         builds_in_use = _get_builds_in_use()
         images_in_use = set()
         for app_tag in builds_in_use:
-            app_name, tag = app_tag.split('-', 1)
+            try:
+                app_name, tag = app_tag.split('-', 1)
+            except ValueError:
+                print('Invalid app name: {}'.format(app_tag))
+                continue
+
             try:
                 app = App.objects.get(name=app_name)
             except App.DoesNotExist:
@@ -333,8 +343,8 @@ def clean_images_folders():
                 continue
 
             for b in Build.objects.filter(
-                app=app,
-                tag=tag,
+                    app=app,
+                    tag=tag,
             ):
                 if b.os_image:
                     images_in_use.add(b.os_image.name)
@@ -411,8 +421,8 @@ def build_app(build_yaml_path):
         try:
             put(build_yaml_path, 'build_job.yaml', use_sudo=True)
             sudo('vbuild build build_job.yaml')
-            # relies on the build being named build.tar.gz and the manifest being named
-            # build_result.yaml.
+            # relies on the build being named build.tar.gz and the
+            # manifest being named build_result.yaml.
             get('build_result.yaml', 'build_result.yaml')
             with open('build_result.yaml', 'rb') as f:
                 BuildData(yaml.safe_load(f))

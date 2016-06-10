@@ -1,10 +1,7 @@
-import textwrap
-import time
 import datetime
 import json
-
-from hashlib import md5
-
+import logging
+import textwrap
 
 from django.conf import settings
 from django.contrib.auth import login as django_login, logout as django_logout
@@ -17,19 +14,17 @@ from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views.generic import edit
 from django.views.generic import ListView
-import urllib
 
 # Imported as recommended in the low-level API docs:
 # https://django-reversion.readthedocs.org/en/latest/api.html?#importing-the-low-level-api
 import reversion as revisions
 from reversion import create_revision
 
-from reversion.helpers import generate_patch
+from reversion.helpers import generate_patch, generate_patch_html
 
 from vr.server import forms, tasks, events, models
-from vr.server.utils import yamlize
+from vr.server.utils import yamlize, build_swarm_trace_id
 
-import logging
 logger = logging.getLogger('velociraptor')
 
 
@@ -226,10 +221,6 @@ def proclog(request, hostname, procname):
     return render(request, 'proclog.html', vars())
 
 
-def _clean_diff(diff):
-    return '\n'.join(filter(None, urllib.unquote(diff).splitlines()))
-
-
 def _get_version_diffs_for_obj(obj, limit):
     version_list = revisions.get_for_object(obj)
     fields = [field for field in obj._meta.fields]
@@ -241,17 +232,19 @@ def _get_version_diffs_for_obj(obj, limit):
             newer_version = version_list[iversion]
             diff_dict = {}
             for field in fields:
-                diff = generate_patch(newer_version, version, field.name)
-                if diff:
+                if generate_patch(version, newer_version, field.name):
+                    # If versions differ, generate a pretty html diff
+                    diff_html = generate_patch_html(
+                        version, newer_version, field.name)
                     diff_dict[field.name] = (
                         version.field_dict[field.name],
                         newer_version.field_dict[field.name],
-                        _clean_diff(diff),
+                        diff_html,
                     )
             version_diffs.append({
                 'diff_dict': diff_dict,
-                'user': version.revision.user,
-                'date': version.revision.date_created,
+                'user': newer_version.revision.user,
+                'date': newer_version.revision.date_created,
             })
     return version_diffs, last_edited
 
@@ -365,7 +358,7 @@ def do_swarm(swarm, user):
     Put a swarming job on the queue, and a notification about it on the pubsub.
     """
     # Create a swarm trace id that takes our swarm and time
-    swarm_trace_id = md5(str(swarm) + str(time.time())).hexdigest()
+    swarm_trace_id = build_swarm_trace_id(swarm)
     ev_detail = textwrap.dedent(
         """%(user)s swarmed %(shortname)s
 
@@ -440,6 +433,8 @@ class UpdateConfigIngredient(edit.UpdateView):
         Override so we can setup django-reversion versioning.
         """
         with create_revision():
+            revisions.set_user(self.request.user)
+            revisions.set_comment("Updated from web form.")
             return_value = super(UpdateConfigIngredient, self).form_valid(form)
         return return_value
 
@@ -455,6 +450,8 @@ class AddConfigIngredient(edit.CreateView):
         Override so we can setup django-reversion versioning.
         """
         with create_revision():
+            revisions.set_user(self.request.user)
+            revisions.set_comment("Added from web form.")
             return_value = super(AddConfigIngredient, self).form_valid(form)
         return return_value
 
@@ -472,6 +469,8 @@ class DeleteConfigIngredient(edit.DeleteView):
 
     def delete(self, request, *args, **kwargs):
         with create_revision():
+            revisions.set_user(self.request.user)
+            revisions.set_comment("Deleted from web form.")
             return super(DeleteConfigIngredient, self).delete(request)
 
 
@@ -491,6 +490,8 @@ class AddHost(edit.CreateView):
         Override so we can setup django-reversion versioning.
         """
         with create_revision():
+            revisions.set_user(self.request.user)
+            revisions.set_comment("Added from web form.")
             return_value = super(AddHost, self).form_valid(form)
         return return_value
 
@@ -506,6 +507,8 @@ class UpdateHost(edit.UpdateView):
         Override so we can setup django-reversion versioning.
         """
         with create_revision():
+            revisions.set_user(self.request.user)
+            revisions.set_comment("Updated from web form.")
             return_value = super(UpdateHost, self).form_valid(form)
         return return_value
 
@@ -517,6 +520,8 @@ class DeleteHost(edit.DeleteView):
 
     def delete(self, request, *args, **kwargs):
         with create_revision():
+            revisions.set_user(self.request.user)
+            revisions.set_comment("Deleted from web form.")
             return super(DeleteHost, self).delete(request)
 
 
@@ -536,6 +541,8 @@ class AddSquad(edit.CreateView):
         Override so we can setup django-reversion versioning.
         """
         with create_revision():
+            revisions.set_user(self.request.user)
+            revisions.set_comment("Added from web form.")
             return_value = super(AddSquad, self).form_valid(form)
         return return_value
 
@@ -551,6 +558,8 @@ class UpdateSquad(edit.UpdateView):
         Override so we can setup django-reversion versioning.
         """
         with create_revision():
+            revisions.set_user(self.request.user)
+            revisions.set_comment("Updated from web form.")
             return_value = super(UpdateSquad, self).form_valid(form)
         return return_value
 
@@ -562,6 +571,8 @@ class DeleteSquad(edit.DeleteView):
 
     def delete(self, request, *args, **kwargs):
         with create_revision():
+            revisions.set_user(self.request.user)
+            revisions.set_comment("Deleted from web form.")
             return super(DeleteSquad, self).delete(request)
 
 
@@ -585,6 +596,8 @@ class AddApp(edit.CreateView):
         Override so we can setup django-reversion versioning.
         """
         with create_revision():
+            revisions.set_user(self.request.user)
+            revisions.set_comment("Added from web form.")
             return_value = super(AddApp, self).form_valid(form)
         return return_value
 
@@ -601,6 +614,8 @@ class UpdateApp(edit.UpdateView):
         Override so we can setup django-reversion versioning.
         """
         with create_revision():
+            revisions.set_user(self.request.user)
+            revisions.set_comment("Updated from web form.")
             return_value = super(UpdateApp, self).form_valid(form)
         return return_value
 
@@ -612,6 +627,8 @@ class DeleteApp(edit.DeleteView):
 
     def delete(self, request, *args, **kwargs):
         with create_revision():
+            revisions.set_user(self.request.user)
+            revisions.set_comment("Deleted from web form.")
             return super(DeleteApp, self).delete(request)
 
 
@@ -636,6 +653,8 @@ class AddBuildPack(edit.CreateView):
         Override so we can setup django-reversion versioning.
         """
         with create_revision():
+            revisions.set_user(self.request.user)
+            revisions.set_comment("Added from web form.")
             return_value = super(AddBuildPack, self).form_valid(form)
         return return_value
 
@@ -652,6 +671,8 @@ class UpdateBuildPack(edit.UpdateView):
         Override so we can setup django-reversion versioning.
         """
         with create_revision():
+            revisions.set_user(self.request.user)
+            revisions.set_comment("Updated from web form.")
             return_value = super(UpdateBuildPack, self).form_valid(form)
         return return_value
 
@@ -663,6 +684,8 @@ class DeleteBuildPack(edit.DeleteView):
 
     def delete(self, request, *args, **kwargs):
         with create_revision():
+            revisions.set_user(self.request.user)
+            revisions.set_comment("Deleted from web form.")
             return super(DeleteBuildPack, self).delete(request)
 
 
@@ -718,6 +741,8 @@ class DeleteStack(edit.DeleteView):
 
     def delete(self, request, *args, **kwargs):
         with create_revision():
+            revisions.set_user(self.request.user)
+            revisions.set_comment("Deleted from web form.")
             return super(DeleteStack, self).delete(request)
 
 
