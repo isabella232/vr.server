@@ -793,6 +793,11 @@ VR.Views.Swarm = Backbone.View.extend({
       // filter out host removal events that have bubbled up from below
       if (model === this) {
         this.$el.remove();
+
+        try {
+          // GC on 'swarm' model
+          model.trigger('destroy', model);
+        } catch(e) {}
       }
     }
 });
@@ -1006,6 +1011,11 @@ VR.Views.App = Backbone.View.extend({
       // events.  Only remove self if self.app is the thing just removed
       if (model === this.app) {
         this.$el.remove();
+
+        try {
+          // GC on 'app' model
+          model.trigger('destroy', model);
+        } catch(e) {}
       }
     }
 });
@@ -1034,6 +1044,8 @@ VR.Models.Events = Backbone.Collection.extend({
         while (this.models.length > this.maxlength) {
             var model = this.at(0);
             this.remove(model);
+            // model garbage collection
+            model.trigger('destroy', model);
         }
     }
 });
@@ -1115,7 +1127,7 @@ VR.Views.Events = Backbone.View.extend({
     },
 
     onRemove: function(model) {
-        model.trigger('destroy');
+        model.trigger('destroy', model);
     }
 });
 
