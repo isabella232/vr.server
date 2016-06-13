@@ -1,3 +1,8 @@
+5.0.1
+-----
+
+* Additional model garbage collection to troubleshoot memory leak in UI.
+
 5.0.0
 -----
 
