@@ -233,6 +233,10 @@ class BuildResource(ReversionModelResource):
 
         try:
             build = models.Build.objects.get(id=int(kwargs['pk']))
+            # Set the build OS image, from the coresponding app.
+            build.os_image = build.app.get_os_image()
+            # Need to save it, so async tasks will find the new OS image
+            build.save()
         except models.Build.DoesNotExist:
             return HttpResponseNotFound()
 
