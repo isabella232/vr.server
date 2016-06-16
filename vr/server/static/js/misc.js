@@ -358,9 +358,9 @@ $(function() {
 
               $('#dashboard-slug').val(name);
             });
-            
+
             if(counter===1) {
-              $.getJSON(VR.Urls.getTasty('apps'), function(data) {
+              $.getJSON(VR.Urls.getTasty('apps'), {limit: 999}, function(data) {
                 apps = data.objects;
 
                 _.each(apps, function(app) {
