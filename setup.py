@@ -38,7 +38,7 @@ setup(
         'sseclient==0.0.8',
         'six>=1.4',
         'vr.events>=1.2.1',
-        'vr.common>=4.4',
+        'vr.common>=4.7.1',
         'vr.builder>=1.3',
         'vr.imager>=1.2',
         'django-yamlfield',
