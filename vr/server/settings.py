@@ -135,6 +135,7 @@ CELERYBEAT_SCHEDULE = {
 
 CELERY_ROUTES = {
     'vr.server.tasks.uptest_all_procs': {'queue': 'scheduled_uptests'},
+    'vr.server.tasks.post_uptest_all_procs': {'queue': 'scheduled_uptests'},
     'vr.server.tasks.uptest_host': {'queue': 'scheduled_uptests'}
 }
 
