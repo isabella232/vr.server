@@ -338,11 +338,16 @@ $(function() {
 
     // Update dropdown in navigation
     $.getJSON(VR.Urls.getTasty('dashboard'), function(data, stat, xhr) {
-        _.each(data.objects, function(dashboard) {
-          $('#dashboard-submenu').append('<li><a href="/dashboard/'+dashboard.slug+'/">'+dashboard.name+'</a></li>');
+        var dashboards = _.sortBy(data.objects, function(d) { return d.name.toLowerCase(); });
+        _.each(dashboards, function(dashboard) {
+            $('#dashboard-submenu').append(
+                '<li><a href="/dashboard/' + dashboard.slug + '/">' + dashboard.name + '</a></li>'
+            );
         });
 
-        $('#dashboard-submenu').append('<li class="divider"></li><li><a href="javascript:;" class="dashboard-new">New</a></li>');
+        $('#dashboard-submenu').append(
+            '<li class="divider"></li><li><a href="javascript:;" class="dashboard-new">New</a></li>'
+        );
 
         $('.dashboard-new').click(function() {
           var template = VR.Templates.DashModal,
