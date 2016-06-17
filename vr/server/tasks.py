@@ -13,6 +13,7 @@ from six.moves import range
 
 import yaml
 import fabric.network
+import fabric.state
 import redis
 from celery.task import subtask, chord, task
 from fabric.api import env
@@ -175,7 +176,7 @@ def deploy(release_id, config_name, hostname, proc, port, swarm_trace_id=None):
                     release, config_name, hostname, proc, port)
                 f.write(yaml.safe_dump(info, default_flow_style=False))
 
-            with always_disconnect():
+            with always_disconnect(hostname):
                 remote.deploy_proc('proc.yaml')
 
 
@@ -380,7 +381,7 @@ def delete_proc(host, proc, callback=None, swarm_trace_id=None):
     env.user = settings.DEPLOY_USER
     env.password = settings.DEPLOY_PASSWORD
     env.linewise = True
-    with always_disconnect():
+    with always_disconnect(host):
         remote.delete_proc(host, proc)
 
     send_event(Proc.name_to_shortname(proc),
@@ -656,7 +657,7 @@ def uptest_host_procs(hostname, procs):
     env.password = settings.DEPLOY_PASSWORD
     env.linewise = True
 
-    with always_disconnect():
+    with always_disconnect(hostname):
         results = {
             p: remote.run_uptests(hostname, p, settings.PROC_USER)
             for p in procs
@@ -924,7 +925,7 @@ def _clean_host(hostname):
     env.password = settings.DEPLOY_PASSWORD
     env.linewise = True
 
-    with always_disconnect():
+    with always_disconnect(hostname):
         remote.clean_builds_folders()
         remote.clean_images_folders()
 
@@ -977,14 +978,29 @@ def clean_old_builds():
 
 
 @contextlib.contextmanager
-def always_disconnect():
-    """
-    to address #18366, disconnect every time.
+def always_disconnect(host=None):
+    """Disconnect from `host`. If `host` is None, disconnect from all hosts.
+
+    See #18366.
     """
     try:
         yield
     finally:
-        fabric.network.disconnect_all()
+        if host is None:
+            logger.warning('Disconnecting from all hosts')
+            fabric.network.disconnect_all()
+        else:
+            _disconnect_from_host(host)
+
+
+def _disconnect_from_host(host):
+    logger.info('Disconnecting from %s', host)
+    if host in fabric.state.connections:
+        fabric.state.connections[host].close()
+        del fabric.state.connections[host]
+        logger.info('Disconnected from %s', host)
+    else:
+        logger.warning('Not connected %s', host)
 
 
 class tmpredis(object):
