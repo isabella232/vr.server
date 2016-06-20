@@ -22,6 +22,9 @@ def start_celery():
     parser.add_argument('--loglevel', default='warning',
                         help='Specify celery loglevel')
 
+    parser.add_argument('-O', choices=['default', 'fair'],
+                        help='Specify optimization level')
+
     kwargs = dict()
     args = parser.parse_args()
 
@@ -38,11 +41,16 @@ def start_celery():
     if args.loglevel is not None:
         kwargs['loglevel'] = args.loglevel
 
+    if args.O is not None:
+        kwargs['O'] = args.O
+
     management.call_command('celeryd', **kwargs)
+
 
 def start_celerybeat():
     setup()
     management.call_command('celerybeat', pidfile=None)
+
 
 def run_migrations():
     setup()
