@@ -942,6 +942,7 @@ def clean_old_builds():
     # select all builds older than BUILD_EXPIRATION_DAYS where file is not
     # None
     if settings.BUILD_EXPIRATION_DAYS is not None:
+        logger.info('Cleaning old builds')
         cutoff = (timezone.now() -
                   datetime.timedelta(days=settings.BUILD_EXPIRATION_DAYS))
 
@@ -972,6 +973,7 @@ def clean_old_builds():
         # OK, we now have a set of builds that are older than both our cutoffs,
         # and definitely not in use.  Delete their files to free up space.
         for build in old_builds:
+            logger.info('Cleaning build %s', build)
             build.file.delete()
             build.status = 'expired'
             build.save()
