@@ -20,7 +20,7 @@ from fabric.api import (sudo as sudo_, get, put, task, env, settings as
 from fabric.contrib import files
 from fabric.context_managers import cd
 
-from vr.common.models import ProcData
+from vr.common.models import ProcData, ProcError
 from vr.common.paths import (
     BUILDS_ROOT, IMAGES_ROOT, PROCS_ROOT, get_proc_path,
     get_container_name, get_container_path)
@@ -232,22 +232,41 @@ def legacy_uptests_command(proc_path, proc, host, port, user):
 def delete_proc(hostname, proc):
     if not proc:
         raise SystemExit("You must supply a proc name")
-    host = Host.objects.get(name=hostname)
-    settings = host.get_proc(proc).settings
 
-    # stop the proc
+    print('delete_proc: Stopping proc {} @{} in supervisorctl'.format(
+        proc, hostname))
     sudo('supervisorctl stop %s' % proc)
-    # remove the proc
+
+    print('delete_proc: Removing proc {} in supervisorctl'.format(proc))
     sudo('supervisorctl remove %s' % proc)
 
-    proc_dir = posixpath.join(PROCS_ROOT, proc)
+    try:
+        teardown(hostname, proc)
+    except ProcError:
+        # Maybe someone deleted it manually, already
+        print('delete_proc: Proc {} not found @{}'.format(proc, hostname))
 
+    print('delete_proc: Done.')
+
+
+def teardown(hostname, proc):
+    proc_dir = posixpath.join(PROCS_ROOT, proc)
     proc_yaml_path = posixpath.join(proc_dir, 'proc.yaml')
     if files.exists(proc_yaml_path, use_sudo=True):
-        sudo(get_runner(settings) + ' teardown ' + proc_yaml_path)
+        print('delete_proc: Preparing to tear down proc {}'.format(proc))
+        print('delete_proc: Getting host')
+        host = Host.objects.get(name=hostname)
+        print('delete_proc: Getting settings')
+        settings = host.get_proc(proc).settings
+        print('delete_proc: Getting runner')
+        runner = get_runner(settings)
+        print('delete_proc: Tearing down proc {} with runner {}'.format(
+            proc, runner))
+        sudo(runner + ' teardown ' + proc_yaml_path)
+        print('delete_proc: Tearing down proc {} done'.format(proc))
 
-    # delete the proc dir
     if files.exists(proc_dir, use_sudo=True):
+        print('delete_proc: Removing proc dir')
         sudo('rm -rf %s' % proc_dir)
 
 
