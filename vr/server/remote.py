@@ -233,6 +233,16 @@ def delete_proc(hostname, proc):
     if not proc:
         raise SystemExit("You must supply a proc name")
 
+    # Get proc settings before removing the proc from supervisor
+    try:
+        settings = _get_proc_settings(hostname, proc)
+    except ProcError:
+        # Maybe someone deleted it manually, already
+        print('delete_proc: Failed getting psettings for {} @{}'.format(
+            proc, hostname))
+        settings = None
+
+    # Even if we couldn't get the settings, go ahead and try to stop it
     print('delete_proc: Stopping proc {} @{} in supervisorctl'.format(
         proc, hostname))
     sudo('supervisorctl stop %s' % proc)
@@ -240,25 +250,23 @@ def delete_proc(hostname, proc):
     print('delete_proc: Removing proc {} in supervisorctl'.format(proc))
     sudo('supervisorctl remove %s' % proc)
 
-    try:
-        teardown(hostname, proc)
-    except ProcError:
-        # Maybe someone deleted it manually, already
-        print('delete_proc: Proc {} not found @{}'.format(proc, hostname))
+    if settings is not None:
+        teardown(proc, settings)
 
     print('delete_proc: Done.')
 
 
-def teardown(hostname, proc):
+def _get_proc_settings(hostname, proc):
+    host = Host.objects.get(name=hostname)
+    print('delete_proc: Getting settings')
+    settings = host.get_proc(proc).settings
+    return settings
+
+
+def teardown(proc, settings):
     proc_dir = posixpath.join(PROCS_ROOT, proc)
     proc_yaml_path = posixpath.join(proc_dir, 'proc.yaml')
     if files.exists(proc_yaml_path, use_sudo=True):
-        print('delete_proc: Preparing to tear down proc {}'.format(proc))
-        print('delete_proc: Getting host')
-        host = Host.objects.get(name=hostname)
-        print('delete_proc: Getting settings')
-        settings = host.get_proc(proc).settings
-        print('delete_proc: Getting runner')
         runner = get_runner(settings)
         print('delete_proc: Tearing down proc {} with runner {}'.format(
             proc, runner))
