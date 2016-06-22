@@ -16,6 +16,7 @@ import fabric.network
 import fabric.state
 import redis
 from celery.task import subtask, chord, task
+from celery.exceptions import SoftTimeLimitExceeded
 from fabric.api import env
 from django.conf import settings
 from django.utils import timezone
@@ -372,7 +373,7 @@ def get_build_parameters(build):
     return build_params
 
 
-@task
+@task(soft_time_limit=60)
 @event_on_exception(['proc', 'deleted'])
 def delete_proc(host, proc, callback=None, swarm_trace_id=None):
     logger.info("[%s] Delete proc %s on host %s", swarm_trace_id, proc, host)
@@ -381,13 +382,24 @@ def delete_proc(host, proc, callback=None, swarm_trace_id=None):
     env.user = settings.DEPLOY_USER
     env.password = settings.DEPLOY_PASSWORD
     env.linewise = True
-    with always_disconnect(host):
-        remote.delete_proc(host, proc)
+    try:
+        with always_disconnect(host):
+            remote.delete_proc(host, proc)
 
-    send_event(Proc.name_to_shortname(proc),
-               'deleted %s on %s' % (proc, host),
-               tags=['proc', 'deleted'],
-               swarm_id=swarm_trace_id)
+        send_event(Proc.name_to_shortname(proc),
+                   'deleted %s on %s' % (proc, host),
+                   tags=['proc', 'deleted'],
+                   swarm_id=swarm_trace_id)
+
+    except SoftTimeLimitExceeded:
+        logger.warning(
+            '[%s] Timeout while deleting proc %s on %s',
+            swarm_trace_id, proc, host)
+
+        send_event(Proc.name_to_shortname(proc),
+                   'Timeout while deleting %s on %s' % (proc, host),
+                   tags=['proc', 'deleted'],
+                   swarm_id=swarm_trace_id)
 
     if callback is not None:
         logger.info(
