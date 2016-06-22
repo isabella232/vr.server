@@ -17,7 +17,7 @@ import fabric.state
 import redis
 from celery.task import subtask, chord, task
 from celery.exceptions import SoftTimeLimitExceeded
-from fabric.api import env
+from fabric.context_managers import settings as fab_settings
 from django.conf import settings
 from django.utils import timezone
 from django.core.files import File
@@ -161,14 +161,6 @@ def deploy(release_id, config_name, hostname, proc, port, swarm_trace_id=None):
         assert release.build.file, "Build %s has no file" % release.build
         assert release.hash, "Release %s has not been hashed" % release
 
-        # Set up env for Fabric
-        env.host_string = hostname
-        env.abort_on_prompts = True
-        env.task = deploy
-        env.user = settings.DEPLOY_USER
-        env.password = settings.DEPLOY_PASSWORD
-        env.linewise = True
-
         with tmpdir():
 
             # write the proc.yaml locally
@@ -177,8 +169,9 @@ def deploy(release_id, config_name, hostname, proc, port, swarm_trace_id=None):
                     release, config_name, hostname, proc, port)
                 f.write(yaml.safe_dump(info, default_flow_style=False))
 
-            with always_disconnect(hostname):
-                remote.deploy_proc('proc.yaml')
+            with remote_settings(hostname):
+                with always_disconnect(hostname):
+                    remote.deploy_proc('proc.yaml')
 
 
 @task
@@ -223,13 +216,9 @@ def build_image(image_id, callback=None):
         try:
             with open('image.yaml', 'wb') as f:
                 f.write(image_yaml)
-            env.host_string = 'localhost'
-            env.abort_on_prompts = True
-            env.task = build_app
-            env.user = settings.DEPLOY_USER
-            env.password = settings.DEPLOY_PASSWORD
-            env.linewise = True
-            remote.build_image('image.yaml')
+
+            with remote_settings('localhost'):
+                remote.build_image('image.yaml')
 
             # We should now have <image_name>.tar.gz and <image_name>.log
             # locally.
@@ -269,14 +258,9 @@ def _do_build(build, build_yaml):
         try:
             with open('build_job.yaml', 'wb') as f:
                 f.write(build_yaml)
-            # call the fabric build task to ssh to self and do the build
-            env.host_string = 'localhost'
-            env.abort_on_prompts = True
-            env.task = build_app
-            env.user = settings.DEPLOY_USER
-            env.password = settings.DEPLOY_PASSWORD
-            env.linewise = True
-            remote.build_app('build_job.yaml')
+
+            with remote_settings('localhost'):
+                remote.build_app('build_job.yaml')
 
             # store the build file and metadata in the database.  There should
             # now be a build.tar.gz and build_result.yaml in the current folder
@@ -377,14 +361,10 @@ def get_build_parameters(build):
 @event_on_exception(['proc', 'deleted'])
 def delete_proc(host, proc, callback=None, swarm_trace_id=None):
     logger.info("[%s] Delete proc %s on host %s", swarm_trace_id, proc, host)
-    env.host_string = host
-    env.abort_on_prompts = True
-    env.user = settings.DEPLOY_USER
-    env.password = settings.DEPLOY_PASSWORD
-    env.linewise = True
     try:
-        with always_disconnect(host):
-            remote.delete_proc(host, proc)
+        with remote_settings(host):
+            with always_disconnect(host):
+                remote.delete_proc(host, proc)
 
         send_event(Proc.name_to_shortname(proc),
                    'deleted %s on %s' % (proc, host),
@@ -663,17 +643,12 @@ def swarm_assign_uptests(swarm_id, swarm_trace_id=None):
 
 @task
 def uptest_host_procs(hostname, procs):
-    env.host_string = hostname
-    env.abort_on_prompts = True
-    env.user = settings.DEPLOY_USER
-    env.password = settings.DEPLOY_PASSWORD
-    env.linewise = True
-
-    with always_disconnect(hostname):
-        results = {
-            p: remote.run_uptests(hostname, p, settings.PROC_USER)
-            for p in procs
-        }
+    with remote_settings(hostname):
+        with always_disconnect(hostname):
+            results = {
+                p: remote.run_uptests(hostname, p, settings.PROC_USER)
+                for p in procs
+            }
     return hostname, results
 
 
@@ -931,15 +906,10 @@ def post_uptest_all_procs(_results, test_run_id):
 
 @task
 def _clean_host(hostname):
-    env.host_string = hostname
-    env.abort_on_prompts = True
-    env.user = settings.DEPLOY_USER
-    env.password = settings.DEPLOY_PASSWORD
-    env.linewise = True
-
-    with always_disconnect(hostname):
-        remote.clean_builds_folders()
-        remote.clean_images_folders()
+    with remote_settings(hostname):
+        with always_disconnect(hostname):
+            remote.clean_builds_folders()
+            remote.clean_images_folders()
 
 
 @task
@@ -989,6 +959,16 @@ def clean_old_builds():
             build.file.delete()
             build.status = 'expired'
             build.save()
+
+
+def remote_settings(hostname):
+    '''Context manager to set Fabric env suitably for remote calls.'''
+    return fab_settings(
+        host_string=hostname,
+        abort_on_prompts=True,
+        user=settings.DEPLOY_USER,
+        password=settings.DEPLOY_PASSWORD,
+        linewise=True)
 
 
 @contextlib.contextmanager
