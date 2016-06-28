@@ -9,6 +9,7 @@ import json
 
 from collections import defaultdict
 
+import six
 from six.moves import range
 
 import yaml
@@ -32,6 +33,7 @@ from vr.server import events, balancer, remote
 from vr.server.models import (Release, Build, Swarm, Host, PortLock, TestRun,
                               TestResult, BuildPack, OSImage)
 
+MAX_EVENT_MESSAGE_LEN = 10000
 
 logger = logging.getLogger('velociraptor.tasks')
 
@@ -46,7 +48,18 @@ def send_event(title, msg, tags=None, **kw):
         settings.EVENTS_BUFFER_KEY,
         settings.EVENTS_BUFFER_LENGTH,
     )
-    sender.publish(msg, title=title, tags=tags, **kw)
+
+    def _trim(msg):
+        if not isinstance(msg, six.string_types):
+            return msg
+        if len(msg) < MAX_EVENT_MESSAGE_LEN:
+            return msg
+
+        n = int(MAX_EVENT_MESSAGE_LEN / 2)
+        sep = '\n\n...<snip>...\n\n'
+        return msg[:n] + sep + msg[-n:]
+
+    sender.publish(_trim(msg), title=title, tags=tags, **kw)
     sender.close()
 
 
