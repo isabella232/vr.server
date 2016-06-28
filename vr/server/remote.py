@@ -34,6 +34,10 @@ from vr.server.models import Host, Build, App
 # from host?
 MAX_IMAGE_AGE_SECS = 90 * 24 * 60 * 60
 
+# Supervisorctl may take a long time and even hang.
+# Specify a timeout before giving up.
+SUPERVISORCTL_TIMEOUT = 60
+
 
 def get_template(name):
     return pkg_resources.resource_filename('vr.common', 'templates/' + name)
@@ -70,6 +74,11 @@ def sudo(*args, **kwargs):
     return Error.handle(sudo_(*args, **kwargs))
 
 
+def supervisorctl(cmd):
+    with fab_settings(command_timeout=SUPERVISORCTL_TIMEOUT):
+        sudo('supervisorctl ' + cmd)
+
+
 @task
 def deploy_proc(proc_yaml_path):
     """
@@ -85,8 +94,8 @@ def deploy_proc(proc_yaml_path):
 
     sudo(get_runner(settings) + ' setup ' + remote_proc_yaml)
     write_proc_conf(settings)
-    sudo('supervisorctl reread')
-    sudo('supervisorctl add ' + get_container_name(settings))
+    supervisorctl('reread')
+    supervisorctl('add ' + get_container_name(settings))
 
 
 def write_proc_conf(settings):
@@ -245,10 +254,10 @@ def delete_proc(hostname, proc):
     # Even if we couldn't get the settings, go ahead and try to stop it
     print('delete_proc: Stopping proc {} @{} in supervisorctl'.format(
         proc, hostname))
-    sudo('supervisorctl stop %s' % proc)
+    supervisorctl('stop %s' % proc)
 
     print('delete_proc: Removing proc {} in supervisorctl'.format(proc))
-    sudo('supervisorctl remove %s' % proc)
+    supervisorctl('remove %s' % proc)
 
     if settings is not None:
         teardown(proc, settings)
