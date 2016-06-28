@@ -16,7 +16,6 @@ import fabric.network
 import fabric.state
 import redis
 from celery.task import subtask, chord, task
-from celery.exceptions import SoftTimeLimitExceeded
 from fabric.context_managers import settings as fab_settings
 from django.conf import settings
 from django.utils import timezone
@@ -359,8 +358,16 @@ def get_build_parameters(build):
 
 @task(soft_time_limit=60)
 @event_on_exception(['proc', 'deleted'])
-def delete_proc(host, proc, callback=None, swarm_trace_id=None):
+def delete_proc(host, proc, callback=None, swarm_trace_id=None, retry=0):
     logger.info("[%s] Delete proc %s on host %s", swarm_trace_id, proc, host)
+
+    # We want to retry this task a few times before giving up, but we
+    # want to carry on with the swarm on failure, too.
+    # Celery retry() method seems to re-raise the original exception,
+    # which stops the whole swarm.
+    MAX_RETRIES = 3
+    RETRY_TIMEOUT = 60
+
     try:
         with remote_settings(host):
             with always_disconnect(host):
@@ -371,15 +378,29 @@ def delete_proc(host, proc, callback=None, swarm_trace_id=None):
                    tags=['proc', 'deleted'],
                    swarm_id=swarm_trace_id)
 
-    except SoftTimeLimitExceeded:
+    except Exception as exc:
         logger.warning(
-            '[%s] Timeout while deleting proc %s on %s',
-            swarm_trace_id, proc, host)
+            '[%s] Error while deleting proc %s on %s: %r',
+            swarm_trace_id, proc, host, exc)
+
+        if retry >= MAX_RETRIES:
+            raise
 
         send_event(Proc.name_to_shortname(proc),
-                   'Timeout while deleting %s on %s' % (proc, host),
-                   tags=['proc', 'deleted'],
+                   'Error while deleting %s on %s: %r. Will retry.' % (
+                       proc, host, exc),
+                   tags=['proc', 'deleted', 'failed'],
                    swarm_id=swarm_trace_id)
+
+        logger.warning('delete_proc: Retrying #%d', retry)
+        delete_proc.apply_async(
+            kwargs={
+                'host': host,
+                'proc': proc,
+                'callback': callback,
+                'swarm_trace_id': swarm_trace_id,
+                'retry': retry + 1,
+            }, countdown=RETRY_TIMEOUT)
 
     if callback is not None:
         logger.info(
