@@ -259,8 +259,8 @@ def delete_proc(hostname, proc):
     print('delete_proc: Removing proc {} in supervisorctl'.format(proc))
     supervisorctl('remove %s' % proc)
 
-    if settings is not None:
-        teardown(proc, settings)
+    # Try to teardown
+    teardown(proc, settings)
 
     print('delete_proc: Done.')
 
@@ -276,7 +276,7 @@ def teardown(proc, settings):
     proc_dir = posixpath.join(PROCS_ROOT, proc)
     proc_yaml_path = posixpath.join(proc_dir, 'proc.yaml')
     if files.exists(proc_yaml_path, use_sudo=True):
-        runner = get_runner(settings)
+        runner = get_runner(settings) if settings else 'vrun'
         print('delete_proc: Tearing down proc {} with runner {}'.format(
             proc, runner))
         sudo(runner + ' teardown ' + proc_yaml_path)
