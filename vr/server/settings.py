@@ -323,11 +323,16 @@ def setup_logger():
 
 
 setup_logger()
-# Now that production settings have been patched in, schedule a task for build
-# cleanup if necessary.
-if BUILD_EXPIRATION_DAYS is not None:
-    CELERYBEAT_SCHEDULE['build_cleanup'] = {
-        'task': 'vr.server.tasks.clean_old_builds',
-        'schedule': datetime.timedelta(days=1),
-        'options': {'expires': 120}
-    }
+
+
+def setup_mailer():
+    import celery.utils.mail
+
+    # Remove exc stack trace from email subjects: it's already in the
+    # email body
+    celery.utils.mail.ErrorMail.subject = (
+        '        [{hostname}] Error: Task {name} ({id})\n    '
+    )
+
+
+setup_mailer()
