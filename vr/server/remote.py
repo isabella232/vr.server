@@ -16,7 +16,7 @@ import contextlib
 import pkg_resources
 import yaml
 from fabric.api import (sudo as sudo_, get, put, task, env, settings as
-                        fab_settings)
+                        fab_settings, hide)
 from fabric.contrib import files
 from fabric.context_managers import cd
 
@@ -76,7 +76,7 @@ def sudo(*args, **kwargs):
 
 def supervisorctl(cmd):
     with fab_settings(command_timeout=SUPERVISORCTL_TIMEOUT):
-        sudo('supervisorctl ' + cmd)
+        return sudo('supervisorctl ' + cmd)
 
 
 @task
@@ -405,6 +405,107 @@ def clean_images_folders():
 
     except Exception:
         print('Failed to remove images: {}'.format(traceback.format_exc()))
+
+
+def _get_procnames_from_output(output):
+    procnames = set()
+    for line in output.splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        procname = line.split()[0]
+        procnames.add(procname)
+    return procnames
+
+
+def get_supervised_procnames():
+    """Return a list of procnames under supervisor."""
+    with fab_settings(hide('stdout')):
+        output = supervisorctl('status')
+    return _get_procnames_from_output(output)
+
+
+def get_installed_procnames():
+    """Get a list of procs currently on the file system."""
+    return set(get_procs())
+
+
+def get_old_procnames():
+    """Get a list of procnames that are on the filesystem, but unknown
+    to supervisor."""
+    s_procnames = get_supervised_procnames()
+    i_procnames = get_installed_procnames()
+    return i_procnames - s_procnames
+
+
+def teardown_old_procs():
+    """
+    Teardown old procs. Usually, old procs are removed during the
+    swarm phase and replaced with the new proc. But if the swarm
+    failed and did not cleanup properly, old procs can remain,
+    lingering in the file system. This will cause issues if the host
+    is rebooted, because supervisord will start the old procs up again
+    as soon as the host comes back up.
+
+    See https://bitbucket.org/yougov/velociraptor/issues/194.
+    """
+
+    hostname = env.host_string
+    for procname in get_old_procnames():
+        print('teardown_old_procs: Tearing down {} @{}'.format(
+            procname, hostname))
+        try:
+            settings = _get_proc_settings(hostname, procname)
+        except ProcError:
+            print(
+                'teardown_old_procs: '
+                'Failed getting psettings for {} @{}'.format(
+                    procname, hostname))
+            settings = None
+        teardown(procname, settings)
+
+
+def get_orphans():
+    with fab_settings(hide('stdout')):
+        output = sudo('ps -C sudo,su -o pid,ppid,command')
+        #   PID   PPID COMMAND
+        #  6676   6667 sudo -u nobody -E -s ...
+        # 18079  18068 sudo -u nobody -E -s ...
+        #  9642  9634  su --preserve-environment ...
+
+    def get_children(pid):
+        with fab_settings(hide('stdout')):
+            output = sudo('ps --ppid {} -o command'.format(pid))
+        return tuple(output.splitlines()[1:])
+
+    orphans = set()
+    for line in output.splitlines()[1:]:
+        tokens = line.split()
+        pid = int(tokens[0])
+        ppid = int(tokens[1])
+        command = ' '.join(tokens[2:]).strip()
+
+        is_vr_command = (
+            command.startswith('sudo -u nobody') or
+            command.startswith('su --preserve-environment'))
+
+        is_child_of_init = ppid == 1
+
+        if is_child_of_init and is_vr_command:
+            orphans.add((int(pid), get_children(pid)))
+
+    return orphans
+
+
+def kill_orphans():
+    """
+    Delete orphans procs left behind by LXC crashes leaving orphans behind.
+
+    See https://bitbucket.org/yougov/velociraptor/issues/195.
+    """
+    for pid, cmds in get_orphans():
+        print('kill_orphans: Killing pid={} and children={}'.format(pid, cmds))
+        sudo('kill -9 {}'.format(pid))
 
 
 @task

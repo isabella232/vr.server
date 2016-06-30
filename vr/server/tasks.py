@@ -944,6 +944,8 @@ def _clean_host(hostname):
         with always_disconnect(hostname):
             remote.clean_builds_folders()
             remote.clean_images_folders()
+            remote.teardown_old_procs()
+            remote.kill_orphans()
 
 
 @task

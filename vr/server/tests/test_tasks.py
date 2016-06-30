@@ -187,9 +187,10 @@ class TestScooper(object):
     @patch.object(remote, 'get_builds')
     @patch.object(remote, 'get_images')
     @patch.object(remote, 'delete_build')
+    @patch.object(remote, 'teardown')
     def test_clean_host_no_unused(
-            self, mock_delete_build, mock_get_images, mock_get_builds,
-            mock_get_procs, mock_files):
+            self, mock_teardown, mock_delete_build, mock_get_images,
+            mock_get_builds, mock_get_procs, mock_files):
         mock_get_images.return_value = []
         mock_get_builds.return_value = [
             'app-build1',
@@ -204,14 +205,20 @@ class TestScooper(object):
         tasks._clean_host(self.host.name)
         assert not mock_delete_build.called
 
+        # Order doesn't matter
+        mock_teardown.assert_any_call('app-build1-proc1', None)
+        mock_teardown.assert_any_call('app-build1-proc2', None)
+        mock_teardown.assert_any_call('app-build2-proc1', None)
+
     @patch.object(remote, 'files')
     @patch.object(remote, 'get_procs')
     @patch.object(remote, 'get_builds')
     @patch.object(remote, 'get_images')
     @patch.object(remote, 'delete_build')
+    @patch.object(remote, 'teardown')
     def test_clean_host(
-            self, mock_delete_build, mock_get_images, mock_get_builds,
-            mock_get_procs, mock_files):
+            self, mock_teardown, mock_delete_build, mock_get_images,
+            mock_get_builds, mock_get_procs, mock_files):
         mock_get_images.return_value = []
         mock_get_builds.return_value = [
             'app-build1',
@@ -224,6 +231,9 @@ class TestScooper(object):
         mock_files.exists.return_value = True
         tasks._clean_host(self.host.name)
         mock_delete_build.assert_called_once_with('app-build1')
+
+        # Order doesn't matter
+        mock_teardown.assert_any_call('app-build2-proc1', None)
 
     @patch.object(remote, 'get_build_procs')
     @patch.object(remote, 'delete_proc')
@@ -286,3 +296,35 @@ class TestScooper(object):
 
         remote.clean_images_folders()
         mock_rm_image.assert_called_once_with(old_img_path)
+
+    @patch.object(remote, '_get_proc_settings')
+    @patch.object(remote, 'get_supervised_procnames')
+    @patch.object(remote, 'get_installed_procnames')
+    @patch.object(remote, 'teardown')
+    def test_teardown_old_procs(
+            self, mock_teardown, mock_get_installed_procnames,
+            mock_get_supervised_procnames, mock_get_proc_settings):
+
+        mock_get_proc_settings.return_value = None
+        mock_get_supervised_procnames.return_value = {
+            'proc1', 'proc2'}
+        mock_get_installed_procnames.return_value = {
+            'proc1', 'proc2', 'proc3'}
+
+        remote.teardown_old_procs()
+        mock_teardown.assert_called_once_with('proc3', None)
+
+    @patch.object(remote, 'get_orphans')
+    @patch.object(remote, 'sudo')
+    def test_kill_orphans(self, mock_sudo, mock_get_orphans):
+        mock_get_orphans.return_value = [
+            (1000, ('child1', 'child2')),
+            (1001, ('child3', 'child4')),
+            (1002, ('child5', 'child5')),
+        ]
+        remote.kill_orphans()
+        mock_sudo.assert_has_calls([
+            call('kill -9 1000'),
+            call('kill -9 1001'),
+            call('kill -9 1002'),
+        ])
