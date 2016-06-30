@@ -34,6 +34,7 @@ from vr.server.models import (Release, Build, Swarm, Host, PortLock, TestRun,
                               TestResult, BuildPack, OSImage)
 
 MAX_EVENT_MESSAGE_LEN = 10000
+PORTLOCK_MAX_AGE_DAYS = 7
 
 logger = logging.getLogger('velociraptor.tasks')
 
@@ -158,7 +159,7 @@ def build_proc_info(release, config_name, hostname, proc, port):
 @task
 @event_on_exception(['deploy'])
 def deploy(release_id, config_name, hostname, proc, port, swarm_trace_id=None):
-    with remove_port_lock(hostname, port):
+    with unlock_port_ctx(hostname, port):
         release = Release.objects.get(id=release_id)
         logger.info(
             '[%s] Deploy %s-%s-%s to %s',
@@ -558,8 +559,7 @@ def swarm_release(swarm_id, swarm_trace_id=None):
 
             # Ports need to be locked here in the synchronous loop, before
             # fanning out the async subtasks, in order to prevent collisions.
-            pl = PortLock(host=host, port=port)
-            pl.save()
+            lock_port(host, port)
 
         # Now loop over the hosts and fan out a task to each that needs it.
         subtasks = []
@@ -950,9 +950,13 @@ def _clean_host(hostname):
 
 @task
 def scooper():
-    # Clean up all active hosts
+    logger.info('Cleaning up hosts')
     for host in Host.objects.filter(active=True):
         _clean_host.apply_async((host.name,), expires=1800)
+
+    logger.info('Free up old port locks')
+    dt = timezone.now() - datetime.timedelta(days=PORTLOCK_MAX_AGE_DAYS)
+    PortLock.objects.filter(created_time__lt=dt).delete()
 
 
 @task
@@ -1043,26 +1047,45 @@ class tmpredis(object):
         self.conn.connection_pool.disconnect()
 
 
-class remove_port_lock(object):
+def lock_port(host, port):
+    '''Acquire a PortLock on (host, port).
+
+    `host` can either be a hostname or a db obj.
+    '''
+    logger.info('Acquiring port lock %s:%s', host, port)
+    if isinstance(host, six.string_types):
+        host = Host.objects.get(name=host)
+    pl = PortLock(host=host, port=port)
+    pl.save()
+
+
+def unlock_port(host, port):
+    '''Release the PortLock on (host, port).
+
+    `host` can either be a hostname or a db obj.
+    '''
+    logger.info('Releasing port lock %s:%s', host, port)
+    if isinstance(host, six.string_types):
+        host = Host.objects.get(name=host)
+    try:
+        lock = PortLock.objects.get(host=host, port=int(port))
+        lock.delete()
+    except PortLock.DoesNotExist:
+        pass
+
+
+@contextlib.contextmanager
+def unlock_port_ctx(host, port):
     """
-    Context manager for removing a port lock on a host.  Requires a hostname
-    and port on init.
+    Context manager for removing a port lock on a host.
+
+    `host` can either be a hostname or a db obj.
     """
 
     # This used just during deployment.  In general the host itself is the
     # source of truth about what ports are in use. But when deployments are
     # still in flight, port locks are necessary to prevent collisions.
-
-    def __init__(self, hostname, port):
-        self.host = Host.objects.get(name=hostname)
-        self.port = int(port)
-
-    def __enter__(self):
-        pass
-
-    def __exit__(self, type, value, traceback):
-        try:
-            self.lock = PortLock.objects.get(host=self.host, port=self.port)
-            self.lock.delete()
-        except PortLock.DoesNotExist:
-            pass
+    try:
+        yield
+    finally:
+        unlock_port(host, port)
