@@ -394,7 +394,8 @@ def clean_images_folders():
         obsolete_image_paths = set()
         for img in unused_images:
             img_path = os.path.join(IMAGES_ROOT, img)
-            if _is_image_obsolete(img_path):
+            if (files.exists(img_path, use_sudo=True) and
+                    _is_image_obsolete(img_path)):
                 obsolete_image_paths.add(img_path)
         print('Found {} obsolete image paths: {}'.format(
             len(obsolete_image_paths), obsolete_image_paths))

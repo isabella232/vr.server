@@ -7,6 +7,7 @@ import tempfile
 from path import path
 import time
 
+from fabric.api import local
 import pytest
 
 from vr.common.utils import randchars
@@ -247,13 +248,25 @@ class TestScooper(object):
     @patch.object(remote, 'get_images')
     @patch.object(remote, '_get_builds_in_use')
     @patch.object(remote, '_rm_image')
+    @patch.object(remote, 'files')
+    @patch.object(remote, 'sudo')
     def test_clean_images_folders(
-            self, mock_rm_image, mock_get_builds_in_use, mock_get_images):
+            self, mock_sudo, mock_files, mock_rm_image,
+            mock_get_builds_in_use, mock_get_images):
+
         mock_get_images.return_value = [
             'recent_img',
             'non_existing_img',
             'old_img',
         ]
+
+        def local_exists(p, *args, **kwargs):
+            return os.path.exists(p)
+        mock_files.exists.side_effect = local_exists
+
+        def local_sudo(cmd):
+            return local(cmd, capture=True)
+        mock_sudo.side_effect = local_sudo
 
         # Make sure img is recent
         atime = time.time() - remote.MAX_IMAGE_AGE_SECS + 1
