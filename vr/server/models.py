@@ -2,6 +2,7 @@ import datetime
 import hashlib
 import logging
 import os.path
+import random
 import sys
 import xmlrpclib
 
@@ -449,6 +450,25 @@ class Host(models.Model):
             return port not in used_ports
 
         return next(x for x in all_ports if free(x))
+
+    def get_free_port(self):
+
+        used_ports = self.get_used_ports()
+        locked_ports = {p.port for p in PortLock.objects.filter(host=self)}
+        occupied_ports = used_ports.union(locked_ports)
+
+        all_ports = range(settings.PORT_RANGE_START, settings.PORT_RANGE_END)
+        # Shuffle, so that we pick a random port
+        random.shuffle(all_ports)
+
+        for port in all_ports:
+            if port not in occupied_ports:
+                return port
+
+        # No free ports!
+        raise ValueError(
+            'No free ports found on host {}: used={}, locked={}'.format(
+                self, used_ports, locked_ports))
 
     def get_proc(self, name, check_cache=False):
         """

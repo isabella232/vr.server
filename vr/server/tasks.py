@@ -553,7 +553,7 @@ def swarm_release(swarm_id, swarm_trace_id=None):
         new_procs_by_host = defaultdict(list)
         for x in range(procs_needed):
             host = hosts[x % hostcount]
-            port = host.get_next_port()
+            port = host.get_free_port()
             new_procs_by_host[host.name].append(port)
 
             # Ports need to be locked here in the synchronous loop, before
