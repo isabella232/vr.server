@@ -273,6 +273,10 @@ def _get_proc_settings(hostname, proc):
 
 
 def teardown(proc, settings):
+    '''Teardown proc by removing any files in /app/procs/<procname>.
+
+    Use runner as defined in `settings` or `vrun` if settings is None.
+    '''
     proc_dir = posixpath.join(PROCS_ROOT, proc)
     proc_yaml_path = posixpath.join(proc_dir, 'proc.yaml')
     if files.exists(proc_yaml_path, use_sudo=True):
@@ -454,14 +458,21 @@ def teardown_old_procs():
     for procname in get_old_procnames():
         print('teardown_old_procs: Tearing down {} @{}'.format(
             procname, hostname))
-        try:
-            settings = _get_proc_settings(hostname, procname)
-        except ProcError:
-            print(
-                'teardown_old_procs: '
-                'Failed getting psettings for {} @{}'.format(
-                    procname, hostname))
-            settings = None
+
+        # Proc settings are always going to be unknown, because they
+        # come from supervisor and this proc is "old" exactly because
+        # it's unknown by supervisor.
+        settings = None
+
+        # try:
+        #     settings = _get_proc_settings(hostname, procname)
+        # except ProcError:
+        #     print(
+        #         'teardown_old_procs: '
+        #         'Failed getting psettings for {} @{}'.format(
+        #             procname, hostname))
+        #     settings = None
+
         teardown(procname, settings)
 
 
