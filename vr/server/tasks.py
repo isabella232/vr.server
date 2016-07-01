@@ -466,10 +466,11 @@ def build_start_waiting_swarms(build_id):
     with tmpredis() as r:
         key = getattr(
             settings, 'BUILD_WAIT_PREFIX', 'buildwait_') + str(build_id)
-        swarm_id, swarm_trace_id = read_wait_value(r.lpop(key))
-        while swarm_id:
+        wait_value = r.lpop(key)
+        while wait_value:
+            swarm_id, swarm_trace_id = read_wait_value(wait_value)
             swarm_start.delay(swarm_id, swarm_trace_id)
-            swarm_id = r.lpop(key)
+            wait_value = r.lpop(key)
 
 
 @task
@@ -940,6 +941,7 @@ def post_uptest_all_procs(_results, test_run_id):
 
 @task
 def _clean_host(hostname):
+    logger.info('Cleaning host %s', hostname)
     with remote_settings(hostname):
         with always_disconnect(hostname):
             remote.clean_builds_folders()
