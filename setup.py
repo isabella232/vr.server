@@ -9,7 +9,7 @@ pytest_runner = ['pytest_runner'] if needs_pytest else []
 setup(
     name='vr.server',
     namespace_packages=['vr'],
-    version='5.2.1',
+    version='5.2.2',
     author='Brent Tubbs',
     author_email='brent.tubbs@gmail.com',
     packages=find_packages(),
