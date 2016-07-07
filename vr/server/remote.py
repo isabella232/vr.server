@@ -237,18 +237,6 @@ def legacy_uptests_command(proc_path, proc, host, port, user):
     }
 
 
-def is_pid_alive(pid):
-    '''Check if `pid` is alive.'''
-    return os.path.exists('/proc/{}'.format(pid))
-
-
-def try_kill_process_group(pid):
-    '''Send SIGKILL to process group `pid`.'''
-    # Note: use negative PID to mean process group
-    with fab_settings(warn_only=True):
-        sudo('kill -KILL -{}'.format(pid))
-
-
 @task
 def delete_proc(hostname, proc):
     if not proc:
@@ -271,9 +259,8 @@ def delete_proc(hostname, proc):
         proc, hostname, pid))
     supervisorctl('stop %s' % proc)
 
-    if is_pid_alive(pid):
-        print('delete_proc: {} still alive. Killing it'.format(pid))
-        try_kill_process_group(pid)
+    # Kill orphans, just in case we created some
+    kill_orphans()
 
     print('delete_proc: Removing proc {} in supervisorctl'.format(proc))
     supervisorctl('remove %s' % proc)
