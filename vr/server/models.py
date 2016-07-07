@@ -338,18 +338,20 @@ class Build(models.Model):
             self.file_md5, getattr(self.os_image, 'file_md5', None))
 
 
-def stringify(thing, acc=''):
+def stringify(thing):
     """
     Turn things into strings that are consistent regardless of Python
     implementation or hash seed.
     """
-    scalar_types = six.string_types + (int, float)
+    numeric_types = six.integer_types + (float, )
     if isinstance(thing, dict):
         return str([stringify(x) for x in sorted(thing.items())])
     elif isinstance(thing, (list, tuple)):
         return str([stringify(x) for x in thing])
-    elif isinstance(thing, scalar_types) or thing is None:
+    elif isinstance(thing, numeric_types) or thing is None:
         return str(thing)
+    elif isinstance(thing, six.string_types):
+        return thing
     elif isinstance(thing, set):
         return stringify(sorted(thing))
     else:
@@ -362,7 +364,11 @@ def make_hash(*args):
     Given any number of simple arguments (scalars, lists, tuples, dicts), turn
     them all into strings, cat them together, and return an md5 sum.
     """
-    return hashlib.md5(''.join(stringify(a) for a in args)).hexdigest()
+    s = ''.join(stringify(a) for a in args)
+    # md5() requires bytes
+    if isinstance(s, six.text_type):
+        s = s.encode('utf-8')
+    return hashlib.md5(s).hexdigest()
 
 
 env_help = "YAML dict of env vars to be set at runtime"
