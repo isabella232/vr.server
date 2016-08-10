@@ -86,12 +86,14 @@ class DeploymentLogEntry(models.Model):
 
 class ConfigIngredient(models.Model):
     name = models.CharField(max_length=50, unique=True)
-    config_yaml = YAMLDictField(help_text=("Config for settings.yaml. "
-                                           "Must be valid YAML dict."),
-                                blank=True, null=True)
-    env_yaml = YAMLDictField(help_text=("Environment variables. "
-                                        "Must be valid YAML dict."),
-                             blank=True, null=True)
+    config_yaml = YAMLDictField(
+        help_text="Config for settings.yaml. Must be valid YAML dict.",
+        blank=True, null=True,
+    )
+    env_yaml = YAMLDictField(
+        help_text="Environment variables. Must be valid YAML dict.",
+        blank=True, null=True,
+    )
 
     def __unicode__(self):
         return self.name
@@ -520,10 +522,12 @@ class Host(models.Model):
         super(Host, self).__init__(*args, **kwargs)
         user = getattr(settings, 'SUPERVISOR_USERNAME', None)
         pwd = getattr(settings, 'SUPERVISOR_PASSWORD', None)
-        self.raw_host = common_models.Host(self.name, settings.SUPERVISOR_PORT,
-                                           redis_or_url=events_redis,
-                                           supervisor_username=user,
-                                           supervisor_password=pwd)
+        self.raw_host = common_models.Host(
+            self.name, settings.SUPERVISOR_PORT,
+            redis_or_url=events_redis,
+            supervisor_username=user,
+            supervisor_password=pwd,
+        )
 reversion.register(Host)
 
 
@@ -544,9 +548,11 @@ class Squad(models.Model):
 reversion.register(Squad)
 
 
-config_name_help = ("Short name like 'prod' or 'europe' to distinguish between "
-             "deployments of the same app. Must be filesystem-safe, "
-             "with no dashes or spaces.")
+config_name_help = (
+    "Short name like 'prod' or 'europe' to distinguish between "
+    "deployments of the same app. Must be filesystem-safe, "
+    "with no dashes or spaces."
+)
 
 
 def release_eq(release, config, env, volumes):
@@ -613,8 +619,8 @@ class Swarm(models.Model):
 
     def save(self):
         if self.pool and not self.balancer:
-            raise ValidationError('Swarms that specify a pool must specify a '
-                                  'balancer')
+            msg = 'Swarms that specify a pool must specify a balancer'
+            raise ValidationError(msg)
         validate_config_marshaling(self)
         super(Swarm, self).save()
 
@@ -680,8 +686,12 @@ class Swarm(models.Model):
             # Set a couple temp attributes on each host in the squad, for
             # sorting by.
             h.all_procs = h.get_procs()
-            h.swarm_procs = [p for p in h.all_procs if p.hash ==
-                             self.release.hash and p.proc_name == self.proc_name]
+            h.swarm_procs = [
+                p
+                for p in h.all_procs
+                if p.hash == self.release.hash
+                and p.proc_name == self.proc_name
+            ]
 
             # On each host, set a tuple in form (x, y), where:
                 # x = number of procs running on this host that belong to the
@@ -777,10 +787,11 @@ class Swarm(models.Model):
 
         # We didn't find a release with the right build+config+env+volumes. Go
         # ahead and make one.
-        release = Release(build=build, config_yaml=config, env_yaml=env,
-                          volumes=self.volumes, run_as=self.run_as,
-                          mem_limit=self.mem_limit,
-                          memsw_limit=self.memsw_limit)
+        release = Release(
+            build=build, config_yaml=config, env_yaml=env,
+            volumes=self.volumes, run_as=self.run_as,
+            mem_limit=self.mem_limit, memsw_limit=self.memsw_limit,
+        )
         release.save()
         log.info("Created new release %s", release.hash)
         return release
@@ -845,8 +856,10 @@ class TestRun(models.Model):
             'pass_count': self.tests.filter(passed=True).count(),
             'fail_count': self.tests.filter(passed=False).count(),
             'notests_count': self.tests.filter(testcount=0).count(),
-            'results': {'%s-%s' % (t.hostname, t.procname): t.as_dict() for t in
-                        self.tests.all()}
+            'results': {
+                '{t.hostname}-{t.procname}'.format(t=t): t.as_dict()
+                for t in self.tests.all()
+            }
         }
 
     def get_failures(self):
@@ -862,8 +875,10 @@ class TestRun(models.Model):
             'pass_count': self.tests.filter(passed=True).count(),
             'fail_count': self.tests.filter(passed=False).count(),
             'notests_count': self.tests.filter(testcount=0).count(),
-            'results': {'%s-%s' % (t.hostname, t.procname): t.as_dict() for t in
-                        self.tests.filter(passed=False)}
+            'results': {
+                '{t.hostname}-{t.procname}'.format(t=t): t.as_dict()
+                for t in self.tests.filter(passed=False)
+            }
         }
 
     def has_failures(self):
