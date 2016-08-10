@@ -210,6 +210,7 @@ class TestScooper(object):
         mock_teardown.assert_any_call('app-build1-proc2', None)
         mock_teardown.assert_any_call('app-build2-proc1', None)
 
+    @pytest.mark.xfail(reason="#202")
     @patch.object(remote, 'files')
     @patch.object(remote, 'get_procs')
     @patch.object(remote, 'get_builds')
@@ -255,6 +256,7 @@ class TestScooper(object):
         ])
         mock_sudo.assert_called_once_with('rm -rf /apps/builds/app-build')
 
+    @pytest.mark.xfail(reason="#202")
     @patch.object(remote, 'get_images')
     @patch.object(remote, '_get_builds_in_use')
     @patch.object(remote, '_rm_image')
