@@ -43,6 +43,9 @@ setup(
         'vr.imager>=1.2',
         'django-yamlfield',
         'backports.functools_lru_cache',
+        # Celery 4 removes support for e-mail
+        # https://github.com/celery/celery/blob/master/docs/whatsnew-4.0.rst#removed-features
+        'celery<4dev',
     ],
     entry_points = {
         'console_scripts': [
