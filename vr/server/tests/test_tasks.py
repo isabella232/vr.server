@@ -182,6 +182,7 @@ class TestScooper(object):
         mock_clean_host.apply_async.assert_called_once_with(
             (self.host.name, ), expires=1800)
 
+    @pytest.mark.xfail(reason="#202")
     @patch.object(remote, 'files')
     @patch.object(remote, 'get_procs')
     @patch.object(remote, 'get_builds')
@@ -256,7 +257,6 @@ class TestScooper(object):
         ])
         mock_sudo.assert_called_once_with('rm -rf /apps/builds/app-build')
 
-    @pytest.mark.xfail(reason="#202")
     @patch.object(remote, 'get_images')
     @patch.object(remote, '_get_builds_in_use')
     @patch.object(remote, '_rm_image')
