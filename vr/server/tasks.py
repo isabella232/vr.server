@@ -490,10 +490,9 @@ def swarm_start(swarm_id, swarm_trace_id=None):
         # things sometimes.
         swarms = Swarm.objects.all()
         ids = [str(s.id) for s in swarms]
-        if swarm_id in ids:
-            swarm = next(s for s in swarms if s.id == swarm_id)
-        else:
+        if swarm_id not in ids:
             raise
+        swarm = next(s for s in swarms if s.id == swarm_id)
     build = swarm.release.build
 
     if not swarm_trace_id:
