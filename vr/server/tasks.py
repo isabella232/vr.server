@@ -488,11 +488,10 @@ def swarm_start(swarm_id, swarm_trace_id=None):
         # raise an error saying the swarm doesn't exist, even though querying
         # it here will show that it does.  This sucks, but we can catch such
         # things sometimes.
-        swarms = Swarm.objects.all()
-        ids = [str(s.id) for s in swarms]
-        if swarm_id not in ids:
+        swarms = (s for s in Swarm.objects.all() if s.id == swarm_id)
+        swarm = next(swarms, None)
+        if not swarm:
             raise
-        swarm = next(s for s in swarms if s.id == swarm_id)
         logger.warning("Swarm.objects.get failed for strange reason")
     build = swarm.release.build
 
