@@ -84,6 +84,7 @@ class DeploymentLogEntry(models.Model):
         db_table = 'deployment_deploymentlogentry'
 
 
+@reversion.register
 class ConfigIngredient(models.Model):
     name = models.CharField(max_length=50, unique=True)
     config_yaml = YAMLDictField(
@@ -105,7 +106,7 @@ class ConfigIngredient(models.Model):
     def save(self):
         validate_config_marshaling(self)
         super(ConfigIngredient, self).save()
-reversion.register(ConfigIngredient)
+
 
 repo_choices = (
     ('git', 'git'),
@@ -113,6 +114,7 @@ repo_choices = (
 )
 
 
+@reversion.register
 class BuildPack(models.Model):
     repo_url = models.CharField(max_length=200, unique=True)
     repo_type = models.CharField(max_length=10, choices=repo_choices,
@@ -138,7 +140,6 @@ class BuildPack(models.Model):
     @property
     def basename(self):
         return repo.basename(self.repo_url)
-reversion.register(BuildPack)
 
 
 OS_IMAGES_BASE = 'images'
@@ -148,6 +149,7 @@ def build_os_image_path(instance, filename):
     return os.path.join(OS_IMAGES_BASE, instance.name, filename)
 
 
+@reversion.register
 class OSStack(models.Model):
     """ A series of OS images.  Applications link to these.  Any time an
     application is built, the newest active OSImage in the stack is used. """
@@ -167,7 +169,6 @@ class OSStack(models.Model):
     class Meta:
         ordering = ('name',)
         db_table = 'deployment_os_stack'
-reversion.register(OSStack)
 
 
 class OSImage(models.Model):
@@ -211,6 +212,7 @@ class OSImage(models.Model):
         return md5.hexdigest()
 
 
+@reversion.register
 class App(models.Model):
     namehelp = ("Used in release name.  Good app names are short and use "
                 "no spaces or dashes (underscores are OK).")
@@ -241,7 +243,6 @@ class App(models.Model):
     class Meta:
         ordering = ('name',)
         db_table = 'deployment_app'
-reversion.register(App)
 
 
 class Tag(models.Model):
@@ -452,6 +453,7 @@ class Release(models.Model):
         super(Release, self).save()
 
 
+@reversion.register
 class Host(models.Model):
     name = models.CharField(max_length=200, unique=True)
 
@@ -528,9 +530,9 @@ class Host(models.Model):
             supervisor_username=user,
             supervisor_password=pwd,
         )
-reversion.register(Host)
 
 
+@reversion.register
 class Squad(models.Model):
     """
     A Squad is a group of identical hosts.  When deploying a swarm, its procs
@@ -545,7 +547,6 @@ class Squad(models.Model):
     class Meta:
         ordering = ('name',)
         db_table = 'deployment_squad'
-reversion.register(Squad)
 
 
 config_name_help = (
@@ -581,6 +582,7 @@ def release_eq(release, config, env, volumes):
     return True
 
 
+@reversion.register
 class Swarm(models.Model):
     """
     This is the payoff.  Save a swarm record and then you can tell Velociraptor
@@ -810,8 +812,6 @@ class Swarm(models.Model):
         except IndexError:
             return None
 
-reversion.register(Swarm)
-
 
 class PortLock(models.Model):
     """
@@ -935,6 +935,7 @@ class TestResult(models.Model):
         db_table = 'deployment_testresult'
 
 
+@reversion.register
 class Dashboard(models.Model):
     name = models.CharField(max_length=50)
     slug = models.SlugField()
@@ -943,7 +944,6 @@ class Dashboard(models.Model):
 
     def __unicode__(self):
         return self.name
-reversion.register(Dashboard)
 
 
 class UserProfile(models.Model):
