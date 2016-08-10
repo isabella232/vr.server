@@ -337,6 +337,29 @@ class Build(models.Model):
         return make_hash(
             self.file_md5, getattr(self.os_image, 'file_md5', None))
 
+    @classmethod
+    def get_current(cls, app, os_image, tag):
+        """
+        Given an app, OS image, and a tag, look for a build that matches
+        all three and was successfully built (or is currently building).
+        If not found, return None.
+        """
+        # check if there's a build for the given app, OS image, and tag
+        builds = cls.objects.filter(
+            app=app, os_image=os_image, tag=tag
+        ).exclude(
+            status='expired'
+        ).exclude(
+            status='failed'
+        ).order_by('-id')
+
+        # Return the first qualifying build found (either successful or
+        # in progress of being built right this moment).
+        return next(iter(builds), None)
+
+        # Note: there's currently no way of ensuring that the build was
+        # done by a particular version of the buildpack.
+
 
 def stringify(thing):
     """
@@ -716,34 +739,9 @@ class Swarm(models.Model):
         or pending build with the specified OS image and tag.
         """
 
-        def get_current_build(app, os_image, tag):
-            """
-            Given an app, OS image, and a tag, look for a build that matches
-            all three and was successfully built (or is currently building).
-            If not found, return None.
-            """
-            # check if there's a build for the given app, OS image, and tag
-            builds = Build.objects.filter(
-                app=app, os_image=os_image, tag=tag
-            ).exclude(
-                status='expired'
-            ).exclude(
-                status='failed'
-            ).order_by('-id')
-
-            if not builds:
-                return None
-
-            # we found a qualifying build (either successful or in progress of
-            # being built right this moment).
-            return builds[0]
-
-            # Note: there's currently no way of ensuring that the build was
-            # done by a particular version of the buildpack.
-
         os_image = self.app.get_os_image()
 
-        build = get_current_build(self.app, os_image, tag)
+        build = Build.get_current(self.app, os_image, tag)
 
         if build is None:
             build = Build(app=self.app, os_image=os_image, tag=tag)
