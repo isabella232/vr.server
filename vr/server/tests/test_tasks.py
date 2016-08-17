@@ -182,22 +182,25 @@ class TestScooper(object):
         mock_clean_host.apply_async.assert_called_once_with(
             (self.host.name, ), expires=1800)
 
-    @pytest.mark.xfail(reason="#202")
     @patch.object(remote, 'files')
     @patch.object(remote, 'get_procs')
+    @patch.object(remote, 'get_old_procnames')
     @patch.object(remote, 'get_builds')
     @patch.object(remote, 'get_images')
+    @patch.object(remote, 'get_orphans')
     @patch.object(remote, 'delete_build')
     @patch.object(remote, 'teardown')
     def test_clean_host_no_unused(
-            self, mock_teardown, mock_delete_build, mock_get_images,
-            mock_get_builds, mock_get_procs, mock_files):
+            self, mock_teardown, mock_delete_build, mock_get_orphans,
+            mock_get_images, mock_get_builds, mock_get_procs,
+            mock_get_old_procnames, mock_files):
+        mock_get_orphans.return_value = []
         mock_get_images.return_value = []
         mock_get_builds.return_value = [
             'app-build1',
             'app-build2',
         ]
-        mock_get_procs.return_value = [
+        mock_get_procs.return_value = mock_get_old_procnames.return_value = [
             'app-build1-proc1',
             'app-build1-proc2',
             'app-build2-proc1',
@@ -211,22 +214,25 @@ class TestScooper(object):
         mock_teardown.assert_any_call('app-build1-proc2', None)
         mock_teardown.assert_any_call('app-build2-proc1', None)
 
-    @pytest.mark.xfail(reason="#202")
     @patch.object(remote, 'files')
     @patch.object(remote, 'get_procs')
+    @patch.object(remote, 'get_old_procnames')
     @patch.object(remote, 'get_builds')
     @patch.object(remote, 'get_images')
+    @patch.object(remote, 'get_orphans')
     @patch.object(remote, 'delete_build')
     @patch.object(remote, 'teardown')
     def test_clean_host(
             self, mock_teardown, mock_delete_build, mock_get_images,
-            mock_get_builds, mock_get_procs, mock_files):
+            mock_get_orphans, mock_get_builds, mock_get_procs,
+            mock_get_old_procnames, mock_files):
+        mock_get_orphans.return_value = []
         mock_get_images.return_value = []
         mock_get_builds.return_value = [
             'app-build1',
             'app-build2',
         ]
-        mock_get_procs.return_value = [
+        mock_get_procs.return_value = mock_get_old_procnames.return_value = [
             # app-build1 is unused
             'app-build2-proc1',
         ]
