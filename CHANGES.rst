@@ -1,3 +1,8 @@
+5.3.0
+-----
+
+* #201 Add support for NewRelic
+
 5.0.1
 -----
 
