@@ -1,3 +1,14 @@
+6.0.0
+-----
+
+* When resolving a repository scheme, the default command is now
+  ``hg debugexpandscheme``, as that's the official command that
+  is included with Mercurial 3.8.
+
+  For compatibility with the previous behavior, set
+  ``SCHEME_EXPAND_COMMAND=hg expand-scheme`` in the
+  environment.
+
 5.3.0
 -----
 
