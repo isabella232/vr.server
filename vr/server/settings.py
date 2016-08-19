@@ -336,3 +336,24 @@ def setup_mailer():
 
 
 setup_mailer()
+
+
+def setup_newrelic():
+    # NewRelic is an optional dependency: don't fail if missing
+    try:
+        import newrelic.agent
+    except ImportError:
+        return
+
+    # NewRelic initialisation uses environmental variables.
+    # See https://docs.newrelic.com/docs/agents/python-agent
+    #    /installation-configuration/python-agent-configuration
+
+    # Typical usage:
+    # - create a newrelic.ini file
+    # - set env var NEW_RELIC_CONFIG_FILE to point to it
+    # - optionally, specify an environment with NEW_RELIC_ENVIRONMENT
+    newrelic.agent.initialize()
+
+
+setup_newrelic()
