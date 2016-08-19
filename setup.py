@@ -47,6 +47,11 @@ setup(
         # https://github.com/celery/celery/blob/master/docs/whatsnew-4.0.rst#removed-features
         'celery<4dev',
     ],
+    extras_require={
+        ':python_version=="2.7"': [
+            'mercurial>=2.6.1',
+        ],
+    },
     entry_points = {
         'console_scripts': [
             'vr_worker = vr.server.commands:start_celery',
