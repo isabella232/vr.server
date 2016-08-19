@@ -49,7 +49,7 @@ setup(
     ],
     extras_require={
         ':python_version=="2.7"': [
-            'mercurial>=2.6.1',
+            'mercurial>=3.8',
         ],
     },
     entry_points = {
