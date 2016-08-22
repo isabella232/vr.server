@@ -531,7 +531,7 @@ def get_procs():
     Return the names of all the procs on the host.
     """
     if files.exists(PROCS_ROOT):
-        procs = sudo('ls -1 ' + PROCS_ROOT).split('\n')
+        procs = sudo('ls -1 ' + PROCS_ROOT).splitlines()
     else:
         procs = []
     # filter out any .hold files
