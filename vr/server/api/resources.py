@@ -161,7 +161,7 @@ class AppResource(ReversionModelResource):
 
         Failsafe - never raises an exception, but returns None
         """
-        default = 'hg expand-scheme'
+        default = 'hg debugexpandscheme'
         expand_cmd = os.environ.get('SCHEME_EXPAND_COMMAND', default)
         cmd = shlex.split(expand_cmd) + [spec_url]
         try:

@@ -9,7 +9,7 @@ pytest_runner = ['pytest_runner'] if needs_pytest else []
 setup(
     name='vr.server',
     namespace_packages=['vr'],
-    version='5.3.1',
+    version='6.0.0',
     author='Brent Tubbs',
     author_email='brent.tubbs@gmail.com',
     packages=find_packages(),
@@ -47,6 +47,11 @@ setup(
         # https://github.com/celery/celery/blob/master/docs/whatsnew-4.0.rst#removed-features
         'celery<4dev',
     ],
+    extras_require={
+        ':python_version=="2.7"': [
+            'mercurial>=3.8',
+        ],
+    },
     entry_points = {
         'console_scripts': [
             'vr_worker = vr.server.commands:start_celery',
