@@ -1,3 +1,11 @@
+6.1.0
+-----
+
+* Pin `requests` to avoid https://github.com/kennethreitz/requests/issues/3174
+* Fix https://bitbucket.org/yougov/velociraptor/issues/165/navigating-back-after-dispatching-a-swarm
+* Fix broken images link by not hardcoding static path
+* Fix collection of proc names by using the correct line separator character
+
 6.0.0
 -----
 
