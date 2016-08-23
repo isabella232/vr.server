@@ -218,6 +218,7 @@ class ProcTailer(object):
         self.resp = requests.get(
             url, stream=True, auth=auth)
         self.resp.raise_for_status()
+        self.content = self.resp.iter_content(decode_unicode=True)
 
     def __iter__(self):
         while True:
@@ -225,7 +226,7 @@ class ProcTailer(object):
 
     def next(self):
         while '\n' not in self.buf:
-            self.buf += next(self.resp.iter_content(decode_unicode=True))
+            self.buf += next(self.content)
         head, _, tail = self.buf.partition('\n')
         self.buf = tail
         return head + '\n'
