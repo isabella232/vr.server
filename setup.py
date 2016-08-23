@@ -33,12 +33,9 @@ setup(
         'psycopg2>=2.4.4,<2.5',
         'pymongo>=2.5.2,<4',
         'redis>=2.6.2,<3',
-        # Requests==2.10 and 2.11 fail to stream using
-        # django.http.HTTPResponse objs
-        # See https://github.com/kennethreitz/requests/issues/3174
-        'requests==2.9.2',
+        'requests>=2.11.1',
         'setproctitle',
-        'sseclient==0.0.8',
+        'sseclient==0.0.11',
         'six>=1.4',
         'vr.events>=1.2.1',
         'vr.common>=4.7.1',
