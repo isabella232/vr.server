@@ -35,6 +35,7 @@ setup(
         'redis>=2.6.2,<3',
         # Requests==2.10 and 2.11 fail to stream using
         # django.http.HTTPResponse objs
+        # See https://github.com/kennethreitz/requests/issues/3174
         'requests==2.9.2',
         'setproctitle',
         'sseclient==0.0.8',
