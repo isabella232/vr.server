@@ -285,16 +285,21 @@ def teardown(proc, settings):
     '''
     proc_dir = posixpath.join(PROCS_ROOT, proc)
     proc_yaml_path = posixpath.join(proc_dir, 'proc.yaml')
+
     if files.exists(proc_yaml_path, use_sudo=True):
         runner = get_runner(settings) if settings else 'vrun'
         print('delete_proc: Tearing down proc {} with runner {}'.format(
             proc, runner))
         sudo(runner + ' teardown ' + proc_yaml_path)
-        print('delete_proc: Tearing down proc {} done'.format(proc))
+        print('teardown: Tearing down proc {} done'.format(proc))
+    else:
+        print('teardown: Missing proc.yaml: {}'.format(proc_yaml_path))
 
     if files.exists(proc_dir, use_sudo=True):
-        print('delete_proc: Removing proc dir')
+        print('teardown: Removing proc dir')
         sudo('rm -rf %s' % proc_dir)
+    else:
+        print('teardown: Missing proc dir: {}'.format(proc_dir))
 
 
 def proc_to_build(proc):
@@ -531,7 +536,11 @@ def get_procs():
     Return the names of all the procs on the host.
     """
     if files.exists(PROCS_ROOT):
-        procs = sudo('ls -1 ' + PROCS_ROOT).splitlines()
+        procs = [
+            # Remove '\r\n\s\t' etc.
+            line.strip()
+            for line in sudo('ls -1 ' + PROCS_ROOT).splitlines()
+        ]
     else:
         procs = []
     # filter out any .hold files
