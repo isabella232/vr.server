@@ -28,6 +28,9 @@ VR.Urls = {
   // All Tastypie-provided resources are within this path.
   root: '/api/v1/',
 
+  // Path for static resources
+  static: '/static/',
+
   getTasty: function (resource, name) {
       // A helper for generating urls to talk to the VR Tastypie API.  This
       // seems the least verbose way of doing this.

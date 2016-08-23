@@ -92,7 +92,7 @@ $(function() {
   // enable using tabs in the textareas
   $('.codearea').tabby({tabString:'  '});
 
-  SelectFilter.init('id_config_ingredients', "Ingredients", 0, "/static/");
+  SelectFilter.init('id_config_ingredients', "Ingredients", 0, VR.Urls.static);
 
   // make sure that pool name checking also works for new swarms
   VR.Swarm.checkPoolName($('form.raptorform').get(0));

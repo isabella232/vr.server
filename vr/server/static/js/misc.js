@@ -373,7 +373,7 @@ $(function() {
                     $('#dashboard-apps').append('<option id="'+app.name+'-option" data-id="'+app.id+'" value="'+app.id+'|'+app.name+'">'+app.name+'</option>');
                 });
 
-                SelectFilter.init('dashboard-apps', "Apps", 0, "/static/");
+                SelectFilter.init('dashboard-apps', "Apps", 0, VR.Urls.static);
               });
             }
           });
