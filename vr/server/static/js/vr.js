@@ -31,7 +31,7 @@ VR.Urls = {
   // Path for static resources
   static: '/static/',
 
-  getTasty: function (resource, name) {
+  getTasty: function (resource, name, params) {
       // A helper for generating urls to talk to the VR Tastypie API.  This
       // seems the least verbose way of doing this.
       //
@@ -44,16 +44,25 @@ VR.Urls = {
       // For hosts, it's the hostname.  For many resources, it's the integer ID
       // used in the Django DB.  Click around the JSON API to see which you
       // need to provide in a given circumstance.
+      //
+      // 'params' are optionally query params, in the form of an object
 
+      var url;
       if (name) {
           // we were asked for a particular instance of a resource.  Build
           // the whole URL.
-          return this.root + resource + '/' + name + '/';
+          url = this.root + resource + '/' + name + '/';
       } else {
           // no instance name passed in, so assume they're asking for the
           // list URL.
-          return this.root + resource + '/';
+          url = this.root + resource + '/';
       }
+
+      if (params) {
+          // Attached url encoded params
+          url += '?' + $.param(params);
+      }
+      return url;
   },
 
   getProc: function (hostname, procname) {

@@ -436,6 +436,7 @@ class HostResource(ReversionModelResource):
         resource_name = 'hosts'
         filtering = {
             'name': ALL,
+            'active': ALL,
         }
         authentication = auth.MultiAuthentication(
             auth.BasicAuthentication(),

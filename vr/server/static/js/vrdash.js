@@ -110,7 +110,7 @@ VR.Dash.onHostChange = function(e) {
 };
 
 VR.Dash.getHostData = function() {
-  $.getJSON(VR.Urls.getTasty('hosts'), VR.Dash.onHostList);
+  $.getJSON(VR.Urls.getTasty('hosts', null, {active: 1}), VR.Dash.onHostList);
 };
 
 VR.Dash.onHostList = function(data, stat, xhr) {
