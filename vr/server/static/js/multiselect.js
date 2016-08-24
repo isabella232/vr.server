@@ -406,7 +406,8 @@ var SelectBox = {
 	        var to_box = document.getElementById(to);
 	        var option;
 	        for (var i = 0; (option = from_box.options[i]); i++) {
-	            if (option.hasAttribute('selected') && SelectBox.cache_contains(from, option.value)) {
+	            var selected = option.hasAttribute('selected') || option.selected;
+	            if (selected && SelectBox.cache_contains(from, option.value)) {
 	                SelectBox.add_to_cache(to, {value: option.value, text: option.text, displayed: 1});
 	                SelectBox.delete_from_cache(from, option.value);
 	            }
