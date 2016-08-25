@@ -1,3 +1,4 @@
+# pylint: disable=old-style-class,no-init,no-self-use
 from __future__ import print_function
 
 import contextlib
@@ -109,8 +110,9 @@ class SquadResource(ReversionModelResource):
 
 @register_instance
 class IngredientResource(ReversionModelResource):
-    swarms = fields.ToManyField('vr.server.api.resources.SwarmResource', 'swarms',
-                                blank=True, null=True, readonly=True)
+    swarms = fields.ToManyField(
+        'vr.server.api.resources.SwarmResource', 'swarms',
+        blank=True, null=True, readonly=True)
 
     class Meta:
         queryset = models.ConfigIngredient.objects.all()
@@ -127,12 +129,16 @@ class IngredientResource(ReversionModelResource):
 
 @register_instance
 class AppResource(ReversionModelResource):
-    buildpack = fields.ToOneField('vr.server.api.resources.BuildPackResource',
+    buildpack = fields.ToOneField(
+        'vr.server.api.resources.BuildPackResource',
         'buildpack', null=True)
-    stack = fields.ToOneField('vr.server.api.resources.StackResource',
+    stack = fields.ToOneField(
+        'vr.server.api.resources.StackResource',
         'stack', null=True)
+
     class Meta:
-        queryset = models.App.objects.select_related('buildpack', 'stack').all()
+        queryset = models.App.objects.select_related(
+            'buildpack', 'stack').all()
         resource_name = 'apps'
         filtering = {
             'id': ALL,
@@ -207,6 +213,7 @@ class StackResource(ReversionModelResource):
 @register_instance
 class BuildResource(ReversionModelResource):
     app = fields.ToOneField('vr.server.api.resources.AppResource', 'app')
+
     class Meta:
         queryset = models.Build.objects.select_related('app').all()
         resource_name = 'builds'
@@ -223,7 +230,9 @@ class BuildResource(ReversionModelResource):
         return [
             url(r"^(?P<resource_name>%s)/(?P<pk>\w[\w/-]*)/build%s$" %
                 (self._meta.resource_name, trailing_slash()),
-                auth_required(self.wrap_view('do_build')), name="api_do_build"),
+                auth_required(
+                    self.wrap_view('do_build')),
+                name="api_do_build"),
         ]
 
     def do_build(self, request, **kwargs):
@@ -252,15 +261,18 @@ class SwarmResource(ReversionModelResource):
     app = fields.ToOneField('vr.server.api.resources.AppResource', 'app')
     squad = fields.ToOneField('vr.server.api.resources.SquadResource', 'squad')
 
-    # Leave 'release' blank when you want to set 'version' to something new, and
-    # the model will intelligently create a new release for you.
-    release = fields.ToOneField('vr.server.api.resources.ReleaseResource', 'release',
-                                blank=True, null=True)
+    # Leave 'release' blank when you want to set 'version' to
+    # something new, and the model will intelligently create a new
+    # release for you.
+    release = fields.ToOneField(
+        'vr.server.api.resources.ReleaseResource', 'release',
+        blank=True, null=True)
 
     shortname = fields.CharField('shortname')
     volumes = fields.ListField('volumes', null=True)
-    config_ingredients = fields.ToManyField('vr.server.api.resources.IngredientResource',
-                                            'config_ingredients')
+    config_ingredients = fields.ToManyField(
+        'vr.server.api.resources.IngredientResource',
+        'config_ingredients')
     compiled_config = fields.DictField('get_config')
     compiled_env = fields.DictField('get_env')
     version = fields.CharField('version')
@@ -290,8 +302,8 @@ class SwarmResource(ReversionModelResource):
 
     def dehydrate(self, bundle):
         # add in proc data
-        # TODO: Make these proper attributes so they can be saved by a PUT/POST
-        # to the swarm resource.
+        # TODO: Make these proper attributes so they can be saved by a
+        # PUT/POST to the swarm resource.
         bundle.data['procs_uri'] = bundle.data['resource_uri'] + 'procs/'
         bundle.data['procs'] = [p.as_dict() for p in
                                 bundle.obj.get_procs(check_cache=True)]
@@ -303,8 +315,9 @@ class SwarmResource(ReversionModelResource):
         return bundle
 
     def hydrate(self, bundle):
-        # delete the compiled_config and compiled_env keys in the bundle, because
-        # they can cause hydration problems if tastypie tries to set them.
+        # delete the compiled_config and compiled_env keys in the
+        # bundle, because they can cause hydration problems if
+        # tastypie tries to set them.
         bundle.data.pop('compiled_config', None)
         bundle.data.pop('compiled_env', None)
 
@@ -317,7 +330,9 @@ class SwarmResource(ReversionModelResource):
         return [
             url(r"^(?P<resource_name>%s)/(?P<pk>\w[\w/-]*)/swarm%s$" %
                 (self._meta.resource_name, trailing_slash()),
-                auth_required(self.wrap_view('do_swarm')), name="api_do_swarm"),
+                auth_required(
+                    self.wrap_view('do_swarm')),
+                name="api_do_swarm"),
         ]
 
     def do_swarm(self, request, **kwargs):
@@ -330,8 +345,8 @@ class SwarmResource(ReversionModelResource):
 
             swarm_id = do_swarm(swarm, request.user)
 
-            # Status 202 means "The request has been accepted for processing, but
-            # the processing has not been completed."
+            # Status 202 means "The request has been accepted for
+            # processing, but the processing has not been completed."
             return HttpResponse(json.dumps({'swarm_id': swarm_id}),
                                 status=202,
                                 content_type='application/json')
@@ -397,8 +412,9 @@ class ReleaseResource(ReversionModelResource):
 
 @register_instance
 class TestResultResource(ModelResource):
-    testrun = fields.ToOneField('vr.server.api.resources.TestRunResource', 'run',
-                                related_name='tests')
+    testrun = fields.ToOneField(
+        'vr.server.api.resources.TestRunResource', 'run',
+        related_name='tests')
 
     class Meta:
         queryset = models.TestResult.objects.all()
@@ -412,11 +428,11 @@ class TestResultResource(ModelResource):
 
 @register_instance
 class TestRunResource(ModelResource):
-    testresults = fields.ToManyField('vr.server.api.resources.TestResultResource',
-                                     'tests', full=True)
+    testresults = fields.ToManyField(
+        'vr.server.api.resources.TestResultResource',
+        'tests', full=True)
 
     class Meta:
-
         queryset = models.TestRun.objects.all()
         resource_name = 'testruns'
         authentication = auth.MultiAuthentication(
@@ -454,7 +470,8 @@ class HostResource(ReversionModelResource):
 
 @register_instance
 class LogResource(ModelResource):
-    user = fields.ToOneField('vr.server.api.resources.UserResource', 'user', full=True)
+    user = fields.ToOneField(
+        'vr.server.api.resources.UserResource', 'user', full=True)
 
     class Meta:
         queryset = models.DeploymentLogEntry.objects.all()
@@ -475,12 +492,15 @@ class LogResource(ModelResource):
 @register_instance
 class UserResource(ModelResource):
     profile = fields.ToOneField(
-        'vr.server.api.resources.ProfileResource', 'userprofile', full=True, null=True,
+        'vr.server.api.resources.ProfileResource', 'userprofile',
+        full=True, null=True,
         blank=True)
+
     class Meta:
         queryset = User.objects.all()
         resource_name = 'user'
-        excludes = ['email', 'password', 'is_active', 'is_staff', 'is_superuser']
+        excludes = [
+            'email', 'password', 'is_active', 'is_staff', 'is_superuser']
         filtering = {
             'username': ALL,
         }
@@ -494,11 +514,11 @@ class UserResource(ModelResource):
 @register_instance
 class ProfileResource(ModelResource):
     default_dashboard = fields.ToOneField(
-        'vr.server.api.resources.DashboardResource', 'default_dashboard', null=True,
-        blank=True)
+        'vr.server.api.resources.DashboardResource', 'default_dashboard',
+        null=True, blank=True)
     quick_dashboards = fields.ToManyField(
-        'vr.server.api.resources.DashboardResource', 'quick_dashboards', null=True,
-        blank=True)
+        'vr.server.api.resources.DashboardResource', 'quick_dashboards',
+        null=True, blank=True)
 
     class Meta:
         queryset = models.UserProfile.objects.all()
@@ -509,7 +529,9 @@ class ProfileResource(ModelResource):
 @register_instance
 class DashboardResource(ReversionModelResource):
     apps = fields.ToManyField(
-        'vr.server.api.resources.AppResource', 'apps', null=True, blank=True, full=True)
+        'vr.server.api.resources.AppResource', 'apps',
+        null=True, blank=True, full=True)
+
     class Meta:
         queryset = models.Dashboard.objects.all()
         resource_name = 'dashboard'
