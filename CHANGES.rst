@@ -1,3 +1,9 @@
+6.2.0
+-----
+
+* Run scooper task every 4 hours by default
+* Optimise SQL queries by fetching related entities at once
+
 6.1.0
 -----
 
