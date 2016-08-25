@@ -132,7 +132,7 @@ class AppResource(ReversionModelResource):
     stack = fields.ToOneField('vr.server.api.resources.StackResource',
         'stack', null=True)
     class Meta:
-        queryset = models.App.objects.all().prefetch_related('buildpack', 'stack')
+        queryset = models.App.objects.select_related('buildpack', 'stack').all()
         resource_name = 'apps'
         filtering = {
             'id': ALL,
@@ -208,7 +208,7 @@ class StackResource(ReversionModelResource):
 class BuildResource(ReversionModelResource):
     app = fields.ToOneField('vr.server.api.resources.AppResource', 'app')
     class Meta:
-        queryset = models.Build.objects.all().prefetch_related('app')
+        queryset = models.Build.objects.select_related('app').all()
         resource_name = 'builds'
         authentication = auth.MultiAuthentication(
             auth.BasicAuthentication(),
@@ -358,7 +358,7 @@ class ReleaseResource(ReversionModelResource):
     compiled_name = fields.CharField('get_name')
 
     class Meta:
-        queryset = models.Release.objects.all().prefetch_related('build')
+        queryset = models.Release.objects.select_related('build').all()
         resource_name = 'releases'
         authentication = auth.MultiAuthentication(
             auth.BasicAuthentication(),
@@ -432,7 +432,7 @@ class HostResource(ReversionModelResource):
                               null=True, blank=True)
 
     class Meta:
-        queryset = models.Host.objects.all()
+        queryset = models.Host.objects.select_related('squad').all()
         resource_name = 'hosts'
         filtering = {
             'name': ALL,
