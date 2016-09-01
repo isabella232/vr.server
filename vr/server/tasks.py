@@ -39,6 +39,10 @@ PORTLOCK_MAX_AGE_DAYS = 7
 logger = logging.getLogger('velociraptor.tasks')
 
 
+class MissingLogError(Exception):
+    """Raised when some mandatory log is missing."""
+
+
 def send_event(title, msg, tags=None, **kw):
     logger.info(msg)
     # Create and discard connections when needed.  More robust than trying to
@@ -302,7 +306,7 @@ def _do_build(build, build_yaml):
             logger.exception('Build failed')
             build.status = 'failed'
             # Don't raise, or we'll mask the real error
-            try_get_compile_log(build, on_exc='pass')
+            try_get_compile_log(build, re_raise=False)
             raise
 
         finally:
@@ -314,31 +318,50 @@ def _do_build(build, build_yaml):
     send_event(str(build), msg, tags=['build', 'success'])
 
 
-def try_get_compile_log(build, on_exc='raise'):
+def try_get_compile_log(build, re_raise=True):
     '''
     Try to get the compile.log for the build and save it.
     '''
     try:
-        # grab and store the compile log.
-        with open('compile.log', 'rb') as f:
-            logname = 'builds/build_%s_compile.log' % build.id
-            logger.info("logname: " + logname)
-            compile_contents = f.read()
-
-            # Append the contents of lxcdebug.log if it's present.
-            if os.path.isfile('lxcdebug.log'):
-                with open('lxcdebug.log', 'rb') as fl:
-                    lxc_contents = fl.read()
-                compile_contents = '\n'.join([
-                    compile_contents, '',
-                    '--- LXC DEBUG LOGS FOLLOW ---', '',
-                    lxc_contents
-                ])
-            build.compile_log.save(logname, ContentFile(compile_contents))
+        failed_logs = save_build_logs(build, ['compile.log', 'lxcdebug.log'])
+        if 'compile.log' in failed_logs:
+            raise MissingLogError('compile.log is missing')
     except Exception as exc:
         logger.error(
             'Could not retrieve compile.log for %s: %r', build, exc)
-        exec(on_exc)
+        if re_raise:
+            raise
+
+
+def save_build_logs(build, logs):
+    logname = 'builds/build_%s_compile.log' % build.id
+    logger.info("logname: " + logname)
+
+    final_content = []
+    failed_logs = []
+
+    for log in logs:
+        if not os.path.isfile(log):
+            logger.warning('Log file not found: %s', log)
+            failed_logs.append(log)
+            continue
+        try:
+            with open(log, 'rb') as f:
+                content = f.read()
+                final_content.append('\n--- {} ---'.format(log))
+                final_content.append(content)
+        except Exception as e:
+            logger.exception(e)
+            failed_logs.append(log)
+
+    if not final_content:
+        return failed_logs
+
+    compile_contents = '\n'.join(final_content).strip()
+
+    build.compile_log.save(logname, ContentFile(compile_contents))
+
+    return failed_logs
 
 
 def get_build_parameters(build):

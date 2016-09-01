@@ -2,20 +2,26 @@
 # pylint: disable=unused-argument,superfluous-parens,no-self-use
 # pylint: disable=protected-access
 import os.path
-from unittest.mock import MagicMock, Mock, patch, call
 import tempfile
-from path import path
+import textwrap
 import time
+from path import path
+from unittest import TestCase
+from unittest.mock import MagicMock, Mock, patch, call
 
-from fabric.api import local
 import pytest
+from fabric.api import local
 
 from vr.common.utils import randchars
+from vr.server import tasks, remote
 from vr.server.models import App, Build, BuildPack, OSImage, Host
 from vr.server.settings import MEDIA_URL
-from vr.server.tasks import get_build_parameters
-
-from vr.server import tasks, remote
+from vr.server.tasks import (
+    MissingLogError,
+    get_build_parameters,
+    save_build_logs,
+    try_get_compile_log,
+)
 
 
 @pytest.mark.usefixtures('postgresql')
@@ -336,3 +342,127 @@ class TestScooper(object):
             call('kill -9 1001'),
             call('kill -9 1002'),
         ])
+
+
+class BuildLogTest(TestCase):
+    def setUp(self):
+        self.untouchable_file = fixture_path('canttouchthis.log')
+        self.normal_bits = os.stat(self.untouchable_file).st_mode
+        os.chmod(self.untouchable_file, 0o000)
+
+    def tearDown(self):
+        os.chmod(self.untouchable_file, self.normal_bits)
+
+    @patch('vr.server.tasks.ContentFile')
+    def test_saves_build_logs_to_build(self, MockContentFile):
+        build = MagicMock()
+        build.id = '1234'
+
+        failed_logs = save_build_logs(build, [
+            fixture_path('compile.log'),
+            fixture_path('lxcdebug.log'),
+        ])
+
+        self.assertEqual(failed_logs, [])
+        build.compile_log.save.assert_called_once_with(
+            'builds/build_%s_compile.log' % build.id,
+            MockContentFile.return_value
+        )
+        MockContentFile.assert_called_once_with(textwrap.dedent("""
+        --- {} ---
+        {}
+
+        --- {} ---
+        {}
+        """.format(
+               fixture_path('compile.log'),
+               open(fixture_path('compile.log')).read(),
+               fixture_path('lxcdebug.log'),
+               open(fixture_path('lxcdebug.log')).read(),
+        )).strip())
+
+    @patch('vr.server.tasks.ContentFile')
+    def test_saves_existing_logs_and_reports_failed(self, MockContentFile):
+        build = MagicMock()
+        build.id = '1234'
+
+        failed_logs = save_build_logs(build, [
+            fixture_path('inexisting.log'),
+            fixture_path('lxcdebug.log'),
+            self.untouchable_file,
+        ])
+
+        self.assertEqual(failed_logs, [
+            fixture_path('inexisting.log'),
+            self.untouchable_file,
+        ])
+        build.compile_log.save.assert_called_once_with(
+            'builds/build_%s_compile.log' % build.id,
+            MockContentFile.return_value
+        )
+        MockContentFile.assert_called_once_with(textwrap.dedent("""
+        --- {} ---
+        {}
+        """.format(
+               fixture_path('lxcdebug.log'),
+               open(fixture_path('lxcdebug.log')).read(),
+        )).strip())
+
+    def test_saves_nothing_if_everything_fails(self):
+        build = MagicMock()
+        build.id = '1234'
+
+        failed_logs = save_build_logs(build, [
+            fixture_path('inexisting.log'),
+            fixture_path('canttouchthis.log'),
+        ])
+
+        self.assertEqual(failed_logs, [
+            fixture_path('inexisting.log'),
+            fixture_path('canttouchthis.log'),
+        ])
+        self.assertFalse(build.compile_log.save.called)
+
+    @patch('vr.server.tasks.save_build_logs')
+    def test_gets_log_files(self, mock_save):
+        build = MagicMock()
+        build.id = '1234'
+        mock_save.return_value = []
+
+        try_get_compile_log(build)
+
+        mock_save.assert_called_once_with(
+            build, ['compile.log', 'lxcdebug.log'])
+
+    @patch('vr.server.tasks.save_build_logs')
+    def test_gets_log_files_not_failing_for_debug(self, mock_save):
+        build = MagicMock()
+        build.id = '1234'
+        mock_save.return_value = ['lxcdebug.log']
+
+        try_get_compile_log(build)
+
+        mock_save.assert_called_once_with(
+            build, ['compile.log', 'lxcdebug.log'])
+
+    @patch('vr.server.tasks.save_build_logs')
+    def test_fails_if_compile_log_failed(self, mock_save):
+        build = MagicMock()
+        build.id = '1234'
+        mock_save.return_value = ['compile.log']
+
+        with self.assertRaises(MissingLogError):
+            try_get_compile_log(build)
+
+    @patch('vr.server.tasks.save_build_logs')
+    def test_avoids_having_the_exception_bubbling_up(self, mock_save):
+        build = MagicMock()
+        build.id = '1234'
+        mock_save.return_value = ['compile.log']
+
+        try_get_compile_log(build, re_raise=False)
+
+
+def fixture_path(name):
+    this_dir = os.path.dirname(__file__)
+    return os.path.join(this_dir, 'fixtures', name)
