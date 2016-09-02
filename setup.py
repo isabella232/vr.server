@@ -40,7 +40,7 @@ setup(
         'vr.events>=1.2.1',
         'vr.common>=4.7.1',
         'vr.builder>=1.3',
-        'vr.imager>=1.2',
+        'vr.imager>=1.3',
         'django-yamlfield',
         'backports.functools_lru_cache',
         # Celery 4 removes support for e-mail
