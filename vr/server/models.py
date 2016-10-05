@@ -609,11 +609,13 @@ class Swarm(models.Model):
     config_yaml = YAMLDictField(help_text=config_help, blank=True, null=True)
     env_yaml = YAMLDictField(help_text=env_help, blank=True, null=True)
     volumes = YAMLListField(help_text=volumes_help, null=True, blank=True)
-    run_as = models.CharField(max_length=32, default='nobody')
-    mem_limit = models.CharField(max_length=32, null=True,
-                                 help_text=mem_limit_help)
-    memsw_limit = models.CharField(max_length=32, null=True,
-                                 help_text=memsw_limit_help)
+    run_as = models.CharField(max_length=32, default='nobody', blank=True)
+    mem_limit = models.CharField(
+        max_length=32, null=True, blank=True,
+        help_text=mem_limit_help)
+    memsw_limit = models.CharField(
+        max_length=32, null=True, blank=True,
+        help_text=memsw_limit_help)
 
     ing_help = "Optional config shared with other swarms."
     config_ingredients = models.ManyToManyField(ConfigIngredient,
