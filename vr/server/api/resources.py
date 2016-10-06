@@ -28,6 +28,7 @@ from tastypie.utils import trailing_slash
 from vr.server import models
 from vr.server.views import do_swarm, do_build, do_deploy
 from vr.server.api.views import auth_required
+from vr.server.utils import yamlize
 
 logger = logging.getLogger('velociraptor.api')
 
@@ -313,6 +314,14 @@ class SwarmResource(ReversionModelResource):
         bundle.data.update(app_name=bundle.obj.app.name,
                            config_name=bundle.obj.config_name)
         return bundle
+
+    def dehydrate_env_yaml(self, bundle):
+        # Explicit dehydrate to avoid this field is stringified with str()
+        return yamlize(bundle.obj.env_yaml)
+
+    def dehydrate_config_yaml(self, bundle):
+        # Explicit dehydrate to avoid this field is stringified with str()
+        return yamlize(bundle.obj.config_yaml)
 
     def hydrate(self, bundle):
         # delete the compiled_config and compiled_env keys in the
