@@ -33,6 +33,9 @@
         </div>
 
         <div class="col-sm-9">
+            {% if error_msg %}
+                <div class="alert alert-danger">{{ error_msg }}</div>
+            {% endif %}
             <div class="tab-content row">
                 <div class="tab-pane active form-horizontal col-sm-8" id="general">
             {% formfield form.app_id %}

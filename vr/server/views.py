@@ -66,6 +66,15 @@ def app_in_default_dashboard(app, user):
     return False
 
 
+def is_new_object(objclass, *args, **kwargs):
+    try:
+        objclass.objects.get(*args, **kwargs)
+    except objclass.DoesNotExist:
+        return True
+    else:
+        return False
+
+
 @login_required
 def dash(request):
     return render(request, 'dash.html', {
@@ -254,7 +263,7 @@ def _get_version_diffs_for_obj(obj, limit):
 def edit_swarm(request, swarm_id=None):
     if swarm_id:
         # Need to populate form from swarm
-        swarm = models.Swarm.objects.get(id=swarm_id)
+        swarm = get_object_or_404(models.Swarm, id=swarm_id)
         initial = {
             'app_id': swarm.app.id,
             'squad_id': swarm.squad.id,
@@ -286,44 +295,59 @@ def edit_swarm(request, swarm_id=None):
         compiled_env = yamlize({})
 
     form = forms.SwarmForm(request.POST or None, initial=initial)
+    error_msg = None
     if form.is_valid():
         data = form.cleaned_data
 
-        swarm.app = models.App.objects.get(id=data['app_id'])
-        swarm.squad = models.Squad.objects.get(id=data['squad_id'])
-        swarm.config_name = data['config_name']
-        swarm.config_yaml = data['config_yaml']
-        swarm.env_yaml = data['env_yaml']
-        swarm.volumes = data['volumes']
-        swarm.run_as = data['run_as']
-        swarm.mem_limit = data['mem_limit']
-        swarm.memsw_limit = data['memsw_limit']
-        swarm.proc_name = data['proc_name']
-        swarm.size = data['size']
-        swarm.pool = data['pool'] or None
-        swarm.balancer = data['balancer'] or None
-        swarm.release = swarm.get_current_release(data['tag'])
-        swarm.save()
-        swarm.config_ingredients.clear()
-        for ingredient in data['config_ingredients']:
-            swarm.config_ingredients.add(ingredient)
+        # Check if we already have a swarm with these parameters
+        if not is_new_object(
+                models.Swarm,
+                app=data['app_id'],
+                proc_name=data['proc_name'],
+                config_name=data['config_name'],
+                squad=data['squad_id'],
+        ):
+            error_msg = (
+                'Swarm already exists for this app, proc, config and squad!'
+            )
 
-        # Set the version metadata as recommended in the low-level API docs
-        # https://django-reversion.readthedocs.org/en/latest/api.html?#version-meta-data
-        revisions.set_user(request.user)
-        revisions.set_comment("Created from web form.")
+        else:
+            swarm.app = models.App.objects.get(id=data['app_id'])
+            swarm.squad = models.Squad.objects.get(id=data['squad_id'])
+            swarm.config_name = data['config_name']
+            swarm.config_yaml = data['config_yaml']
+            swarm.env_yaml = data['env_yaml']
+            swarm.volumes = data['volumes']
+            swarm.run_as = data['run_as']
+            swarm.mem_limit = data['mem_limit']
+            swarm.memsw_limit = data['memsw_limit']
+            swarm.proc_name = data['proc_name']
+            swarm.size = data['size']
+            swarm.pool = data['pool'] or None
+            swarm.balancer = data['balancer'] or None
+            swarm.release = swarm.get_current_release(data['tag'])
+            swarm.save()
+            swarm.config_ingredients.clear()
+            for ingredient in data['config_ingredients']:
+                swarm.config_ingredients.add(ingredient)
 
-        do_swarm(swarm, request.user)
+            # Set the version metadata as recommended in the low-level API docs
+            # https://django-reversion.readthedocs.org/en/latest/api.html?#version-meta-data
+            revisions.set_user(request.user)
+            revisions.set_comment("Created from web form.")
 
-        # If app is part of the user's default dashboard, redirect there.
-        if app_in_default_dashboard(swarm.app, request.user):
-            return redirect('default_dash')
+            do_swarm(swarm, request.user)
 
-        return redirect('dash')
+            # If app is part of the user's default dashboard, redirect there.
+            if app_in_default_dashboard(swarm.app, request.user):
+                return redirect('default_dash')
+
+            return redirect('dash')
 
     return render(request, 'swarm.html', {
         'swarm': swarm,
         'form': form,
+        'error_msg': error_msg,
         'btn_text': 'Swarm',
         'version_diffs': version_diffs,
         'version_diffs_limit': VERSION_DIFFS_LIMIT,
