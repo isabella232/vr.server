@@ -23,6 +23,13 @@ def pytest_configure():
     """
     _path_hack()
     setup()
+    _setup_allowed_hosts()
+
+
+def _setup_allowed_hosts():
+    '''Allow the hostname we use for testing.'''
+    from django.conf import settings
+    settings.ALLOWED_HOSTS = ['testserver']
 
 
 @pytest.fixture
