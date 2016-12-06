@@ -10,11 +10,9 @@ from vr.server.tests import get_user
 from vr.server.utils import yamlize
 
 
-pytestmark = pytest.mark.usefixtures('postgresql')
-
-
-class TestSaveSwarms:
-    def setup_method(self, method):
+@pytest.mark.usefixtures('postgresql')
+class TestSaveSwarms(object):
+    def setup(self):
 
         self.app = models.App(
             name=randchars(),
@@ -104,7 +102,7 @@ class TestSaveSwarms:
 
     def test_simple_update(self, redis):
 
-        url = reverse('edit_swarm', kwargs={'swarm_id':self.swarm.id})
+        url = reverse('edit_swarm', kwargs={'swarm_id': self.swarm.id})
         payload = {
             'app_id': self.swarm.app.id,
             'os_image_id': getattr(self.swarm.release.build.os_image, 'id', ''),
@@ -131,7 +129,7 @@ class TestSaveSwarms:
         assert previous_release_id != new_release_id
 
     def test_invalid_tags(self):
-        url = reverse('edit_swarm', kwargs={'swarm_id':self.swarm.id})
+        url = reverse('edit_swarm', kwargs={'swarm_id': self.swarm.id})
         invalid_tags = [
             'gittag/v1',
             'my:tag',

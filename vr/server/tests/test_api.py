@@ -179,6 +179,7 @@ class TestSaveSwarms:
         assert response.status_code == 202
 
 
+@pytest.mark.usefixtures('postgresql')
 class TestAppURL:
 
     @pytest.fixture
