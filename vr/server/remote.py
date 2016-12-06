@@ -117,10 +117,19 @@ def write_proc_conf(settings):
 
 
 @task
-def run_uptests(hostname, proc_name, user='nobody'):
+def run_uptests(
+        hostname, proc_name, user='nobody', ignore_missing_procs=False):
     try:
         host = Host.objects.get(name=hostname)
-        proc = host.get_proc(proc_name)
+
+        try:
+            proc = host.get_proc(proc_name)
+        except ProcError:
+            if ignore_missing_procs:
+                print('Missing proc {} on host {}'.format(proc_name, hostname))
+                return []
+            raise
+
         settings = proc.settings
         if settings is None:
             print('{0.name} (pid {0.pid}) running on {0.hostname} '

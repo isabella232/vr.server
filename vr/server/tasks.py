@@ -699,18 +699,19 @@ def swarm_assign_uptests(swarm_id, swarm_trace_id=None):
 
 
 @task
-def uptest_host_procs(hostname, procs):
+def uptest_host_procs(hostname, procs, ignore_missing_procs=False):
     with remote_settings(hostname):
         with always_disconnect(hostname):
             results = {
-                p: remote.run_uptests(hostname, p, settings.PROC_USER)
+                p: remote.run_uptests(
+                    hostname, p, settings.PROC_USER, ignore_missing_procs)
                 for p in procs
             }
     return hostname, results
 
 
 @task
-def uptest_host(hostname, test_run_id=None):
+def uptest_host(hostname, test_run_id=None, ignore_missing_procs=False):
     """
     Given a hostname, look up all its procs and then run uptests on them.
     """
@@ -718,7 +719,8 @@ def uptest_host(hostname, test_run_id=None):
     print('Uptest host {} run_id={}'.format(hostname, test_run_id))
     host = Host.objects.get(name=hostname)
     procs = host.get_procs()
-    _, results = uptest_host_procs(hostname, [p.name for p in procs])
+    _, results = uptest_host_procs(
+        hostname, [p.name for p in procs], ignore_missing_procs)
 
     if test_run_id:
         run = TestRun.objects.get(id=test_run_id)
@@ -929,7 +931,7 @@ def uptest_all_procs():
         def make_test_task(host):
             print('Creating test task for host={} run_id={}'.format(
                 host.name, run.id))
-            return uptest_host.subtask((host.name, run.id), expires=1800)
+            return uptest_host.subtask((host.name, run.id, True), expires=1800)
         chord((make_test_task(h) for h in hosts))(
             post_uptest_all_procs.subtask((run.id,)))
 
