@@ -2,6 +2,7 @@
 # pylint: disable=unused-argument,superfluous-parens,no-self-use
 # pylint: disable=protected-access
 import os.path
+import shutil
 import tempfile
 import textwrap
 import time
@@ -22,6 +23,21 @@ from vr.server.tasks import (
     save_build_logs,
     try_get_compile_log,
 )
+
+THIS_DIR = os.path.dirname(__file__)
+FIXTURES_DIR = os.path.join(THIS_DIR, 'fixtures')
+
+
+def setup_module():
+    dst = os.path.join(tempfile.gettempdir(), 'fixtures')
+    if os.path.exists(dst):
+        shutil.rmtree(dst)
+    shutil.copytree(FIXTURES_DIR, dst)
+
+
+def fixture_path(name):
+    dst = os.path.join(tempfile.gettempdir(), 'fixtures')
+    return os.path.join(dst, name)
 
 
 @pytest.mark.usefixtures('postgresql')
@@ -396,6 +412,7 @@ class BuildLogTest(TestCase):
 
         self.assertEqual(failed_logs, [
             fixture_path('inexisting.log'),
+            self.untouchable_file,
         ])
         build.compile_log.save.assert_called_once_with(
             'builds/build_%s_compile.log' % build.id,
@@ -404,14 +421,9 @@ class BuildLogTest(TestCase):
         MockContentFile.assert_called_once_with(textwrap.dedent("""
         --- {} ---
         {}
-
-        --- {} ---
-        {}
         """.format(
             fixture_path('lxcdebug.log'),
             open(fixture_path('lxcdebug.log')).read(),
-            self.untouchable_file,
-            open(self.untouchable_file).read(),
         )).strip())
 
     def test_saves_nothing_if_everything_fails(self):
@@ -425,8 +437,9 @@ class BuildLogTest(TestCase):
 
         self.assertEqual(failed_logs, [
             fixture_path('inexisting.log'),
+            fixture_path('canttouchthis.log'),
         ])
-        self.assertTrue(build.compile_log.save.called)
+        self.assertFalse(build.compile_log.save.called)
 
     @patch('vr.server.tasks.save_build_logs')
     def test_gets_log_files(self, mock_save):
@@ -466,8 +479,3 @@ class BuildLogTest(TestCase):
         mock_save.return_value = ['compile.log']
 
         try_get_compile_log(build, re_raise=False)
-
-
-def fixture_path(name):
-    this_dir = os.path.dirname(__file__)
-    return os.path.join(this_dir, 'fixtures', name)
