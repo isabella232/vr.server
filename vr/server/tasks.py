@@ -962,21 +962,39 @@ def post_uptest_all_procs(_results, test_run_id):
 
 
 @task
-def _clean_host(hostname):
-    logger.info('Cleaning host %s', hostname)
+def _clean_host_filesystem(hostname):
+    '''Clean builds and images from this host's filesystem.'''
+    logger.info('Cleaning host %s filesystem', hostname)
     with remote_settings(hostname):
         with always_disconnect(hostname):
             remote.clean_builds_folders()
             remote.clean_images_folders()
+
+
+@task
+def _clean_host_procs(hostname):
+    '''Clean lingering procs from this host.'''
+    logger.info('Cleaning host %s procs', hostname)
+    with remote_settings(hostname):
+        with always_disconnect(hostname):
             remote.teardown_old_procs()
             remote.kill_orphans()
 
 
 @task
-def scooper():
-    logger.info('Cleaning up hosts')
+def filesystem_scooper():
+    '''Clean all hosts' filesystem.'''
+    logger.info('Cleaning up hosts filesystem')
     for host in Host.objects.filter(active=True):
-        _clean_host.apply_async((host.name,), expires=1800)
+        _clean_host_filesystem.apply_async((host.name,), expires=1800)
+
+
+@task
+def procs_scooper():
+    '''Clean all hosts' procs.'''
+    logger.info('Cleaning up hosts procs')
+    for host in Host.objects.filter(active=True):
+        _clean_host_procs.apply_async((host.name,), expires=1800)
 
     logger.info('Free up old port locks')
     dt = timezone.now() - datetime.timedelta(days=PORTLOCK_MAX_AGE_DAYS)
@@ -985,6 +1003,12 @@ def scooper():
 
 @task
 def clean_old_builds():
+    '''Clean old builds from the database.
+
+    That means marking them as "expired" and removing the associated
+    "file".
+    '''
+
     # select all builds older than BUILD_EXPIRATION_DAYS where file is not
     # None
     if settings.BUILD_EXPIRATION_DAYS is not None:

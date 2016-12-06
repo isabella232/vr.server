@@ -110,9 +110,16 @@ EVENTS_BUFFER_LENGTH = 100
 PROC_EVENTS_CHANNEL = 'proc_events'
 
 CELERYBEAT_SCHEDULE = {
-    'scooper': {
+    'filesystem_scooper': {
         'task': 'vr.server.tasks.scooper',
         'schedule': crontab(hour='*/4', minute=0),
+        'options': {
+            'expires': 120,
+        },
+    },
+    'procs_scooper': {
+        'task': 'vr.server.tasks.scooper',
+        'schedule': crontab(minute='*/30'),
         'options': {
             'expires': 120,
         },
@@ -126,7 +133,7 @@ CELERYBEAT_SCHEDULE = {
     },
     'clean_old_builds': {
         'task': 'vr.server.tasks.clean_old_builds',
-        'schedule': crontab(hour=2, minute=0),
+        'schedule': crontab(hour=12, minute=0),
         'options': {
             'expires': 120,
         },

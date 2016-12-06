@@ -182,9 +182,9 @@ class TestScooper(object):
         self.host.delete()
         remote.IMAGES_ROOT = self._img_root
 
-    @patch.object(tasks, '_clean_host')
-    def test_scooper(self, mock_clean_host):
-        tasks.scooper()
+    @patch.object(tasks, '_clean_host_filesystem')
+    def test_filesystem_scooper(self, mock_clean_host):
+        tasks.filesystem_scooper()
         mock_clean_host.apply_async.assert_called_once_with(
             (self.host.name, ), expires=1800)
 
@@ -212,7 +212,8 @@ class TestScooper(object):
             'app-build2-proc1',
         ]
         mock_files.exists.return_value = True
-        tasks._clean_host(self.host.name)
+        tasks._clean_host_filesystem(self.host.name)
+        tasks._clean_host_procs(self.host.name)
         assert not mock_delete_build.called
 
         # Order doesn't matter
@@ -243,7 +244,8 @@ class TestScooper(object):
             'app-build2-proc1',
         ]
         mock_files.exists.return_value = True
-        tasks._clean_host(self.host.name)
+        tasks._clean_host_filesystem(self.host.name)
+        tasks._clean_host_procs(self.host.name)
         mock_delete_build.assert_called_once_with('app-build1')
 
         # Order doesn't matter
@@ -375,10 +377,10 @@ class BuildLogTest(TestCase):
         --- {} ---
         {}
         """.format(
-               fixture_path('compile.log'),
-               open(fixture_path('compile.log')).read(),
-               fixture_path('lxcdebug.log'),
-               open(fixture_path('lxcdebug.log')).read(),
+            fixture_path('compile.log'),
+            open(fixture_path('compile.log')).read(),
+            fixture_path('lxcdebug.log'),
+            open(fixture_path('lxcdebug.log')).read(),
         )).strip())
 
     @patch('vr.server.tasks.ContentFile')
@@ -394,7 +396,6 @@ class BuildLogTest(TestCase):
 
         self.assertEqual(failed_logs, [
             fixture_path('inexisting.log'),
-            self.untouchable_file,
         ])
         build.compile_log.save.assert_called_once_with(
             'builds/build_%s_compile.log' % build.id,
@@ -403,9 +404,14 @@ class BuildLogTest(TestCase):
         MockContentFile.assert_called_once_with(textwrap.dedent("""
         --- {} ---
         {}
+
+        --- {} ---
+        {}
         """.format(
-               fixture_path('lxcdebug.log'),
-               open(fixture_path('lxcdebug.log')).read(),
+            fixture_path('lxcdebug.log'),
+            open(fixture_path('lxcdebug.log')).read(),
+            self.untouchable_file,
+            open(self.untouchable_file).read(),
         )).strip())
 
     def test_saves_nothing_if_everything_fails(self):
@@ -419,9 +425,8 @@ class BuildLogTest(TestCase):
 
         self.assertEqual(failed_logs, [
             fixture_path('inexisting.log'),
-            fixture_path('canttouchthis.log'),
         ])
-        self.assertFalse(build.compile_log.save.called)
+        self.assertTrue(build.compile_log.save.called)
 
     @patch('vr.server.tasks.save_build_logs')
     def test_gets_log_files(self, mock_save):
