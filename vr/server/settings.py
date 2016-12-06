@@ -1,11 +1,6 @@
 import sys
 import importlib
 
-if 'runserver' in sys.argv:
-    from gevent import monkey
-    monkey.patch_all()
-    importlib.import_module('psycogreen.gevent').patch_psycopg()
-
 import os
 import logging
 import datetime
@@ -16,12 +11,13 @@ import djcelery
 from celery.schedules import crontab
 import pymongo
 
+if 'runserver' in sys.argv:
+    from gevent import monkey
+    monkey.patch_all()
+    importlib.import_module('psycogreen.gevent').patch_psycopg()
 
 here = os.path.dirname(os.path.realpath(__file__))
-
-
 parentpath = os.path.dirname(here)
-
 
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
