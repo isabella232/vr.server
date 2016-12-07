@@ -100,7 +100,6 @@ class TestSaveSwarms(object):
         self.client = Client()
         self.client.post(reverse('login'), {'username': self.user.username, 'password':'password123'})
 
-    @pytest.mark.xfail(reason='Does not seem to bump version')
     def test_simple_update(self, redis):
 
         url = reverse('edit_swarm', kwargs={'swarm_id': self.swarm.id})

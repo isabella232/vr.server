@@ -66,15 +66,6 @@ def app_in_default_dashboard(app, user):
     return False
 
 
-def is_new_object(objclass, *args, **kwargs):
-    try:
-        objclass.objects.get(*args, **kwargs)
-    except objclass.DoesNotExist:
-        return True
-    else:
-        return False
-
-
 @login_required
 def dash(request):
     return render(request, 'dash.html', {
@@ -300,13 +291,15 @@ def edit_swarm(request, swarm_id=None):
         data = form.cleaned_data
 
         # Check if we already have a swarm with these parameters
-        if not is_new_object(
-                models.Swarm,
-                app=data['app_id'],
-                proc_name=data['proc_name'],
-                config_name=data['config_name'],
-                squad=data['squad_id'],
-        ):
+        # Note: exclude itself, in case we are editing an existing swarm
+        n = models.Swarm.objects.filter(
+            app=data['app_id'],
+            proc_name=data['proc_name'],
+            config_name=data['config_name'],
+            squad=data['squad_id'],
+        ).exclude(id=swarm_id).count()
+
+        if n > 0:
             error_msg = (
                 'Swarm already exists for this app, proc, config and squad!'
             )
