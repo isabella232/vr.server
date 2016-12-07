@@ -38,41 +38,19 @@
             {% endif %}
             <div class="tab-content row">
                 <div class="tab-pane active form-horizontal col-sm-8" id="general">
-            {% formfield form.app_id %}
-            {% formfield form.tag %}
-            {% formfield form.os_image_id %}
-            {% formfield form.proc_name %}
-            {% formfield form.config_name %}
-            {% formfield form.squad_id %}
-            {% formfield form.size %}
+                    {% include "swarm_tab_general.html" %}
                 </div>
                 <div class="tab-pane form-horizontal col-sm-8" id="config">
-            {% formfield form.config_yaml %}
-            {% formfield form.env_yaml %}
-            {% formfield form.volumes %}
-            {% formfield form.run_as %}
-            {% formfield form.mem_limit %}
-            {% formfield form.memsw_limit %}
-            {% formfield form.config_ingredients %}
+                    {% include "swarm_tab_config.html" %}
                 </div>
                 <div class="tab-pane form-horizontal col-sm-12" id="preview">
-                    <div class="row">
-                        <div class="col-sm-8">
-                            <h4>Compiled Config</h4>
-                            <pre id="compiled_config">{{ compiled_config }}</pre>
-
-                            <h4>Compiled Env</h4>
-                            <pre id="compiled_env">{{ compiled_env }}</pre>
-                        </div>
-                    </div>
+                    {% include "swarm_tab_preview.html" %}
                 </div>
                 <div class="tab-pane form-horizontal col-sm-8" id="routing">
-            {% formfield form.pool %}
-            {% formfield form.balancer %}
+                    {% include "swarm_tab_preview.html" %}
                 </div>
-
                 <div class="tab-pane form-horizontal col-sm-12" id="versions">
-            {% include "version_diffs.html" %}
+                    {% include "version_diffs.html" %}
                 </div>
             </div>
 
