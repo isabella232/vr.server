@@ -107,14 +107,14 @@ PROC_EVENTS_CHANNEL = 'proc_events'
 
 CELERYBEAT_SCHEDULE = {
     'filesystem_scooper': {
-        'task': 'vr.server.tasks.scooper',
+        'task': 'vr.server.tasks.filesystem_scooper',
         'schedule': crontab(hour='*/4', minute=0),
         'options': {
             'expires': 120,
         },
     },
     'procs_scooper': {
-        'task': 'vr.server.tasks.scooper',
+        'task': 'vr.server.tasks.procs_scooper',
         'schedule': crontab(minute='*/30'),
         'options': {
             'expires': 120,
