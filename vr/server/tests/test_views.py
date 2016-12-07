@@ -163,7 +163,6 @@ class TestSaveSwarms(object):
             resp = self.client.post(url, data=payload)
             assert 'Invalid tag name' in resp.content
 
-    @pytest.mark.xfail(reason='Does not seem to redirect')
     def test_normal_app_update_redirection(self, redis):
         """
         Test that after swarming an app not in the user's default dashboard,
@@ -194,7 +193,6 @@ class TestSaveSwarms(object):
         resp = self.client.post(url, data=payload)
         assert resp._headers['location'][1] == 'http://testserver/'
 
-    @pytest.mark.xfail(reason='Does not seem to redirect')
     def test_dashboard_app_update_redirection(self, redis):
         """
         Test that after swarming an app that belongs to the user's default
