@@ -19,6 +19,7 @@ VR.Dash.init = function(
         VR.Dash.Options.apps.push({'name': app.name});
       });
     });
+
     $('#setAsDefault').click(function(ev) {
       var dashId = $(this).data('dashboardid');
         var payload = {
@@ -71,7 +72,16 @@ VR.Dash.init = function(
       }
   }, this);
 
-  // bind proc change event stream to handler
+
+  $('#proc-filter').keypress(function(ev) {
+    var q = $('#proc-filter').val();
+    // Allow to clear filter to mean "no filter"
+    if (0 < q.length && q.length < 3) {
+      return;
+    }
+    VR.Dash.filterProcs(q);
+  });
+
 };
 
 VR.Dash.removeProc = function(procdata) {
@@ -158,4 +168,42 @@ VR.Dash.onActiveHostData = function(data, stat, xhr) {
   _.each(data.hosts, function(el, idx, list) {
     VR.Dash.onHostData(el);
   });
+};
+
+VR.Dash.filterProcs = function(p) {
+    var show_all = false;
+    if (!p) {
+        show_all = true;
+    } else {
+        p = p.toUpperCase();
+    }
+    $('.swarmtitle').each(function(i, t) {
+        var $boxes = $(t).parents('.swarmbox');
+        var appname = $(t).parents('.approw').find('.apptitle').html();
+        var show = true;
+        if (p == 'FATAL' || p == 'RUNNING' || p == 'STOPPED') {
+            show = $('.procbox.' + p, $boxes).length > 0;
+        } else if (appname.toUpperCase().indexOf(p) > -1) {
+            show = true;
+        } else if (t.textContent.toUpperCase().indexOf(p) == -1) {
+            show = false;
+        }
+        if (show_all || show) {
+            $boxes.show();
+        } else {
+            $boxes.hide();
+        }
+    });
+    $('.approw').each(function(i, b) {
+        var $b = $(b),
+            n = $b.find('.swarmbox').length;
+        if ($b.find('.swarmbox:[style*="display: none"]').length == n) {
+            $b.hide();
+        } else {
+            $b.show();
+            if (!show_all && !$(this).hasClass('biggened')) {
+                $(this).find('.expandtree').click();
+            }
+        }
+    });
 };
