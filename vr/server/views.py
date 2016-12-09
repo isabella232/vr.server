@@ -10,6 +10,7 @@ from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse, reverse_lazy
 from django.db.models import Q
+from django.db.models.functions import Lower
 from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views.generic import edit
@@ -426,8 +427,8 @@ class ListLogEntry(ListView):
 
     def get_context_data(self, **kwargs):
         context = super(ListLogEntry, self).get_context_data(**kwargs)
-        context['apps_list'] = models.App.objects.all()
-        context['users_list'] = User.objects.all()
+        context['apps_list'] = models.App.objects.order_by(Lower('name'))
+        context['users_list'] = User.objects.order_by(Lower('username'))
         context['q'] = self.query_params
         return context
 
