@@ -415,11 +415,20 @@ class ListLogEntry(ListView):
     template_name = 'log.html'
     model = models.DeploymentLogEntry
     paginate_by = 50
+    query_params = {}
+
+    def get_queryset(self):
+        self.query_params = {
+            k: v for k, v in self.request.GET.items()
+            if k != 'page' and v.strip()
+        }
+        return models.DeploymentLogEntry.objects.filter(**self.query_params)
 
     def get_context_data(self, **kwargs):
         context = super(ListLogEntry, self).get_context_data(**kwargs)
         context['apps_list'] = models.App.objects.all()
         context['users_list'] = User.objects.all()
+        context['q'] = self.query_params
         return context
 
 
