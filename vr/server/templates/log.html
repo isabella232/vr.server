@@ -11,7 +11,7 @@
     <table class="deployment-log">
     {% for entry in object_list %}
       <tr>
-        <td class="label label-{{entry.type}}">{{ entry.time|date:"D M j, g:i A T"}}</td>
+        <td class="label label-{{entry.type}}">{{ entry.time|date:"D M j, H:i T"}}</td>
         <td class="label label-user">{{ entry.user.username }}</td>
         <td>{{ entry.message }}</td>
       </tr>
