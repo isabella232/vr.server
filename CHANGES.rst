@@ -1,3 +1,8 @@
+6.4.3
+-----
+
+* Fix https://github.com/yougov/velociraptor/issues/208
+
 6.2.0
 -----
 
