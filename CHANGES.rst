@@ -1,3 +1,9 @@
+6.4.4
+-----
+
+* Sort users and apps alphabetically in log page
+* Dynamic proc filtering in dashboard
+
 6.4.3
 -----
 
