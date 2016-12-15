@@ -25,7 +25,7 @@ def rewrite_default_file_storage(gridfs):
     of MongoDB, so re-init the default storage to use that
     instance.
     """
-    django.core.files.base.default_storage.__init__()
+    django.core.files.storage.default_storage.__init__()
 
 
 def test_build_usable(gridfs):
