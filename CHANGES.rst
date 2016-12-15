@@ -1,3 +1,11 @@
+6.5
+---
+
+* Incorporated `project skeleton from jaraco
+  <https://github.com/jaraco/skeleton>`_
+* Enabled automatic releases of tagged commits
+* Tests now run on Travis-CI
+
 6.4.4
 -----
 
