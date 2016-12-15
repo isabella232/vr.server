@@ -1,4 +1,4 @@
-Welcome to skeleton documentation!
+Welcome to vr.server documentation!
 ========================================
 
 .. toctree::
@@ -7,7 +7,7 @@ Welcome to skeleton documentation!
    history
 
 
-.. automodule:: skeleton
+.. automodule:: vr.server
     :members:
     :undoc-members:
     :show-inheritance:
