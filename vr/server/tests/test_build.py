@@ -12,6 +12,7 @@ from vr.common.utils import randchars
 
 
 pytestmark = pytest.mark.usefixtures('postgresql')
+pytestmark = pytest.mark.usefixtures('gridfs')
 
 
 def test_build_usable(gridfs):
