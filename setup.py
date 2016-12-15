@@ -1,20 +1,32 @@
-#!/usr/bin/python
+#!/usr/bin/env python
+
+# Project skeleton maintained at https://github.com/jaraco/skeleton
+
+import io
 import sys
 
-from setuptools import setup, find_packages
+import setuptools
 
-needs_pytest = {'pytest', 'test'}.intersection(sys.argv)
-pytest_runner = ['pytest_runner'] if needs_pytest else []
+with io.open('README.rst', encoding='utf-8') as readme:
+    long_description = readme.read()
 
-setup(
-    name='vr.server',
-    namespace_packages=['vr'],
-    version='6.4.4',
-    author='Brent Tubbs',
-    author_email='brent.tubbs@gmail.com',
-    packages=find_packages(),
+needs_wheel = {'release', 'bdist_wheel', 'dists'}.intersection(sys.argv)
+wheel = ['wheel'] if needs_wheel else []
+
+name = 'vr.server'
+description = 'Velociraptor\'s Django and Celery components.'
+
+setup_params = dict(
+    name=name,
+    use_scm_version=True,
+    author="Brent Tubbs",
+    author_email="btubbs@gmail.com",
+    description=description or name,
+    long_description=long_description,
+    url="https://github.com/yougov/" + name,
+    packages=setuptools.find_packages(),
     include_package_data=True,
-    url='https://bitbucket.org/yougov/vr.server',
+    namespace_packages=name.split('.')[:-1],
     install_requires=[
         'celery-schedulers==0.0.2',
         'diff-match-patch==20121119',
@@ -52,21 +64,23 @@ setup(
             'mercurial>=3.8',
         ],
     },
-    entry_points = {
+    setup_requires=[
+        'setuptools_scm>=1.15.0',
+    ] + wheel,
+    classifiers=[
+        "Development Status :: 5 - Production/Stable",
+        "Intended Audience :: Developers",
+        "License :: OSI Approved :: MIT License",
+        "Programming Language :: Python :: 2.7",
+        "Programming Language :: Python :: 3",
+    ],
+    entry_points={
         'console_scripts': [
             'vr_worker = vr.server.commands:start_celery',
             'vr_beat = vr.server.commands:start_celerybeat',
             'vr_migrate = vr.server.commands:run_migrations',
         ],
     },
-    description=("Velociraptor's Django and Celery components."),
-    setup_requires=[
-    ] + pytest_runner,
-    tests_require=[
-        'pytest',
-        'backports.unittest_mock',
-        'jaraco.mongodb>=3.11',
-        'python-dateutil>=2.4',
-        'jaraco.postgres>=1.3.1',
-    ],
 )
+if __name__ == '__main__':
+    setuptools.setup(**setup_params)
