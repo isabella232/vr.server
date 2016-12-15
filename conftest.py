@@ -32,7 +32,7 @@ def _setup_allowed_hosts():
     settings.ALLOWED_HOSTS = ['testserver']
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def gridfs(mongodb_instance):
     from django.conf import settings
     settings.GRIDFS_PORT = mongodb_instance.port
