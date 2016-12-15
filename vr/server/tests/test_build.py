@@ -2,7 +2,6 @@ import tempfile
 
 import pytest
 
-import django
 from dateutil.relativedelta import relativedelta
 from django.utils import timezone
 from django.core.files import File
@@ -13,19 +12,7 @@ from vr.common.utils import randchars
 
 
 pytestmark = pytest.mark.usefixtures('postgresql')
-
-
-@pytest.fixture(scope="module", autouse=True)
-def rewrite_default_file_storage(gridfs):
-    """
-    By the time these tests run, django has already started up
-    and configured the default_storage for files, binding the
-    GridFSStorage to the default host/port. But the test suite
-    has gone to a lot of trouble to supply an ephemeral instance
-    of MongoDB, so re-init the default storage to use that
-    instance.
-    """
-    django.core.files.storage.default_storage.__init__()
+pytestmark = pytest.mark.usefixtures('gridfs')
 
 
 def test_build_usable(gridfs):

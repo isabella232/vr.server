@@ -37,6 +37,20 @@ def gridfs(mongodb_instance):
     from django.conf import settings
     settings.GRIDFS_PORT = mongodb_instance.port
     settings.MONGODB_URL = mongodb_instance.get_uri() + '/velociraptor'
+    patch_default_storage()
+
+
+def patch_default_storage():
+    """
+    By the time the tests run, django has already started up
+    and configured the default_storage for files, binding the
+    GridFSStorage to the default host/port. But the test suite
+    has gone to a lot of trouble to supply an ephemeral instance
+    of MongoDB, so re-init the default storage to use that
+    instance.
+    """
+    import django
+    django.core.files.storage.default_storage.__init__()
 
 
 @pytest.fixture
