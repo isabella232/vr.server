@@ -72,8 +72,8 @@ VR.Dash.init = function(
       }
   }, this);
 
-
-  $('#proc-filter').keypress(function(ev) {
+  // filter procs
+  $('#proc-filter').keyup(function(ev) {
     var q = $('#proc-filter').val();
     // Allow to clear filter to mean "no filter"
     if (0 < q.length && q.length < 3) {
