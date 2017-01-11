@@ -6,7 +6,7 @@ import shutil
 import tempfile
 import textwrap
 import time
-from path import path
+from path import Path
 from unittest import TestCase
 from unittest.mock import MagicMock, Mock, patch, call
 
@@ -311,17 +311,17 @@ class TestScooper(object):
         mock_sudo.side_effect = local_sudo
 
         # Make sure img is recent
-        atime = time.time() - remote.MAX_IMAGE_AGE_SECS + 1
-        (path(remote.IMAGES_ROOT) / 'recent_img').mkdir_p().utime(
+        atime = time.time() - remote.MAX_IMAGE_AGE_SECS + 10
+        (Path(remote.IMAGES_ROOT) / 'recent_img').mkdir_p().utime(
             (atime, atime))
 
         # Make sure img does not exist
-        (path(remote.IMAGES_ROOT) / 'non_existing_img').rmtree_p()
+        (Path(remote.IMAGES_ROOT) / 'non_existing_img').rmtree_p()
 
         # Make sure img is old
-        atime = time.time() - remote.MAX_IMAGE_AGE_SECS - 1
+        atime = time.time() - remote.MAX_IMAGE_AGE_SECS - 10
         old_img_path = (
-            path(remote.IMAGES_ROOT) / 'old_img'
+            Path(remote.IMAGES_ROOT) / 'old_img'
         ).mkdir_p().utime((atime, atime))
 
         mock_get_builds_in_use.return_value = []
