@@ -595,6 +595,13 @@ th.rowlabel {
   margin-top: 20px;
 }
 
+.host-proc {
+    display: inline-block;
+    width: 33%;
+    border: 1px solid #ddd;
+    margin-bottom: 0.3em;
+    padding: 0 0.3em;
+}
 
 /* FORMS */
 

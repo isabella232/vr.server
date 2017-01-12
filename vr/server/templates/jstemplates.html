@@ -38,12 +38,12 @@
           <div class="procbox <%statename%>"></div>
           <%statename%>
       </td></tr>
-      <tr><th class="rowlabel">App</th><td><%app_name%></td></tr>
+      <tr><th class="rowlabel">App</th><td><a href="/app/<%app_name%>"><%app_name%></a></td></tr>
       <tr><th class="rowlabel">Version</th><td><%version%></td></tr>
       <tr><th class="rowlabel">Config Name</th><td><%config_name%></td></tr>
       <tr><th class="rowlabel">Release Hash</th><td><%hash%></td></tr>
       <tr><th class="rowlabel">Proc Name</th><td><%proc_name%></td></tr>
-      <tr><th class="rowlabel">Host</th><td><%host%></td></tr>
+      <tr><th class="rowlabel">Host</th><td><a href="/host/<%host%>"><%host%></a></td></tr>
       <tr><th class="rowlabel">Port</th><td><%port%></td></tr>
       <tr><th class="rowlabel">Tail</th><td><a href="<%logs_view_uri%>" target=_blank>Fullscreen</a></td></tr>
 </script>
@@ -95,7 +95,7 @@
           <table class="attrs">
             <tr>
               <th class="rowlabel">App:</th>
-              <td><%app_name%></td>
+              <td><a href="/app/<%app_name%>"><%app_name%></a></td>
             </tr>
             <tr>
               <th class="rowlabel">Config Name:</th>
@@ -142,7 +142,7 @@
 </script>
 
 <script id="host-tmpl" type="text/goatee">
-  <th data-hostname="<%name%>"><%name%></th>
+  <th data-hostname="<%name%>"><a href="/host/<%name%>"><%name%></a></th>
   <td class="procgrid"></td>
 </script>
 

@@ -19,7 +19,14 @@ Swarm.init = function(swarmId, container) {
         if($('#'+versionId).length == 0)
           Swarm.container.append(vContainer);
 
-        hContainer = '<tr id="'+hostId+'"><td style="text-align: right;vertical-align: middle"><span>'+pdata.host+'</span></td><td></td></tr>';
+          hContainer = (
+              '<tr id="' + hostId + '">' +
+                  '<td style="text-align: right;vertical-align: middle">' +
+                  '<a href="/host/' + pdata.host + '">' + pdata.host + '</a>' +
+                  '</td>' +
+                  '<td></td>' +
+                  '</tr>'
+          );
 
         if($('#'+hostId).length == 0)
           $('#'+versionId).append(hContainer);

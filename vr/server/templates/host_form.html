@@ -28,4 +28,14 @@
     </form>
   </div>
 </div>
+<div class="host-procs">
+  <h3>{{ object.get_procs | length }} Proc(s)</h3>
+  {% for p in object.get_procs %}
+  <div class="host-proc">
+    <h4><a href="{% url 'api_host_proc' p.host.name p.name %}">{{ p.shortname }}</a></h4>
+    <span>{{ p.host.name }}:{{ p.port }}</span>
+    <span class="pull-right">{{ p.description }}</span>
+  </div>
+  {% endfor %}
+</div>
 {% endblock content %}

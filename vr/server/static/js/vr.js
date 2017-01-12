@@ -265,7 +265,8 @@ VR.Models.Host = VR.Models.Tasty.extend({
 VR.Models.HostList = Backbone.Collection.extend({
   model: VR.Models.Host,
   onProcData: function(ev, data) {
-    // see if we already have a host for this proc.  If not, make one.  Pass the proc down to that host.
+    // see if we already have a host for this proc.  If not, make one.
+    // Pass the proc down to that host.
     var hostId = [data.app_name, data.config_name, data.host].join('-');
 
     var host = this.get(hostId);

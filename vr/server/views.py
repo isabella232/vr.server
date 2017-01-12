@@ -528,6 +528,7 @@ class UpdateHost(edit.UpdateView):
     model = models.Host
     success_url = reverse_lazy('host_list')
     form_class = forms.HostForm
+    slug_field = 'name'
 
     def form_valid(self, form):
         """
@@ -633,8 +634,8 @@ class UpdateApp(edit.UpdateView):
     template_name = 'app_form.html'
     model = models.App
     success_url = reverse_lazy('app_list')
-
     fields = ['name', 'repo_url', 'repo_type', 'buildpack', 'stack']
+    slug_field = 'name'
 
     def form_valid(self, form):
         """
