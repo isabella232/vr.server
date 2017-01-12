@@ -8,7 +8,14 @@ from vr.server.feeds import DeploymentLogFeed
 
 admin.autodiscover()
 
-urlpatterns = patterns('',
+procname_re = r'(?P<procname>[a-zA-Z0-9_.\+-]+)'
+hostname_re = r'(?P<hostname>[a-zA-Z0-9_.-]+)'
+swarm_re = r'(?P<swarm_id>[a-zA-Z0-9_.-]+)'
+stack_re = r'(?P<stack_id>\d+)'
+
+urlpatterns = patterns(
+    '',
+
     # Main UI routes
     url(r'^$', 'vr.server.views.dash', name='dash'),
     url(r'^dashboard/$', 'vr.server.views.default_dash', name='default_dash'),
@@ -16,7 +23,7 @@ urlpatterns = patterns('',
         'vr.server.views.custom_dash', name='custom_dash'),
     url(r'^swarm/$',
         'vr.server.views.edit_swarm', name='new_swarm'),
-    url(r'^swarm/(?P<swarm_id>[a-zA-Z0-9_.-]+)/$',
+    url(r'^swarm/' + swarm_re + '/$',
         'vr.server.views.edit_swarm', name='edit_swarm'),
     url(r'^swarmsearch/$',
         'vr.server.views.search_swarm', name='search_swarm'),
@@ -26,7 +33,7 @@ urlpatterns = patterns('',
     url(r'^upload/$', 'vr.server.views.upload_build', name='upload_build'),
     url(r'^log/$', views.ListLogEntry.as_view(), name='log'),
     url(r'^log/rss/$', DeploymentLogFeed(), name='log_rss'),
-    url(r'^proclog/(?P<hostname>[a-zA-Z0-9_.-]+)/(?P<procname>[a-zA-Z0-9_.-]+)/$',
+    url(r'^proclog/' + hostname_re + '/' + procname_re + '/$',
         'vr.server.views.proclog', name='proclog'),
 
     # Utility stuff
@@ -34,15 +41,16 @@ urlpatterns = patterns('',
     url(r'^logout/$', 'vr.server.views.logout', name='logout'),
     url(r'^admin/', include(admin.site.urls)),
 
-    url(r'^files/(?P<path>.+)', 'vr.server.storages.serve_file', name='serve_file'),
+    url(r'^files/(?P<path>.+)', 'vr.server.storages.serve_file',
+        name='serve_file'),
 
     url(r'^api/', include('vr.server.api.urls')),
 
     # Ingredient CRUD
     url(r'^ingredient/$', login_required(views.ListConfigIngredient.as_view()),
         name='ingredient_list'),
-    url(r'^ingredient/add/$',login_required(
-        views.AddConfigIngredient.as_view()),
+    url(r'^ingredient/add/$',
+        login_required(views.AddConfigIngredient.as_view()),
         name='ingredient_add'),
     url(r'^ingredient/(?P<pk>\d+)/$',
         login_required(views.UpdateConfigIngredient.as_view()),
@@ -85,7 +93,8 @@ urlpatterns = patterns('',
         name='app_update'),
     url(r'^app/(?P<slug>.+)/$', login_required(views.UpdateApp.as_view()),
         name='app_update_by_name'),
-    url(r'^app/(?P<pk>\d+)/delete/$', login_required(views.DeleteApp.as_view()),
+    url(r'^app/(?P<pk>\d+)/delete/$',
+        login_required(views.DeleteApp.as_view()),
         name='app_delete'),
 
     # BuildPack CRUD
@@ -104,7 +113,8 @@ urlpatterns = patterns('',
     url(r'^stack/$', login_required(views.ListStack.as_view()),
         name='stack_list'),
     url(r'^stack/add/$', 'vr.server.views.edit_stack', name='stack_add'),
-    url(r'^stack/(?P<stack_id>\d+)/$', 'vr.server.views.edit_stack', name='stack_update'),
+    url(r'^stack/' + stack_re + '/$', 'vr.server.views.edit_stack',
+        name='stack_update'),
     url(r'^stack/(?P<pk>\d+)/delete/$',
         login_required(views.DeleteStack.as_view()),
         name='stack_delete'),
