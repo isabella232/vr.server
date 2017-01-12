@@ -30,7 +30,7 @@
 </div>
 <div class="host-procs">
   <h3>{{ object.get_procs | length }} Proc(s)</h3>
-  {% for p in object.get_procs %}
+  {% for p in object.get_procs|dictsort:"name" %}
   <div class="host-proc">
     <h4><a href="{% url 'api_host_proc' p.host.name p.name %}">{{ p.shortname }}</a></h4>
     <span>{{ p.host.name }}:{{ p.port }}</span>
