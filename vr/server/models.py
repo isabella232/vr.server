@@ -698,10 +698,8 @@ class Swarm(models.Model):
             ]
 
             # On each host, set a tuple in form (x, y), where:
-                # x = number of procs running on this host that belong to the
-                # swarm
-                # y = total number of procs running on this host
-
+            # x = number of procs running on this host that belong to the swarm
+            # y = total number of procs running on this host
             h.sortkey = (len(h.swarm_procs), len(h.all_procs))
 
         squad_hosts.sort(key=lambda h: h.sortkey)

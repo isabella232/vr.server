@@ -601,13 +601,23 @@ def swarm_release(swarm_id, swarm_trace_id=None):
     elif procs_needed < 0:
         # We need to delete some procs
 
-        # reverse prioritized list so the most loaded hosts get things removed
-        # first.
-        hosts = swarm.get_prioritized_hosts()
+        # Get the list of hosts valid for this swarm, with some
+        # running procs on them.
+        # Get prioritized_hosts returns all hosts in the squad that
+        # can run the proc, but not necessarily that are running it,
+        # now.
+        hosts = [
+            host
+            for host in swarm.get_prioritized_hosts()
+            if len(host.swarm_procs) > 0
+        ]
+        # First remove from the busiest hosts
         hosts.reverse()
         hostcount = len(hosts)
+
         subtasks = []
         for x in range(procs_needed * -1):
+            # Roundrobin across hosts
             host = hosts[x % hostcount]
             proc = host.swarm_procs.pop()
             subtasks.append(
