@@ -544,14 +544,23 @@ def get_procs():
     """
     Return the names of all the procs on the host.
     """
+    procs = []
     if files.exists(PROCS_ROOT):
+        # Valid procs are the ones which have a proc.yaml
+        # E.g. PROCS_ROOT also contains procs that are being built,
+        # which should be excluded.
+        glob = os.path.join(PROCS_ROOT, '*', 'proc.yaml')
+        try:
+            proc_yamls = sudo('ls -1 ' + glob)
+        except Error:
+            print('No procs found')
+            return procs
+
         procs = [
-            # Remove '\r\n\s\t' etc.
-            line.strip()
-            for line in sudo('ls -1 ' + PROCS_ROOT).splitlines()
+            os.path.dirname(line.strip())
+            for line in proc_yamls.splitlines()
         ]
-    else:
-        procs = []
+
     # filter out any .hold files
     return [p for p in procs if not p.endswith('.hold')]
 
