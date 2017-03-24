@@ -557,7 +557,7 @@ def get_procs():
             return procs
 
         procs = [
-            os.path.dirname(line.strip())
+            os.path.dirname(line.strip())[len(PROCS_ROOT) + 1:]
             for line in proc_yamls.splitlines()
         ]
 
