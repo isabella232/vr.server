@@ -399,7 +399,7 @@ def clean_images_folders():
             try:
                 app = App.objects.get(name=app_name)
             except App.DoesNotExist:
-                print('Unknown image {}'.format(app_name))
+                print('Unknown app {}'.format(app_name))
                 continue
 
             for b in Build.objects.filter(
