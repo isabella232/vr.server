@@ -611,6 +611,8 @@ def swarm_release(swarm_id, swarm_trace_id=None):
             for host in swarm.get_prioritized_hosts()
             if len(host.swarm_procs) > 0
         ]
+        assert len(hosts) > 0, 'No hosts running proc'
+
         # First remove from the busiest hosts
         hosts.reverse()
         hostcount = len(hosts)
