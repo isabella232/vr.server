@@ -41,8 +41,8 @@
   {% for p in object.get_procs|dictsort:"name" %}
   <div class="host-proc">
     <h4><a href="{% url 'api_host_proc' p.host.name p.name %}">{{ p.shortname }}</a></h4>
-    <span>{{ p.host.name }}:{{ p.port }}</span>
-    <span class="pull-right">{{ p.description }}</span>
+    <span><a href="http://{{ p.host.name }}:{{ p.port }}" target="_blank">{{ p.host.name }}:{{ p.port }}</a></span>
+    <span class="pull-right"><span class="label label-default">{{ p.statename }}</span> {{ p.description }}</span>
   </div>
   {% endfor %}
 </div>
