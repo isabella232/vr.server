@@ -1,5 +1,12 @@
 {% extends 'base.html' %}
 {% load static from staticfiles %}
+{% block title %} |
+    {% if object %}
+        Squad {{ object }} 
+    {% else %}
+        New Squad
+    {% endif %}
+{% endblock title %}
 
 {% block content %}
 <div class="row">

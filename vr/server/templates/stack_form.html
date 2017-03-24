@@ -1,4 +1,11 @@
 {% extends 'base.html' %}
+{% block title %} |
+    {% if object %}
+        Stack {{ object }} 
+    {% else %}
+        New Stack
+    {% endif %}
+{% endblock title %}
 
 {% block script %}
 {{ block.super }}

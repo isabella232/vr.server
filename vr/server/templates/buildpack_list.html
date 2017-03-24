@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% block title %} | Buildpacks {% endblock title %}
 
 
 {% block content %}
@@ -11,7 +12,11 @@ and compile apps of a given runtime (Python, Node, Ruby, etc.)</p>
 <h2>All Buildpacks</h2>
 <ul>
 {% for o in object_list %}
-<li> <a href="{% url "buildpack_update" o.id %}">{{ o }}</a>
+<li>
+  <a href="{% url "buildpack_update" o.id %}">{{ o }}</a>
+  &nbsp;<a href="{{ o.repo_url }}" target="_blank"><span class="glyphicon glyphicon-share-alt"></span></a>
+  <br /><small>{{ o.desc }}</small>
+</li>
 {% endfor %}
 </ul>
 

@@ -1,5 +1,12 @@
 {% extends 'base.html' %}
 {% load static from staticfiles %}
+{% block title %} |
+    {% if swarm.id %}
+        Swarm {{ swarm.shortname }}
+    {% else %}
+        New Swarm
+    {% endif %}
+{% endblock title %}
 {% load formfield %}
 
 {% block content %}

@@ -126,7 +126,7 @@ class BuildPack(models.Model):
         return self.basename
 
     class Meta:
-        ordering = ['order']
+        ordering = ['order', 'id']
         db_table = 'deployment_buildpack'
 
     @classmethod
