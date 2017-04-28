@@ -437,20 +437,6 @@ class Release(models.Model):
             self.env_yaml, self.volumes, self.run_as,
             self.mem_limit, self.memsw_limit)[:8]
 
-    @property
-    def interpolated_env_yaml(self):
-        '''Parse env_yaml and replace values that look like envvars.'''
-
-        def _interpolate(v):
-            if isinstance(v, six.string_types) and v.startswith('$'):
-                return os.environ.get(v[1:], '')
-            return v
-
-        return {
-            k: _interpolate(v)
-            for k, v in (self.env_yaml or {}).iteritems()
-        }
-
     def parsed_config(self):
         return yaml.safe_load(self.config_yaml or '')
 
