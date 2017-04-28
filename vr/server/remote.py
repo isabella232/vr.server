@@ -498,7 +498,8 @@ def teardown_old_procs():
 
 def get_orphans():
     with fab_settings(hide('stdout')):
-        output = sudo('ps -C sudo,su -o pid,ppid,command')
+        # Note: use 'echo' tovoid failing if there are no procs
+        output = sudo('ps -C sudo,su -o pid,ppid,command || echo')
         #   PID   PPID COMMAND
         #  6676   6667 sudo -u nobody -E -s ...
         # 18079  18068 sudo -u nobody -E -s ...
