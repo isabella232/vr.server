@@ -131,7 +131,7 @@ def build_proc_info(release, config_name, hostname, proc, port):
         'release_hash': release.hash,
         'config_name': config_name,
         'settings': release.config_yaml or {},
-        'env': release.env_yaml or {},
+        'env': release.interpolated_env_yaml,
         'version': build.tag,
         'build_md5': build.file_md5,
         'build_url': build.file.url,
