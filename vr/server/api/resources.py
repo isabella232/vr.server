@@ -6,6 +6,7 @@ import json
 import logging
 import os
 import shlex
+import subprocess
 
 from backports.functools_lru_cache import lru_cache
 
@@ -172,7 +173,6 @@ class AppResource(ReversionModelResource):
         expand_cmd = os.environ.get('SCHEME_EXPAND_COMMAND', default)
         cmd = shlex.split(expand_cmd) + [spec_url]
         try:
-            import subprocess
             return subprocess.check_output(cmd).strip()
         except Exception:
             pass
