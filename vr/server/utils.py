@@ -2,10 +2,12 @@ from hashlib import md5
 import datetime
 import json
 import time
+import xmlrpclib
 
 import six
 
 from django.http import HttpResponse
+import django.core.exceptions
 from celery.result import AsyncResult
 import yaml
 
@@ -68,3 +70,21 @@ def yamlize(dct):
 
 def build_swarm_trace_id(swarm):
     return md5(str(swarm) + str(time.time())).hexdigest()
+
+
+def validate_xmlrpc(data):
+    """
+    Raise an error if the data can't be
+    dumped to XMLRPC format.
+
+    Given that the Supervisor RPC interface can return any proc's config, and
+    that some things (like >32 bit ints, or integer keys in dicts) can't be
+    marshalled as XML RPC, this check protects the system
+    from problems deployed under Supervisor D.
+    """
+    try:
+        xmlrpclib.dumps((data,), allow_none=True)
+    except Exception as e:
+        tmpl = "Cannot be marshalled to XMLRPC: %s"
+        raise django.core.exceptions.ValidationError(tmpl % e)
+    return data

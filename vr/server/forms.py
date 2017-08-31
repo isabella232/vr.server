@@ -1,5 +1,4 @@
 import re
-import xmlrpclib
 
 from jaraco.functools import pass_none, compose
 from django import forms
@@ -9,15 +8,7 @@ from django.contrib.auth import authenticate
 import yaml
 
 from vr.server import models
-
-
-def validate_xmlrpc(data):
-    try:
-        xmlrpclib.dumps((data,), allow_none=True)
-    except Exception as e:
-        tmpl = "Cannot be marshalled to XMLRPC: %s"
-        raise forms.ValidationError(tmpl % e)
-    return data
+from .utils import validate_xmlrpc
 
 
 def yaml_load(yaml_str):

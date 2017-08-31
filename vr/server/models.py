@@ -4,7 +4,6 @@ import logging
 import os.path
 import random
 import sys
-import xmlrpclib
 
 import six
 import yaml
@@ -19,6 +18,7 @@ from vr.common import repo, models as common_models
 from vr.common.utils import parse_redis_url
 
 from vr.server.fields import YAMLDictField, YAMLListField
+from .utils import validate_xmlrpc
 
 log = logging.getLogger(__name__)
 
@@ -48,26 +48,12 @@ def validate_app_name(value):
 
 
 def validate_config_marshaling(obj):
-    """ Given an object with .config_yaml and .env_yaml attributes, raise an
-    error if 1) their YAML can't be parsed, or 2) the parsed object can't be
-    dumped to XMLRPC format.
-
-    Given that the Supervisor RPC interface can return any proc's config, and
-    that some things (like >32 bit ints, or integer keys in dicts) can't be
-    marshalled as XML RPC, this protects us from bigger problems after a proc
-    has been deployed.
     """
-    if obj.config_yaml:
-        try:
-            xmlrpclib.dumps((obj.config_yaml,), allow_none=True)
-        except Exception as e:
-            raise ValidationError("Cannot be marshalled to XMLRPC: %s" % e)
-
-    if obj.env_yaml:
-        try:
-            xmlrpclib.dumps((obj.env_yaml,), allow_none=True)
-        except Exception as e:
-            raise ValidationError("Cannot be marshalled to XMLRPC: %s" % e)
+    Given an object with .config_yaml and .env_yaml attributes,
+    validate those attributes for marshalling.
+    """
+    obj.config_yaml and validate_xmlrpc(obj.config_yaml)
+    obj.env_yaml and validate_xmlrpc(obj.env_yaml)
 
 
 @six.python_2_unicode_compatible
