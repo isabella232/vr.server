@@ -2,9 +2,9 @@ from hashlib import md5
 import datetime
 import json
 import time
-import xmlrpclib
 
 import six
+from six.moves import xmlrpc_server
 
 from django.http import HttpResponse
 import django.core.exceptions
@@ -83,7 +83,7 @@ def validate_xmlrpc(data):
     from problems deployed under Supervisor D.
     """
     try:
-        xmlrpclib.dumps((data,), allow_none=True)
+        xmlrpc_server.dumps((data,), allow_none=True)
     except Exception as e:
         tmpl = "Cannot be marshalled to XMLRPC: %s"
         raise django.core.exceptions.ValidationError(tmpl % e)
