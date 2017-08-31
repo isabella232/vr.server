@@ -695,7 +695,10 @@ class Swarm(models.Model):
         this swarm, then by total number of procs.
         """
         # Make list of all hosts in the squad.  Then we'll sort it.
-        squad_hosts = list(self.squad.hosts.all())
+        squad_hosts = list(self.squad.hosts.filter(active=True))
+        if not squad_hosts:
+            raise ValidationError(
+                u'No active hosts in squad {}'.format(self.squad))
 
         for h in squad_hosts:
             # Set a couple temp attributes on each host in the squad, for
