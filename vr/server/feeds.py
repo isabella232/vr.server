@@ -2,6 +2,7 @@ from django.contrib.syndication.views import Feed
 
 from vr.server.models import DeploymentLogEntry
 
+
 class DeploymentLogFeed(Feed):
 	title = "Deployment Log"
 	link = "/log"

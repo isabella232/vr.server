@@ -8,7 +8,6 @@ from django.contrib.auth import authenticate
 import yaml
 
 from vr.server import models
-from vr.server.utils import yamlize
 
 
 class ConfigIngredientForm(forms.ModelForm):
@@ -32,7 +31,8 @@ class ConfigIngredientForm(forms.ModelForm):
             try:
                 xmlrpclib.dumps((data,), allow_none=True)
             except Exception as e:
-                raise forms.ValidationError("Cannot be marshalled to XMLRPC: %s" % e)
+                tmpl = "Cannot be marshalled to XMLRPC: %s"
+                raise forms.ValidationError(tmpl % e)
         return config_yaml
 
     def clean_env_yaml(self):
@@ -46,7 +46,8 @@ class ConfigIngredientForm(forms.ModelForm):
             try:
                 xmlrpclib.dumps((data,), allow_none=True)
             except Exception as e:
-                raise forms.ValidationError("Cannot be marshalled to XMLRPC: %s" % e)
+                tmpl = "Cannot be marshalled to XMLRPC: %s"
+                raise forms.ValidationError(tmpl % e)
 
         return env_yaml
 
@@ -89,6 +90,7 @@ class ReleaseForm(forms.ModelForm):
 
 class StackForm(forms.ModelForm):
     build_now = forms.BooleanField(initial=True)
+
     class Meta:
         model = models.OSStack
         exclude = []
@@ -113,7 +115,13 @@ class DeploymentForm(forms.Form):
         self.fields['app'].choices = [('', '----')] + \
             [(app.id, app.name) for app in models.App.objects.all()]
         if 'app' in self.data and self.data['app']:
-            self.fields['release_id'].choices = [(release.id, release.get_name()) for release in models.Release.objects.filter(build__app__id=self.data['app'])]
+            releases = models.Release.objects.filter(
+                build__app__id=self.data['app'],
+            )
+            self.fields['release_id'].choices = [
+                (release.id, release.get_name())
+                for release in releases
+            ]
         self.fields['hostname'].choices = \
             [(h.name, h.name) for h in models.Host.objects.filter(active=True)]
 
@@ -233,7 +241,8 @@ class SwarmForm(forms.Form):
             try:
                 xmlrpclib.dumps((data,), allow_none=True)
             except Exception as e:
-                raise forms.ValidationError("Cannot be marshalled to XMLRPC: %s" % e)
+                tmpl = "Cannot be marshalled to XMLRPC: %s"
+                raise forms.ValidationError(tmpl % e)
         return config_yaml
 
     def clean_env_yaml(self):
@@ -247,6 +256,7 @@ class SwarmForm(forms.Form):
             try:
                 xmlrpclib.dumps((data,), allow_none=True)
             except Exception as e:
-                raise forms.ValidationError("Cannot be marshalled to XMLRPC: %s" % e)
+                tmpl = "Cannot be marshalled to XMLRPC: %s"
+                raise forms.ValidationError(tmpl % e)
 
         return env_yaml

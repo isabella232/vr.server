@@ -377,6 +377,20 @@ def do_swarm(swarm, user):
     """
     # Create a swarm trace id that takes our swarm and time
     swarm_trace_id = build_swarm_trace_id(swarm)
+    values = dict(
+        user=user.username,
+        shortname=swarm.shortname(),
+        app=swarm.app,
+        tag=swarm.release.build.tag,
+        config_name=swarm.config_name,
+        proc_name=swarm.proc_name,
+        squad=swarm.squad,
+        memory=swarm.get_memory_limit_str(),
+        size=swarm.size,
+        balancer=swarm.balancer,
+        pool=swarm.pool,
+        trace_id=swarm_trace_id,
+    )
     ev_detail = textwrap.dedent(
         """%(user)s swarmed %(shortname)s
 
@@ -390,20 +404,7 @@ def do_swarm(swarm, user):
         Balancer: %(balancer)s
         Pool: %(pool)s
         Trace ID: %(trace_id)s
-        """) % {
-            'user': user.username,
-            'shortname': swarm.shortname(),
-            'app': swarm.app,
-            'tag': swarm.release.build.tag,
-            'config_name': swarm.config_name,
-            'proc_name': swarm.proc_name,
-            'squad': swarm.squad,
-            'memory': swarm.get_memory_limit_str(),
-            'size': swarm.size,
-            'balancer': swarm.balancer,
-            'pool': swarm.pool,
-            'trace_id': swarm_trace_id,
-        }
+        """) % values
     events.eventify(
         user, 'swarm', swarm.shortname(),
         detail=ev_detail, swarm_id=swarm_trace_id,
@@ -446,7 +447,8 @@ class UpdateConfigIngredient(edit.UpdateView):
         - last_edited: Last time when the ingredient was modified
         - related swarms
         """
-        context = super(UpdateConfigIngredient, self).get_context_data(**kwargs)
+        context = super(UpdateConfigIngredient, self).get_context_data(
+            **kwargs)
         version_diffs, last_edited = _get_version_diffs_for_obj(
             self.object, VERSION_DIFFS_LIMIT)
         context['version_diffs'] = version_diffs
@@ -614,7 +616,7 @@ class AddApp(edit.CreateView):
     model = models.App
     success_url = reverse_lazy('app_list')
 
-    ## Get rid of the following message:
+    # Get rid of the following message:
     # Using ModelFormMixin (base class of AddBuildPack) without the 'fields'
     # attribute is prohibited.
     fields = ['name', 'repo_url', 'repo_type', 'buildpack', 'stack']
@@ -671,7 +673,7 @@ class AddBuildPack(edit.CreateView):
     model = models.BuildPack
     success_url = reverse_lazy('buildpack_list')
 
-    ## Get rid of the following message:
+    # Get rid of the following message:
     # Using ModelFormMixin (base class of AddBuildPack) without the 'fields'
     # attribute is prohibited.
     fields = ['repo_url', 'repo_type', 'desc', 'order']
@@ -735,12 +737,14 @@ def edit_stack(request, stack_id=None):
 
     if form.is_valid():
         form.save()
-        stack = form.instance # In case we just made a new one.
+        stack = form.instance  # In case we just made a new one.
 
         if form.cleaned_data['build_now']:
             # Image names should look like stackname_date_counter
-            name_prefix = '%s_%s_' % (form.instance.name,
-                                      datetime.datetime.today().strftime('%Y%m%d'))
+            name_prefix = '%s_%s_' % (
+                form.instance.name,
+                datetime.datetime.today().strftime('%Y%m%d'),
+            )
             builds_today = models.OSImage.objects.filter(
                 name__startswith=name_prefix).count()
             image_name = name_prefix + str(builds_today + 1)
@@ -757,9 +761,12 @@ def edit_stack(request, stack_id=None):
                 resource_uri='/stack/{}/'.format(image.id))
             tasks.build_image.delay(image.id)
         return redirect('dash')
-    return render(request, 'stack_form.html', {'form': form,
-                                               'object': stack,
-                                               'enctype': 'multipart/form-data'})
+    values = dict(
+        form=form,
+        object=stack,
+        enctype='multipart/form-data',
+    )
+    return render(request, 'stack_form.html', values)
 
 
 class DeleteStack(edit.DeleteView):

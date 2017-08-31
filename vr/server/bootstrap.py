@@ -31,7 +31,7 @@ All of the installer commands accept two optional arguments:
 
 Installing with those additional arguments looks like this:
 
-    fab -f bootstrap.py install_runners:0.0.13,http://mycustomcheeseshop.net -H host1,host2
+    fab -f bootstrap.py install_runners:0.0.13,http://mypypi.net -H host1,host2
 
 """
 from fabric.api import task, sudo
@@ -41,7 +41,7 @@ from fabric.api import task, sudo
 def install_package(package, version=None, cheeseshop=None):
     """
     Install a package into the host's system Python.  Optionally specify a
-    version and a cheeseshop URL.
+    version and a package index URL (cheeseshop).
     """
     cmd = 'pip install ' + package
     if version:

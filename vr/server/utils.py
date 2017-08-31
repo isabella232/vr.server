@@ -54,8 +54,11 @@ def task_to_dict(task):
     """
     # Make a copy of task.__dict__, leaving off any of the cached complex
     # objects
-    return {k: clean_task_value(v) for k, v in task.__dict__.items() if not
-           k.startswith('_')}
+    return {
+        k: clean_task_value(v)
+        for k, v in task.__dict__.items()
+        if not k.startswith('_')
+    }
 
 
 def yamlize(dct):

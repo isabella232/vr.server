@@ -1,3 +1,5 @@
+import six
+
 from django.db import models
 from django.core.exceptions import ValidationError
 from django.core.serializers.pyyaml import DjangoSafeDumper
@@ -5,9 +7,11 @@ import yaml
 
 
 def validate_yaml_dict(value):
-    if (value is not None and
-        value != '' and
-        not isinstance(value, dict)):
+    if (
+            value is not None and
+            value != '' and
+            not isinstance(value, dict)
+    ):
 
         raise ValidationError('Invalid dict')
 
@@ -38,7 +42,7 @@ class YAMLDictField(models.TextField):
 
         # Seems like sometimes Django will pass a string into this function,
         # and other times a dict.  Pass out a dict either way.
-        if isinstance(value, basestring):
+        if isinstance(value, six.string_types):
             try:
                 value = yaml.safe_load(value)
             except yaml.error.YAMLError as e:
@@ -67,14 +71,18 @@ class YAMLDictField(models.TextField):
         value = getattr(obj, self.attname)
         if not value or value == "":
             return value
-        return yaml.dump(value, Dumper=DjangoSafeDumper,
-            default_flow_style=False)
+        return yaml.dump(
+            value, Dumper=DjangoSafeDumper,
+            default_flow_style=False,
+        )
 
 
 def validate_yaml_list(value):
-    if (value is not None and
-        value != '' and
-        not isinstance(value, (list, tuple))):
+    if (
+            value is not None and
+            value != '' and
+            not isinstance(value, (list, tuple))
+    ):
 
         raise ValidationError('Invalid list')
 
@@ -104,7 +112,7 @@ class YAMLListField(models.TextField):
 
         # Seems like sometimes Django will pass a string into this function,
         # and other times a dict.  Pass out a dict either way.
-        if isinstance(value, basestring):
+        if isinstance(value, six.string_types):
             try:
                 value = yaml.safe_load(value)
             except yaml.error.YAMLError as e:
@@ -133,5 +141,7 @@ class YAMLListField(models.TextField):
         value = getattr(obj, self.attname)
         if not value or value == "":
             return value
-        return yaml.dump(value, Dumper=DjangoSafeDumper,
-            default_flow_style=False)
+        return yaml.dump(
+            value, Dumper=DjangoSafeDumper,
+            default_flow_style=False,
+        )
