@@ -1,3 +1,21 @@
+6.8
+---
+
+* Don't swarm on inactive hosts
+* Interpolate env environments mentioned in swarm config
+
+6.7
+---
+
+* Don't try to remove a proc that is not actually running
+* Fix procs scooping, to avoid cleaning build artifacts
+
+6.6
+---
+
+* Improve navigation in UI by adding links to various resources
+  (e.g. procs on host page)
+
 6.5
 ---
 
