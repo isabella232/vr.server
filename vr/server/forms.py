@@ -18,6 +18,13 @@ def validate_xmlrpc(data):
         raise forms.ValidationError(tmpl % e)
 
 
+def yaml_load(yaml_str):
+    try:
+        return yaml.safe_load(yaml_str)
+    except:
+        raise forms.ValidationError("Invalid YAML")
+
+
 class ConfigIngredientForm(forms.ModelForm):
     class Meta:
         model = models.ConfigIngredient
@@ -31,11 +38,7 @@ class ConfigIngredientForm(forms.ModelForm):
     def clean_config_yaml(self):
         config_yaml = self.cleaned_data.get('config_yaml', None)
         if config_yaml:
-            try:
-                data = yaml.safe_load(config_yaml)
-            except:
-                raise forms.ValidationError("Invalid YAML")
-
+            data = yaml_load(config_yaml)
             validate_xmlrpc(data)
 
         return config_yaml
@@ -43,11 +46,7 @@ class ConfigIngredientForm(forms.ModelForm):
     def clean_env_yaml(self):
         env_yaml = self.cleaned_data.get('env_yaml', None)
         if env_yaml:
-            try:
-                data = yaml.safe_load(env_yaml)
-            except:
-                raise forms.ValidationError("Invalid YAML")
-
+            data = yaml_load(env_yaml)
             validate_xmlrpc(data)
 
         return env_yaml
@@ -234,11 +233,7 @@ class SwarmForm(forms.Form):
     def clean_config_yaml(self):
         config_yaml = self.cleaned_data.get('config_yaml', None)
         if config_yaml:
-            try:
-                data = yaml.safe_load(config_yaml)
-            except:
-                raise forms.ValidationError("Invalid YAML")
-
+            data = yaml_load(config_yaml)
             validate_xmlrpc(data)
 
         return config_yaml
@@ -246,11 +241,7 @@ class SwarmForm(forms.Form):
     def clean_env_yaml(self):
         env_yaml = self.cleaned_data.get('env_yaml', None)
         if env_yaml:
-            try:
-                data = yaml.safe_load(env_yaml)
-            except:
-                raise forms.ValidationError("Invalid YAML")
-
+            data = yaml_load(env_yaml)
             validate_xmlrpc(data)
 
         return env_yaml
