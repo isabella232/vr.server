@@ -16,6 +16,7 @@ def validate_xmlrpc(data):
     except Exception as e:
         tmpl = "Cannot be marshalled to XMLRPC: %s"
         raise forms.ValidationError(tmpl % e)
+    return data
 
 
 def yaml_load(yaml_str):
@@ -23,6 +24,10 @@ def yaml_load(yaml_str):
         return yaml.safe_load(yaml_str)
     except:
         raise forms.ValidationError("Invalid YAML")
+
+
+def try_load(yaml_maybe):
+    return yaml_maybe and validate_xmlrpc(yaml_load(yaml_maybe))
 
 
 class ConfigIngredientForm(forms.ModelForm):
@@ -36,20 +41,10 @@ class ConfigIngredientForm(forms.ModelForm):
         )
 
     def clean_config_yaml(self):
-        config_yaml = self.cleaned_data.get('config_yaml', None)
-        if config_yaml:
-            data = yaml_load(config_yaml)
-            validate_xmlrpc(data)
-
-        return config_yaml
+        return try_load(self.cleaned_data.get('config_yaml', None))
 
     def clean_env_yaml(self):
-        env_yaml = self.cleaned_data.get('env_yaml', None)
-        if env_yaml:
-            data = yaml_load(env_yaml)
-            validate_xmlrpc(data)
-
-        return env_yaml
+        return try_load(self.cleaned_data.get('env_yaml', None))
 
 
 class BuildForm(forms.Form):
@@ -231,17 +226,7 @@ class SwarmForm(forms.Form):
         return instance
 
     def clean_config_yaml(self):
-        config_yaml = self.cleaned_data.get('config_yaml', None)
-        if config_yaml:
-            data = yaml_load(config_yaml)
-            validate_xmlrpc(data)
-
-        return config_yaml
+        return try_load(self.cleaned_data.get('config_yaml', None))
 
     def clean_env_yaml(self):
-        env_yaml = self.cleaned_data.get('env_yaml', None)
-        if env_yaml:
-            data = yaml_load(env_yaml)
-            validate_xmlrpc(data)
-
-        return env_yaml
+        return try_load(self.cleaned_data.get('env_yaml', None))
