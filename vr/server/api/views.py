@@ -1,8 +1,8 @@
-import xmlrpclib
 import base64
 import json
-
 from functools import wraps
+
+from six.moves import xmlrpc_client
 
 from django.contrib.auth import authenticate
 from django import http
@@ -146,7 +146,7 @@ def host_proc(request, hostname, procname):
             elif parsed['action'] == 'restart':
                 events.eventify(request.user, 'restart', proc.shortname())
                 proc.restart()
-        except xmlrpclib.Fault as e:
+        except xmlrpc_client.Fault as e:
             return utils.json_response({'fault': e.faultString}, 500)
 
     proc = host.get_proc(procname)
