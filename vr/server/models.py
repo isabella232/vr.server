@@ -70,13 +70,14 @@ def validate_config_marshaling(obj):
             raise ValidationError("Cannot be marshalled to XMLRPC: %s" % e)
 
 
+@six.python_2_unicode_compatible
 class DeploymentLogEntry(models.Model):
     type = models.CharField(max_length=50, choices=LOG_ENTRY_TYPES)
     time = models.DateTimeField(auto_now_add=True)
     user = models.ForeignKey(User)
     message = models.TextField()
 
-    def __unicode__(self):
+    def __str__(self):
         return self.message
 
     class Meta:
@@ -85,6 +86,7 @@ class DeploymentLogEntry(models.Model):
 
 
 @reversion.register
+@six.python_2_unicode_compatible
 class ConfigIngredient(models.Model):
     name = models.CharField(max_length=50, unique=True)
     config_yaml = YAMLDictField(
@@ -96,7 +98,7 @@ class ConfigIngredient(models.Model):
         blank=True, null=True,
     )
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
     class Meta:
@@ -115,6 +117,7 @@ repo_choices = (
 
 
 @reversion.register
+@six.python_2_unicode_compatible
 class BuildPack(models.Model):
     repo_url = models.CharField(max_length=200, unique=True)
     repo_type = models.CharField(max_length=10, choices=repo_choices,
@@ -122,7 +125,7 @@ class BuildPack(models.Model):
     desc = models.TextField(blank=True, null=True)
     order = models.IntegerField()
 
-    def __unicode__(self):
+    def __str__(self):
         return self.basename
 
     class Meta:
@@ -150,6 +153,7 @@ def build_os_image_path(instance, filename):
 
 
 @reversion.register
+@six.python_2_unicode_compatible
 class OSStack(models.Model):
     """ A series of OS images.  Applications link to these.  Any time an
     application is built, the newest active OSImage in the stack is used. """
@@ -163,7 +167,7 @@ class OSStack(models.Model):
     provisioning_script = models.FileField(upload_to='provisioning_scripts',
                                            blank=True, null=True)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
     class Meta:
@@ -171,6 +175,7 @@ class OSStack(models.Model):
         db_table = 'deployment_os_stack'
 
 
+@six.python_2_unicode_compatible
 class OSImage(models.Model):
     """An OS image within which a build can be created and run."""
     stack = models.ForeignKey(OSStack, null=True, blank=True)
@@ -189,7 +194,7 @@ class OSImage(models.Model):
     # Only active images will be considered at swarm time
     active = models.BooleanField(default=False)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
     class Meta:
@@ -213,6 +218,7 @@ class OSImage(models.Model):
 
 
 @reversion.register
+@six.python_2_unicode_compatible
 class App(models.Model):
     namehelp = ("Used in release name.  Good app names are short and use "
                 "no spaces or dashes (underscores are OK).")
@@ -225,7 +231,7 @@ class App(models.Model):
 
     stack = models.ForeignKey(OSStack, blank=True, null=True)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
     def get_os_image(self):
@@ -264,6 +270,7 @@ BUILD_FAILED = 'failed'
 BUILD_EXPIRED = 'expired'
 
 
+@six.python_2_unicode_compatible
 class Build(models.Model):
     app = models.ForeignKey(App)
     tag = models.CharField(max_length=50)
@@ -321,7 +328,7 @@ class Build(models.Model):
         self.status = 'started'
         self.start_time = timezone.now()
 
-    def __unicode__(self):
+    def __str__(self):
         # Return the app name and version
         return u'-'.join([self.app.name, self.tag])
 
@@ -407,6 +414,7 @@ mem_limit_help = "Maximum amount of RAM for the app. E.g. 256M"
 memsw_limit_help = "Maximum amount of RAM and swap for the app. E.g. 1G"
 
 
+@six.python_2_unicode_compatible
 class Release(models.Model):
     build = models.ForeignKey(Build)
     config_yaml = YAMLDictField(blank=True, null=True, help_text=config_help)
@@ -425,7 +433,7 @@ class Release(models.Model):
     memsw_limit = models.CharField(max_length=32, null=True, blank=True,
                                    help_text=memsw_limit_help)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.get_name()
 
     def get_name(self):
@@ -454,6 +462,7 @@ class Release(models.Model):
 
 
 @reversion.register
+@six.python_2_unicode_compatible
 class Host(models.Model):
     name = models.CharField(max_length=200, unique=True)
 
@@ -463,7 +472,7 @@ class Host(models.Model):
     squad = models.ForeignKey('Squad', null=True, blank=True,
                               related_name='hosts')
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
     def get_used_ports(self):
@@ -533,6 +542,7 @@ class Host(models.Model):
 
 
 @reversion.register
+@six.python_2_unicode_compatible
 class Squad(models.Model):
     """
     A Squad is a group of identical hosts.  When deploying a swarm, its procs
@@ -541,7 +551,7 @@ class Squad(models.Model):
     """
     name = models.CharField(max_length=50, unique=True)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
     class Meta:
@@ -583,6 +593,7 @@ def release_eq(release, config, env, volumes):
 
 
 @reversion.register
+@six.python_2_unicode_compatible
 class Swarm(models.Model):
     """
     This is the payoff.  Save a swarm record and then you can tell Velociraptor
@@ -633,7 +644,7 @@ class Swarm(models.Model):
         ordering = ['app__name', 'config_name', 'proc_name']
         db_table = 'deployment_swarm'
 
-    def __unicode__(self):
+    def __str__(self):
         # app-version-swarm_config_name-release_hash-procname
         return u'-'.join(str(x) for x in [
             self.release.build,
@@ -813,6 +824,7 @@ class Swarm(models.Model):
             return None
 
 
+@six.python_2_unicode_compatible
 class PortLock(models.Model):
     """
     The presence of one of these records indicates that a port is reserved for
@@ -827,10 +839,11 @@ class PortLock(models.Model):
         unique_together = ('host', 'port')
         db_table = 'deployment_portlock'
 
-    def __unicode__(self):
+    def __str__(self):
         return '%s:%s' % (self.host, self.port)
 
 
+@six.python_2_unicode_compatible
 class TestRun(models.Model):
     """
     Once every 15 minutes or so (configurable), run uptests on every proc on
@@ -839,7 +852,7 @@ class TestRun(models.Model):
     start = models.DateTimeField()
     end = models.DateTimeField(null=True)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.start.isoformat()
 
     @property
@@ -889,6 +902,7 @@ class TestRun(models.Model):
         db_table = 'deployment_testrun'
 
 
+@six.python_2_unicode_compatible
 class TestResult(models.Model):
     """
     Results from testing a single proc on a single host.
@@ -902,7 +916,7 @@ class TestResult(models.Model):
     # YAML dump of test results
     results = models.TextField()
 
-    def __unicode__(self):
+    def __str__(self):
         if self.testcount:
             desc = 'pass' if self.passed else 'fail'
         else:
@@ -936,13 +950,14 @@ class TestResult(models.Model):
 
 
 @reversion.register
+@six.python_2_unicode_compatible
 class Dashboard(models.Model):
     name = models.CharField(max_length=50)
     slug = models.SlugField()
     apps = models.ManyToManyField(App)
     editors = models.ManyToManyField(User, blank=True)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
 

@@ -1,3 +1,5 @@
+import six
+
 import reversion
 
 from django.contrib import admin
@@ -29,7 +31,7 @@ class ConfigIngredientAdmin(reversion.VersionAdmin):
             obs = obj.swarm_set.all().only(
                 'release', 'config_name', 'proc_name',
             )
-            return ", ".join([s.__unicode__() for s in obs])
+            return ", ".join([six.text_type(s) for s in obs])
         return "No Swarms"
     used_in.short_description = 'Included in'
 
@@ -102,7 +104,7 @@ admin.site.register(models.Dashboard, DashboardAdmin)
 class SwarmAdmin(admin.ModelAdmin):
     model = models.Swarm
     # Make release readonly, to avoid "N+1 query" issues
-    # See https://bitbucket.org/yougov/velociraptor/issue/151/error-in-admin-swarm-pages
+    # See https://github.com/yougov/velociraptor/issues/151
     readonly_fields = ('release', )
 
 
