@@ -4,7 +4,7 @@ import json
 import time
 
 import six
-from six.moves import xmlrpc_server
+from six.moves import xmlrpc_client
 
 from django.http import HttpResponse
 import django.core.exceptions
@@ -83,7 +83,7 @@ def validate_xmlrpc(data):
     from problems deployed under Supervisor D.
     """
     try:
-        xmlrpc_server.dumps((data,), allow_none=True)
+        xmlrpc_client.dumps((data,), allow_none=True)
     except Exception as e:
         tmpl = "Cannot be marshalled to XMLRPC: %s"
         raise django.core.exceptions.ValidationError(tmpl % e)
