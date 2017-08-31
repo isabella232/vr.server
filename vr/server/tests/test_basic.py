@@ -1,4 +1,4 @@
-import urlparse
+from six.moves import urllib
 
 import pytest
 from django.test.client import Client
@@ -23,7 +23,7 @@ def test_login(postgresql):
     c = Client()
     r = c.post(url, data={'username': u.username, 'password': 'password123'})
     # Should be redirected to homepage
-    assert urlparse.urlsplit(r['Location']).path == '/'
+    assert urllib.parse.urlsplit(r['Location']).path == '/'
 
 
 def test_config_ingredient_marshaling():

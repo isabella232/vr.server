@@ -5,7 +5,8 @@ watch the event stream to be notified of its progress.
 
 import json
 import urllib
-import urlparse
+
+from six.moves import urllib
 
 import requests
 import sseclient
@@ -55,7 +56,7 @@ def run():
 
     # Make a build record
     build_data = json.dumps({
-        'app': urlparse.urlparse(app_url).path,
+        'app': urllib.parse.urlparse(app_url).path,
         'tag': 'v4',
     })
     r = sess.post(API_URL + 'builds/', data=build_data)

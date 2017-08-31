@@ -1,5 +1,6 @@
-import urlparse
 import mimetypes
+
+from six.moves import urllib
 
 from django.core.files.storage import Storage, default_storage
 from django import http
@@ -60,7 +61,7 @@ class GridFSStorage(Storage):
     def url(self, name):
         if self.base_url is None:
             raise NotImplementedError()
-        return urlparse.urljoin(self.base_url, name).replace('\\', '/')
+        return urllib.parse.urljoin(self.base_url, name).replace('\\', '/')
 
     # Most Django storage backends will use this get_available_name method to
     # append a _1, _2, etc if a filename already exists.  Here we don't really
