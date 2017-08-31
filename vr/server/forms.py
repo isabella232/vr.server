@@ -10,6 +10,14 @@ import yaml
 from vr.server import models
 
 
+def validate_xmlrpc(data):
+    try:
+        xmlrpclib.dumps((data,), allow_none=True)
+    except Exception as e:
+        tmpl = "Cannot be marshalled to XMLRPC: %s"
+        raise forms.ValidationError(tmpl % e)
+
+
 class ConfigIngredientForm(forms.ModelForm):
     class Meta:
         model = models.ConfigIngredient
@@ -28,11 +36,8 @@ class ConfigIngredientForm(forms.ModelForm):
             except:
                 raise forms.ValidationError("Invalid YAML")
 
-            try:
-                xmlrpclib.dumps((data,), allow_none=True)
-            except Exception as e:
-                tmpl = "Cannot be marshalled to XMLRPC: %s"
-                raise forms.ValidationError(tmpl % e)
+            validate_xmlrpc(data)
+
         return config_yaml
 
     def clean_env_yaml(self):
@@ -43,11 +48,7 @@ class ConfigIngredientForm(forms.ModelForm):
             except:
                 raise forms.ValidationError("Invalid YAML")
 
-            try:
-                xmlrpclib.dumps((data,), allow_none=True)
-            except Exception as e:
-                tmpl = "Cannot be marshalled to XMLRPC: %s"
-                raise forms.ValidationError(tmpl % e)
+            validate_xmlrpc(data)
 
         return env_yaml
 
@@ -238,11 +239,8 @@ class SwarmForm(forms.Form):
             except:
                 raise forms.ValidationError("Invalid YAML")
 
-            try:
-                xmlrpclib.dumps((data,), allow_none=True)
-            except Exception as e:
-                tmpl = "Cannot be marshalled to XMLRPC: %s"
-                raise forms.ValidationError(tmpl % e)
+            validate_xmlrpc(data)
+
         return config_yaml
 
     def clean_env_yaml(self):
@@ -253,10 +251,6 @@ class SwarmForm(forms.Form):
             except:
                 raise forms.ValidationError("Invalid YAML")
 
-            try:
-                xmlrpclib.dumps((data,), allow_none=True)
-            except Exception as e:
-                tmpl = "Cannot be marshalled to XMLRPC: %s"
-                raise forms.ValidationError(tmpl % e)
+            validate_xmlrpc(data)
 
         return env_yaml
