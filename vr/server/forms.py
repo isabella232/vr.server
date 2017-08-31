@@ -1,6 +1,7 @@
 import re
 import xmlrpclib
 
+from jaraco.functools import pass_none
 from django import forms
 from django.conf import settings
 from django.contrib.auth import authenticate
@@ -26,8 +27,9 @@ def yaml_load(yaml_str):
         raise forms.ValidationError("Invalid YAML")
 
 
+@pass_none
 def try_load(yaml_maybe):
-    return yaml_maybe and validate_xmlrpc(yaml_load(yaml_maybe))
+    return validate_xmlrpc(yaml_load(yaml_maybe))
 
 
 class ConfigIngredientForm(forms.ModelForm):

@@ -58,6 +58,7 @@ setup_params = dict(
         # Celery 4 removes support for e-mail
         # https://github.com/celery/celery/blob/master/docs/whatsnew-4.0.rst#removed-features
         'celery<4dev',
+        'jaraco.functools',
     ],
     extras_require={
         ':python_version=="2.7"': [
