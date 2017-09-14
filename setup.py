@@ -50,7 +50,7 @@ setup_params = dict(
         'sseclient==0.0.11',
         'six>=1.4',
         'vr.events>=1.2.1',
-        'vr.common>=4.9.2',
+        'vr.common>=4.9.3',
         'vr.builder>=1.3',
         'vr.imager>=1.3',
         'django-yamlfield',

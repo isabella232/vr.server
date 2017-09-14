@@ -835,11 +835,8 @@ def swarm_route(swarm_id, correct_nodes, callback=None, swarm_trace_id=None):
         # to date, but only if the swarm has a pool specified.
 
         current_nodes = set(balancer.get_nodes(swarm.balancer, swarm.pool))
-
         correct_nodes = set(correct_nodes)
-
         new_nodes = correct_nodes.difference(current_nodes)
-
         stale_nodes = current_nodes.difference(correct_nodes)
 
         if new_nodes:
@@ -849,7 +846,14 @@ def swarm_route(swarm_id, correct_nodes, callback=None, swarm_trace_id=None):
             balancer.delete_nodes(swarm.balancer, swarm.pool,
                                   list(stale_nodes))
 
-        msg = 'Routed swarm %s.  New nodes: %s' % (swarm, list(correct_nodes))
+        # Clean up pool in balancer
+        balancer.delete_pool_if_empty(swarm.pool)
+
+        msg = (
+            'Routed swarm {}.  '
+            'Nodes: current={} correct={} new={} stale={}'.format(
+                swarm, list(current_nodes), list(correct_nodes),
+                list(new_nodes), list(stale_nodes)))
         send_event(str(swarm), msg, tags=['route'], swarm_id=swarm_trace_id)
 
     if callback is not None:
@@ -920,6 +924,9 @@ def swarm_delete_proc(swarm_id, hostname, procname, port, swarm_trace_id=None):
                 "[%s] Swarm %s delete node %s",
                 swarm_trace_id, swarm_id, node)
             balancer.delete_nodes(swarm.balancer, swarm.pool, [node])
+
+        # Just in case, make sure to destroy the pool if empty
+        balancer.delete_pool_if_empty(swarm.pool)
 
     delete_proc(hostname, procname, swarm_trace_id=swarm_trace_id)
 
