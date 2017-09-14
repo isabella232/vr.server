@@ -1,3 +1,8 @@
+6.9
+---
+
+* Clean StingRay pool if empty
+
 6.8
 ---
 
