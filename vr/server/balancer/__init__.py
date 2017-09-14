@@ -34,3 +34,11 @@ def delete_nodes(balancer_name, pool_name, nodes):
 
 def get_nodes(balancer_name, pool_name):
     return get_balancer(balancer_name).get_nodes(pool_name)
+
+
+def delete_pool(balancer_name, pool_name):
+    get_balancer(balancer_name).delete_pool(pool_name)
+
+
+def delete_pool_if_empty(balancer_name, pool_name):
+    get_balancer(balancer_name).delete_pool_if_empty(pool_name)
