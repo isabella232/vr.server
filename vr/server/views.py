@@ -182,12 +182,12 @@ def release(request):
 
 @login_required
 def deploy(request):
-    # will need a form that lets you create a new deployment.
+    # Construct the form for specifying deployments.
     form = forms.DeploymentForm(request.POST or None)
 
     if form.is_valid():
-        # We made the form fields exactly match the arguments to the celery
-        # task, so we can just use that dict for kwargs
+        # The form fields exactly match the arguments to the celery
+        # task, so just use that dict for kwargs.
         data = form.cleaned_data
 
         release = models.Release.objects.get(id=data.pop('release_id'))
