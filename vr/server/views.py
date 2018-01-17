@@ -62,9 +62,7 @@ def app_in_default_dashboard(app, user):
         dashboard = user.userprofile.default_dashboard
     except ObjectDoesNotExist:
         return False
-    if dashboard and app.id in dashboard.apps.values_list('id', flat=True):
-        return True
-    return False
+    return dashboard and app.id in dashboard.apps.values_list('id', flat=True)
 
 
 @login_required
