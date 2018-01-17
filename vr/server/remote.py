@@ -623,7 +623,7 @@ def build_app(build_yaml_path):
                             get(logfile, logfile)
                         else:
                             print('in remote, logfile, not exist', logfile)
-                except:
+                except Exception:
                     print("Could not retrieve", logfile)
 
 
@@ -648,7 +648,7 @@ def build_image(image_yaml_path):
                 # try to get .log even if build fails.
                 with fab_settings(warn_only=True):
                     get(logfile, logfile)
-            except:
+            except Exception:
                 print("Could not retrieve", logfile)
 
 

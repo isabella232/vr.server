@@ -97,7 +97,7 @@ class event_on_exception(object):
                 try:
                     send_event(title=e.title, msg=e.out,
                                tags=self.tags, swarm_trace_id=swarm_trace_id)
-                except:
+                except Exception:
                     pass
 
                 # Re-raise exception
@@ -110,7 +110,7 @@ class event_on_exception(object):
                 try:
                     send_event(title=str(e), msg=traceback.format_exc(),
                                tags=self.tags, swarm_trace_id=swarm_trace_id)
-                except:
+                except Exception:
                     pass
 
                 # Re-raise exception
@@ -252,7 +252,7 @@ def build_image(image_id, callback=None):
                 with open(logfile, 'rb') as f:
                     logname = 'images/' + logfile
                     image.build_log.save(logname, File(f))
-            except:
+            except Exception:
                 logger.info('Could not retrieve ' + logfile)
                 raise
             finally:
@@ -302,7 +302,7 @@ def _do_build(build, build_yaml):
             build.status = 'success'
             try_get_compile_log(build)
 
-        except:
+        except Exception:
             logger.exception('Build failed')
             build.status = 'failed'
             # Don't raise, or we'll mask the real error
@@ -456,7 +456,7 @@ def read_wait_value(key):
     doc = {'swarm_id': key, 'swarm_trace_id': None}
     try:
         doc = json.loads(key)
-    except:
+    except Exception:
         pass
 
     return doc['swarm_id'], doc['swarm_trace_id']

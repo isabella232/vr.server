@@ -14,7 +14,7 @@ from .utils import validate_xmlrpc
 def yaml_load(yaml_str):
     try:
         return yaml.safe_load(yaml_str)
-    except:
+    except Exception:
         raise forms.ValidationError("Invalid YAML")
 
 

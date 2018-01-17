@@ -48,7 +48,7 @@ def json_response(func):
                 # a jsonp response!
                 data = '%s(%s);' % (request.REQUEST['callback'], data)
                 return HttpResponse(data, "text/javascript")
-        except:
+        except Exception:
             data = json.dumps(str(objects))
         return HttpResponse(data, "application/json")
     return decorator

@@ -54,7 +54,7 @@ def revision_ctx(bundle, comment):
         try:
             # We are not sure if request.user is in bundle all the times
             revisions.set_user(bundle.request.user)
-        except:
+        except Exception:
             logger.exception('Cannot set user in revision')
         revisions.set_comment(comment)
         yield
