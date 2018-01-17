@@ -8,7 +8,7 @@ import textwrap
 import time
 from path import Path
 from unittest import TestCase
-from unittest.mock import MagicMock, Mock, patch, call
+from unittest import mock
 
 import pytest
 from fabric.api import local
@@ -57,8 +57,9 @@ class TestBuild(object):
 
         self.image_md5 = 'abcdef1234567890'
         self.os_image = OSImage(name=self.image_name, file=self.image_filepath)
-        with patch.object(OSImage, '_compute_file_md5',
-                          return_value=self.image_md5):
+        with mock.patch.object(
+                OSImage, '_compute_file_md5',
+                return_value=self.image_md5):
             self.os_image.save()
 
         self.version = 'v1'
@@ -87,10 +88,10 @@ class TestBuild(object):
 class TestSwarmStartBranches(object):
     """We want to follow the steps from swarm_start to swarm_finished."""
 
-    @patch.object(tasks, 'Swarm')
-    @patch.object(tasks, 'swarm_release')
+    @mock.patch.object(tasks, 'Swarm')
+    @mock.patch.object(tasks, 'swarm_release')
     def test_swarm_start_calls_swarm_release(self, swarm_release, Swarm):
-        build = Mock()
+        build = mock.Mock()
         build.is_usable.return_value = True
         Swarm.object.get().release.build = build
 
@@ -100,15 +101,15 @@ class TestSwarmStartBranches(object):
         print(swarm_release.mock_calls)
         swarm_release.delay.assert_called_with(1234, 'trace_id')
 
-    @patch.object(tasks, 'Swarm')
-    @patch.object(tasks, 'swarm_wait_for_build')
+    @mock.patch.object(tasks, 'Swarm')
+    @mock.patch.object(tasks, 'swarm_wait_for_build')
     def test_swarm_start_calls_swarm_wait_for_build(self,
                                                     swarm_wait_for_build,
                                                     Swarm):
-        build = Mock()
+        build = mock.Mock()
         build.is_usable.return_value = False
         build.in_progress.return_value = True
-        swarm = Mock(name='my mock swarm')
+        swarm = mock.Mock(name='my mock swarm')
         swarm.id = 1234
         swarm.release.build = build
 
@@ -119,18 +120,18 @@ class TestSwarmStartBranches(object):
         # TODO: Make sure this sends the trace id
         swarm_wait_for_build.assert_called_with(swarm, build, 'trace_id')
 
-    @patch.object(tasks, 'Swarm')
-    @patch.object(tasks, 'swarm_release')
-    @patch.object(tasks, 'build_app')
+    @mock.patch.object(tasks, 'Swarm')
+    @mock.patch.object(tasks, 'swarm_release')
+    @mock.patch.object(tasks, 'build_app')
     def test_swarm_start_calls_build_app_and_swarm_release(self,
                                                            build_app,
                                                            swarm_release,
                                                            Swarm):
 
-        build = Mock()
+        build = mock.Mock()
         build.is_usable.return_value = False
         build.in_progress.return_value = False
-        swarm = Mock(name='my mock swarm')
+        swarm = mock.Mock(name='my mock swarm')
         swarm.id = 1234
         swarm.release.build = build
 
@@ -154,16 +155,18 @@ class TestSwarmStartBranches(object):
 
 class TestSwarmReleaseBranches(object):
 
-    @patch.object(tasks, 'PortLock', Mock())
-    @patch.object(tasks, 'swarm_deploy_to_host')
-    @patch.object(tasks, 'Swarm')
+    @mock.patch.object(tasks, 'PortLock', mock.Mock())
+    @mock.patch.object(tasks, 'swarm_deploy_to_host')
+    @mock.patch.object(tasks, 'Swarm')
     def test_swarm_release_calls_swarm_deploy_to_host(self,
                                                       Swarm,
                                                       swarm_deploy_to_host,
                                                       redis):
-        swarm = MagicMock()
+        swarm = mock.MagicMock()
         swarm.size = 2
-        swarm.get_prioritized_hosts.return_value = [MagicMock(), MagicMock()]
+        swarm.get_prioritized_hosts.return_value = [
+            mock.MagicMock(), mock.MagicMock(),
+        ]
         swarm.get_procs.return_value = []  # no procs currently
         Swarm.objects.get.return_value = swarm
 
@@ -198,20 +201,20 @@ class TestScooper(object):
         self.host.delete()
         remote.IMAGES_ROOT = self._img_root
 
-    @patch.object(tasks, '_clean_host_filesystem')
+    @mock.patch.object(tasks, '_clean_host_filesystem')
     def test_filesystem_scooper(self, mock_clean_host):
         tasks.filesystem_scooper()
         mock_clean_host.apply_async.assert_called_once_with(
             (self.host.name, ), expires=1800)
 
-    @patch.object(remote, 'files')
-    @patch.object(remote, 'get_procs')
-    @patch.object(remote, 'get_old_procnames')
-    @patch.object(remote, 'get_builds')
-    @patch.object(remote, 'get_images')
-    @patch.object(remote, 'get_orphans')
-    @patch.object(remote, 'delete_build')
-    @patch.object(remote, 'teardown')
+    @mock.patch.object(remote, 'files')
+    @mock.patch.object(remote, 'get_procs')
+    @mock.patch.object(remote, 'get_old_procnames')
+    @mock.patch.object(remote, 'get_builds')
+    @mock.patch.object(remote, 'get_images')
+    @mock.patch.object(remote, 'get_orphans')
+    @mock.patch.object(remote, 'delete_build')
+    @mock.patch.object(remote, 'teardown')
     def test_clean_host_no_unused(
             self, mock_teardown, mock_delete_build, mock_get_orphans,
             mock_get_images, mock_get_builds, mock_get_procs,
@@ -237,14 +240,14 @@ class TestScooper(object):
         mock_teardown.assert_any_call('app-build1-proc2', None)
         mock_teardown.assert_any_call('app-build2-proc1', None)
 
-    @patch.object(remote, 'files')
-    @patch.object(remote, 'get_procs')
-    @patch.object(remote, 'get_old_procnames')
-    @patch.object(remote, 'get_builds')
-    @patch.object(remote, 'get_images')
-    @patch.object(remote, 'get_orphans')
-    @patch.object(remote, 'delete_build')
-    @patch.object(remote, 'teardown')
+    @mock.patch.object(remote, 'files')
+    @mock.patch.object(remote, 'get_procs')
+    @mock.patch.object(remote, 'get_old_procnames')
+    @mock.patch.object(remote, 'get_builds')
+    @mock.patch.object(remote, 'get_images')
+    @mock.patch.object(remote, 'get_orphans')
+    @mock.patch.object(remote, 'delete_build')
+    @mock.patch.object(remote, 'teardown')
     def test_clean_host(
             self, mock_teardown, mock_delete_build, mock_get_images,
             mock_get_orphans, mock_get_builds, mock_get_procs,
@@ -267,9 +270,9 @@ class TestScooper(object):
         # Order doesn't matter
         mock_teardown.assert_any_call('app-build2-proc1', None)
 
-    @patch.object(remote, 'get_build_procs')
-    @patch.object(remote, 'delete_proc')
-    @patch.object(remote, 'sudo')
+    @mock.patch.object(remote, 'get_build_procs')
+    @mock.patch.object(remote, 'delete_proc')
+    @mock.patch.object(remote, 'sudo')
     def test_delete_build(
             self, mock_sudo, mock_delete_proc, mock_get_build_procs):
         mock_get_build_procs.return_value = [
@@ -282,16 +285,16 @@ class TestScooper(object):
 
         remote.delete_build('app-build', cascade=True)
         mock_delete_proc.assert_has_calls([
-            call(remote.env.host_string, 'app-build-proc1'),
-            call(remote.env.host_string, 'app-build-proc2'),
+            mock.call(remote.env.host_string, 'app-build-proc1'),
+            mock.call(remote.env.host_string, 'app-build-proc2'),
         ])
         mock_sudo.assert_called_once_with('rm -rf /apps/builds/app-build')
 
-    @patch.object(remote, 'get_images')
-    @patch.object(remote, '_get_builds_in_use')
-    @patch.object(remote, '_rm_image')
-    @patch.object(remote, 'files')
-    @patch.object(remote, 'sudo')
+    @mock.patch.object(remote, 'get_images')
+    @mock.patch.object(remote, '_get_builds_in_use')
+    @mock.patch.object(remote, '_rm_image')
+    @mock.patch.object(remote, 'files')
+    @mock.patch.object(remote, 'sudo')
     def test_clean_images_folders(
             self, mock_sudo, mock_files, mock_rm_image,
             mock_get_builds_in_use, mock_get_images):
@@ -329,10 +332,10 @@ class TestScooper(object):
         remote.clean_images_folders()
         mock_rm_image.assert_called_once_with(old_img_path)
 
-    @patch.object(remote, '_get_proc_settings')
-    @patch.object(remote, 'get_supervised_procnames')
-    @patch.object(remote, 'get_installed_procnames')
-    @patch.object(remote, 'teardown')
+    @mock.patch.object(remote, '_get_proc_settings')
+    @mock.patch.object(remote, 'get_supervised_procnames')
+    @mock.patch.object(remote, 'get_installed_procnames')
+    @mock.patch.object(remote, 'teardown')
     def test_teardown_old_procs(
             self, mock_teardown, mock_get_installed_procnames,
             mock_get_supervised_procnames, mock_get_proc_settings):
@@ -346,8 +349,8 @@ class TestScooper(object):
         remote.teardown_old_procs()
         mock_teardown.assert_called_once_with('proc3', None)
 
-    @patch.object(remote, 'get_orphans')
-    @patch.object(remote, 'sudo')
+    @mock.patch.object(remote, 'get_orphans')
+    @mock.patch.object(remote, 'sudo')
     def test_kill_orphans(self, mock_sudo, mock_get_orphans):
         mock_get_orphans.return_value = [
             (1000, ('child1', 'child2')),
@@ -356,9 +359,9 @@ class TestScooper(object):
         ]
         remote.kill_orphans()
         mock_sudo.assert_has_calls([
-            call('kill -9 1000'),
-            call('kill -9 1001'),
-            call('kill -9 1002'),
+            mock.call('kill -9 1000'),
+            mock.call('kill -9 1001'),
+            mock.call('kill -9 1002'),
         ])
 
 
@@ -371,9 +374,9 @@ class BuildLogTest(TestCase):
     def tearDown(self):
         os.chmod(self.untouchable_file, self.normal_bits)
 
-    @patch('vr.server.tasks.ContentFile')
+    @mock.patch('vr.server.tasks.ContentFile')
     def test_saves_build_logs_to_build(self, MockContentFile):
-        build = MagicMock()
+        build = mock.MagicMock()
         build.id = '1234'
 
         failed_logs = save_build_logs(build, [
@@ -399,9 +402,9 @@ class BuildLogTest(TestCase):
             open(fixture_path('lxcdebug.log')).read(),
         )).strip())
 
-    @patch('vr.server.tasks.ContentFile')
+    @mock.patch('vr.server.tasks.ContentFile')
     def test_saves_existing_logs_and_reports_failed(self, MockContentFile):
-        build = MagicMock()
+        build = mock.MagicMock()
         build.id = '1234'
 
         failed_logs = save_build_logs(build, [
@@ -427,7 +430,7 @@ class BuildLogTest(TestCase):
         )).strip())
 
     def test_saves_nothing_if_everything_fails(self):
-        build = MagicMock()
+        build = mock.MagicMock()
         build.id = '1234'
 
         failed_logs = save_build_logs(build, [
@@ -441,9 +444,9 @@ class BuildLogTest(TestCase):
         ])
         self.assertFalse(build.compile_log.save.called)
 
-    @patch('vr.server.tasks.save_build_logs')
+    @mock.patch('vr.server.tasks.save_build_logs')
     def test_gets_log_files(self, mock_save):
-        build = MagicMock()
+        build = mock.MagicMock()
         build.id = '1234'
         mock_save.return_value = []
 
@@ -452,9 +455,9 @@ class BuildLogTest(TestCase):
         mock_save.assert_called_once_with(
             build, ['compile.log', 'lxcdebug.log'])
 
-    @patch('vr.server.tasks.save_build_logs')
+    @mock.patch('vr.server.tasks.save_build_logs')
     def test_gets_log_files_not_failing_for_debug(self, mock_save):
-        build = MagicMock()
+        build = mock.MagicMock()
         build.id = '1234'
         mock_save.return_value = ['lxcdebug.log']
 
@@ -463,18 +466,18 @@ class BuildLogTest(TestCase):
         mock_save.assert_called_once_with(
             build, ['compile.log', 'lxcdebug.log'])
 
-    @patch('vr.server.tasks.save_build_logs')
+    @mock.patch('vr.server.tasks.save_build_logs')
     def test_fails_if_compile_log_failed(self, mock_save):
-        build = MagicMock()
+        build = mock.MagicMock()
         build.id = '1234'
         mock_save.return_value = ['compile.log']
 
         with self.assertRaises(MissingLogError):
             try_get_compile_log(build)
 
-    @patch('vr.server.tasks.save_build_logs')
+    @mock.patch('vr.server.tasks.save_build_logs')
     def test_avoids_having_the_exception_bubbling_up(self, mock_save):
-        build = MagicMock()
+        build = mock.MagicMock()
         build.id = '1234'
         mock_save.return_value = ['compile.log']
 
