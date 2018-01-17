@@ -70,6 +70,7 @@ params = dict(
             'pytest>=2.8',
             'pytest-sugar',
             'collective.checkdocs',
+            'backports.unittest_mock',
             'jaraco.mongodb >= 3.11',
             'python-dateutil >= 2.4',
             'jaraco.postgres >= 1.3.1',
