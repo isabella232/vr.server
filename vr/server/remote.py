@@ -367,9 +367,10 @@ def _is_image_obsolete(img_path):
 
 
 def _rm_image(img_path):
+    hostname = env.host_string
     assert img_path, 'Empty img_path'
     assert img_path != '/', 'img_path is root!'
-    print('Removing image {}'.format(img_path))
+    print('Removing image {} from {}'.format(img_path, hostname))
     # Be careful!
     sudo('rm -rf {}'.format(img_path))
 
