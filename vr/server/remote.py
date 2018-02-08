@@ -187,7 +187,7 @@ def run_uptests(
         parts = m.groupdict()
         try:
             parsed = json.loads(parts['json'])
-            if len(parts['prefix']):
+            if parts['prefix']:
                 parsed.insert(0, {
                     'Passed': False,
                     'Name': 'uptester',
@@ -330,7 +330,7 @@ def get_build_procs(build):
 @task
 def delete_build(build, cascade=False):
     build_procs = get_build_procs(build)
-    if len(build_procs):
+    if build_procs:
         if not cascade:
             raise SystemExit("NOT DELETING %s. Build is currently in use, "
                              "and cascade=False" % build)
