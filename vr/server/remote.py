@@ -412,6 +412,9 @@ def clean_images_folders():
 
         # Set of unused images (dirnames wrt IMAGES_ROOT)
         unused_images = all_images.difference(images_in_use)
+        if not unused_images:
+            return
+
         print('Found {} unused images: {}'.format(
             len(unused_images), unused_images))
 
@@ -422,9 +425,12 @@ def clean_images_folders():
             if (files.exists(img_path, use_sudo=True) and
                     _is_image_obsolete(img_path)):
                 obsolete_image_paths.add(img_path)
+
+        if not obsolete_image_paths:
+            return
+
         print('Found {} obsolete image paths: {}'.format(
             len(obsolete_image_paths), obsolete_image_paths))
-
         for img_path in obsolete_image_paths:
             _rm_image(img_path)
 
