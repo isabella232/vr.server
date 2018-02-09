@@ -43,6 +43,15 @@ def get_template(name):
     return pkg_resources.resource_filename('vr.common', 'templates/' + name)
 
 
+def print_host(msg, *args, **kwargs):
+    """Prepend hostname to output message, if possible."""
+    try:
+        header = '{}: '.format(env.host_string)
+    except Exception:
+        header = ''
+    print(header + msg, *args, **kwargs)
+
+
 class Error(Exception):
     """
     An exception representing a remote command error.
@@ -126,14 +135,15 @@ def run_uptests(
             proc = host.get_proc(proc_name)
         except ProcError:
             if ignore_missing_procs:
-                print('Missing proc {} on host {}'.format(proc_name, hostname))
+                print_host('Missing proc {}'.format(proc_name))
                 return []
             raise
 
         settings = proc.settings
         if settings is None:
-            print('{0.name} (pid {0.pid}) running on {0.hostname} '
-                  'is not a VR process.  Skipping...'.format(proc))
+            print_host(
+                '{0.name} (pid {0.pid}) running on {0.hostname} '
+                'is not a VR process.  Skipping...'.format(proc))
             return []
 
         proc_path = get_proc_path(settings)
@@ -256,33 +266,32 @@ def delete_proc(hostname, proc):
         settings = _get_proc_settings(hostname, proc)
     except ProcError:
         # Maybe someone deleted it manually, already
-        print('delete_proc: Failed getting psettings for {} @{}'.format(
-            proc, hostname))
+        print_host(
+            'delete_proc: Failed getting psettings for {}'.format(proc))
         settings = None
 
     # Get the pid of the proc we are trying to stop
     pid = supervisorctl('pid %s' % proc)
 
     # Even if we couldn't get the settings, go ahead and try to stop it
-    print('delete_proc: Stopping proc {} @{} pid={}'.format(
-        proc, hostname, pid))
+    print_host('delete_proc: Stopping proc {} pid={}'.format(proc, pid))
     supervisorctl('stop %s' % proc)
 
     # Kill orphans, just in case we created some
     kill_orphans()
 
-    print('delete_proc: Removing proc {} in supervisorctl'.format(proc))
+    print_host('delete_proc: Removing proc {} in supervisorctl'.format(proc))
     supervisorctl('remove %s' % proc)
 
     # Try to teardown
     teardown(proc, settings)
 
-    print('delete_proc: Done.')
+    print_host('delete_proc: Done.')
 
 
 def _get_proc_settings(hostname, proc):
     host = Host.objects.get(name=hostname)
-    print('delete_proc: Getting settings')
+    print_host('delete_proc: Getting settings')
     settings = host.get_proc(proc).settings
     return settings
 
@@ -297,18 +306,19 @@ def teardown(proc, settings):
 
     if files.exists(proc_yaml_path, use_sudo=True):
         runner = get_runner(settings) if settings else 'vrun'
-        print('delete_proc: Tearing down proc {} with runner {}'.format(
-            proc, runner))
+        print_host(
+            'delete_proc: Tearing down proc {} with runner {}'.format(
+                proc, runner))
         sudo(runner + ' teardown ' + proc_yaml_path)
-        print('teardown: Tearing down proc {} done'.format(proc))
+        print_host('teardown: Tearing down proc {} done'.format(proc))
     else:
-        print('teardown: Missing proc.yaml: {}'.format(proc_yaml_path))
+        print_host('teardown: Missing proc.yaml: {}'.format(proc_yaml_path))
 
     if files.exists(proc_dir, use_sudo=True):
-        print('teardown: Removing proc dir')
+        print_host('teardown: Removing proc dir')
         sudo('rm -rf %s' % proc_dir)
     else:
-        print('teardown: Missing proc dir: {}'.format(proc_dir))
+        print_host('teardown: Missing proc dir: {}'.format(proc_dir))
 
 
 def proc_to_build(proc):
@@ -351,7 +361,7 @@ def clean_builds_folders():
     Check in builds_root for builds not being used by releases.
     """
 
-    print('Cleaning builds')
+    print_host('Cleaning builds')
     if files.exists(BUILDS_ROOT, use_sudo=True):
         builds_in_use = _get_builds_in_use()
         all_builds = set(get_builds())
@@ -367,10 +377,9 @@ def _is_image_obsolete(img_path):
 
 
 def _rm_image(img_path):
-    hostname = env.host_string
     assert img_path, 'Empty img_path'
     assert img_path != '/', 'img_path is root!'
-    print('Removing image {} from {}'.format(img_path, hostname))
+    print_host('Removing image {}'.format(img_path))
     # Be careful!
     sudo('rm -rf {}'.format(img_path))
 
@@ -380,7 +389,7 @@ def clean_images_folders():
     Check in images_root for images not being used by releases.
     """
 
-    print('Cleaning images')
+    print_host('Cleaning images')
     try:
         if not files.exists(IMAGES_ROOT, use_sudo=True):
             # Nothing to do
@@ -394,13 +403,13 @@ def clean_images_folders():
             try:
                 app_name, tag = app_tag.split('-', 1)
             except ValueError:
-                print('Invalid app name: {}'.format(app_tag))
+                print_host('Invalid app name: {}'.format(app_tag))
                 continue
 
             try:
                 app = App.objects.get(name=app_name)
             except App.DoesNotExist:
-                print('Unknown app {}'.format(app_name))
+                print_host('Unknown app {}'.format(app_name))
                 continue
 
             for b in Build.objects.filter(
@@ -415,7 +424,7 @@ def clean_images_folders():
         if not unused_images:
             return
 
-        print('Found {} unused images: {}'.format(
+        print_host('Found {} unused images: {}'.format(
             len(unused_images), unused_images))
 
         # Get the ones that have not been used for a while
@@ -429,13 +438,14 @@ def clean_images_folders():
         if not obsolete_image_paths:
             return
 
-        print('Found {} obsolete image paths: {}'.format(
+        print_host('Found {} obsolete image paths: {}'.format(
             len(obsolete_image_paths), obsolete_image_paths))
         for img_path in obsolete_image_paths:
             _rm_image(img_path)
 
     except Exception:
-        print('Failed to remove images: {}'.format(traceback.format_exc()))
+        print_host(
+            'Failed to remove images: {}'.format(traceback.format_exc()))
 
 
 def _get_procnames_from_output(output):
@@ -481,10 +491,9 @@ def teardown_old_procs():
     See https://bitbucket.org/yougov/velociraptor/issues/194.
     """
 
-    hostname = env.host_string
+    # hostname = env.host_string
     for procname in get_old_procnames():
-        print('teardown_old_procs: Tearing down {} @{}'.format(
-            procname, hostname))
+        print_host('teardown_old_procs: Tearing down {}'.format(procname))
 
         # Proc settings are always going to be unknown, because they
         # come from supervisor and this proc is "old" exactly because
@@ -494,10 +503,10 @@ def teardown_old_procs():
         # try:
         #     settings = _get_proc_settings(hostname, procname)
         # except ProcError:
-        #     print(
+        #     print_host(
         #         'teardown_old_procs: '
-        #         'Failed getting psettings for {} @{}'.format(
-        #             procname, hostname))
+        #         'Failed getting psettings for {}'.format(
+        #             procname))
         #     settings = None
 
         teardown(procname, settings)
@@ -543,7 +552,8 @@ def kill_orphans():
     See https://bitbucket.org/yougov/velociraptor/issues/195.
     """
     for pid, cmds in get_orphans():
-        print('kill_orphans: Killing pid={} and children={}'.format(pid, cmds))
+        print_host(
+            'kill_orphans: Killing pid={} and children={}'.format(pid, cmds))
         sudo('kill -9 {}'.format(pid))
 
 
@@ -561,7 +571,7 @@ def get_procs():
         try:
             proc_yamls = sudo('ls -1 ' + glob)
         except Error:
-            print('No procs found')
+            print_host('No procs found')
             return procs
 
         procs = [
@@ -629,9 +639,11 @@ def build_app(build_yaml_path):
                         if files.exists(logfile):
                             get(logfile, logfile)
                         else:
-                            print('in remote, logfile, not exist', logfile)
+                            print_host(
+                                'in remote, logfile, not exist', logfile)
                 except Exception:
-                    print("Could not retrieve", logfile)
+                    print_host(
+                        "Could not retrieve", logfile)
 
 
 @task
@@ -656,7 +668,7 @@ def build_image(image_yaml_path):
                 with fab_settings(warn_only=True):
                     get(logfile, logfile)
             except Exception:
-                print("Could not retrieve", logfile)
+                print_host("Could not retrieve", logfile)
 
 
 @contextlib.contextmanager
