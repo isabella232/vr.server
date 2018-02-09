@@ -32,7 +32,7 @@ from vr.server.models import Host, Build, App
 
 # How many seconds ago must an image be accessed, before being removed
 # from host?
-MAX_IMAGE_AGE_SECS = 90 * 24 * 60 * 60
+MAX_IMAGE_AGE_SECS = 7 * 24 * 60 * 60
 
 # Supervisorctl may take a long time and even hang.
 # Specify a timeout before giving up.
