@@ -12,6 +12,7 @@ import os
 import re
 import time
 import contextlib
+import platform
 
 import pkg_resources
 import yaml
@@ -371,7 +372,8 @@ def clean_builds_folders():
 
 
 def _is_image_obsolete(img_path):
-    atime = int(sudo('stat -c "%X" {}'.format(img_path)))
+    stat_args = '-f "%a"' if platform.system() == 'Darwin' else '-c "%X"'
+    atime = int(sudo('stat {stat_args} {img_path}'.format(**locals())))
     now = time.time()
     return now - atime > MAX_IMAGE_AGE_SECS
 
