@@ -10,7 +10,7 @@ import posixpath
 import json
 import os
 import re
-import time
+import datetime
 import contextlib
 import platform
 
@@ -31,9 +31,9 @@ from vr.builder.main import BuildData
 from vr.server.models import Host, Build, App
 
 
-# How many seconds ago must an image be accessed, before being removed
+# How long ago must an image be last accessed before being removed
 # from host?
-MAX_IMAGE_AGE_SECS = 7 * 24 * 60 * 60
+MAX_IMAGE_AGE = datetime.timedelta(days=7)
 
 # Supervisorctl may take a long time and even hang.
 # Specify a timeout before giving up.
@@ -373,9 +373,10 @@ def clean_builds_folders():
 
 def _is_image_obsolete(img_path):
     stat_args = '-f "%a"' if platform.system() == 'Darwin' else '-c "%X"'
-    atime = int(sudo('stat {stat_args} {img_path}'.format(**locals())))
-    now = time.time()
-    return now - atime > MAX_IMAGE_AGE_SECS
+    atime_ts = int(sudo('stat {stat_args} {img_path}'.format(**locals())))
+    atime = datetime.datetime.fromtimestamp(atime_ts)
+    age = datetime.datetime.now() - atime
+    return age > MAX_IMAGE_AGE
 
 
 def _rm_image(img_path):

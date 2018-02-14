@@ -5,13 +5,14 @@ import os.path
 import shutil
 import tempfile
 import textwrap
-import time
+import datetime
 from path import Path
 from unittest import TestCase
 from unittest import mock
 
 import pytest
 from fabric.api import local
+from backports.datetime_timestamp import timestamp
 
 from vr.common.utils import randchars
 from vr.server import tasks, remote
@@ -313,8 +314,10 @@ class TestScooper(object):
             return local(cmd, capture=True)
         mock_sudo.side_effect = local_sudo
 
+        cutoff = datetime.datetime.now() - remote.MAX_IMAGE_AGE
+
         # Make sure img is recent
-        atime = time.time() - remote.MAX_IMAGE_AGE_SECS + 10
+        atime = timestamp(cutoff + datetime.timedelta(10))
         (Path(remote.IMAGES_ROOT) / 'recent_img').mkdir_p().utime(
             (atime, atime))
 
@@ -322,7 +325,7 @@ class TestScooper(object):
         (Path(remote.IMAGES_ROOT) / 'non_existing_img').rmtree_p()
 
         # Make sure img is old
-        atime = time.time() - remote.MAX_IMAGE_AGE_SECS - 10
+        atime = timestamp(cutoff - datetime.timedelta(10))
         old_img_path = (
             Path(remote.IMAGES_ROOT) / 'old_img'
         ).mkdir_p().utime((atime, atime))

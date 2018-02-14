@@ -64,6 +64,7 @@ params = dict(
         # https://github.com/celery/celery/blob/master/docs/whatsnew-4.0.rst#removed-features
         'celery<4dev',
         'jaraco.functools',
+        'backports.datetime_timestamp',
     ],
     extras_require={
         'testing': [
