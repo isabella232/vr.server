@@ -16,8 +16,8 @@ import platform
 
 import pkg_resources
 import yaml
-from fabric.api import (sudo as sudo_, get, put, task, env, settings as
-                        fab_settings, hide)
+from fabric.api import (
+    sudo as sudo_, get, put, task, env, settings as fab_settings, hide, run)
 from fabric.contrib import files
 from fabric.context_managers import cd
 
@@ -516,34 +516,34 @@ def teardown_old_procs():
 
 
 def get_orphans():
-    with fab_settings(hide('stdout')):
-        # Note: use 'echo' tovoid failing if there are no procs
-        output = sudo('ps -C sudo,su -o pid,ppid,command || echo')
-        #   PID   PPID COMMAND
-        #  6676   6667 sudo -u nobody -E -s ...
-        # 18079  18068 sudo -u nobody -E -s ...
-        #  9642  9634  su --preserve-environment ...
+    with fab_settings(hide('warnings', 'stdout')):
+        output = run('ps --ppid 1 -o pid,user,command', warn_only=True)
+        # PID COMMAND
+        # 310 upstart-udev-bridge --daemon
+        # 312 /sbin/udevd --daemon
+        # 596 upstart-socket-bridge --daemon
 
     def get_children(pid):
-        with fab_settings(hide('stdout')):
-            output = sudo('ps --ppid {} -o command'.format(pid))
-        return tuple(output.splitlines()[1:])
+        with fab_settings(hide('warnings', 'stdout')):
+            output = run('ps --ppid {} -o command'.format(pid), warn_only=True)
+        return output.splitlines()[1:]
 
     orphans = set()
     for line in output.splitlines()[1:]:
         tokens = line.split()
         pid = int(tokens[0])
-        ppid = int(tokens[1])
+        user = tokens[1]
         command = ' '.join(tokens[2:]).strip()
 
-        is_vr_command = (
+        is_vr_command = user == 'nobody' and (
+            '/app/.heroku/' in command or
             command.startswith('sudo -u nobody') or
-            command.startswith('su --preserve-environment'))
+            command.startswith('su --preserve-environment') or
+            command.startswith('python'))
 
-        is_child_of_init = ppid == 1
-
-        if is_child_of_init and is_vr_command:
-            orphans.add((int(pid), get_children(pid)))
+        if is_vr_command:
+            cmds = [command] + get_children(pid)
+            orphans.add((int(pid), tuple(cmds)))
 
     return orphans
 
