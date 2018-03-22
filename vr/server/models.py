@@ -4,6 +4,7 @@ import logging
 import os.path
 import random
 import sys
+import json
 
 import six
 import yaml
@@ -358,25 +359,20 @@ class Build(models.Model):
         # done by a particular version of the buildpack.
 
 
-def stringify(thing):
+def serialize(ob):
     """
-    Turn things into strings that are consistent regardless of Python
-    implementation or hash seed.
+    Serialize the object to a string. If it's bytes, decode using
+    latin-1, which will decode anything.
     """
-    numeric_types = six.integer_types + (float, )
-    if isinstance(thing, dict):
-        return str([stringify(x) for x in sorted(thing.items())])
-    elif isinstance(thing, (list, tuple)):
-        return str([stringify(x) for x in thing])
-    elif isinstance(thing, numeric_types) or thing is None:
-        return str(thing)
-    elif isinstance(thing, six.string_types):
-        return thing
-    elif isinstance(thing, set):
-        return stringify(sorted(thing))
-    else:
-        e = "%s is type %s, which is not stringifiable"
-        raise TypeError(e % (thing, type(thing)))
+    params = dict() if six.PY3 else dict(encoding='latin-1')
+
+    def handle_set(ob):
+        if isinstance(ob, set):
+            return sorted(ob)
+        if isinstance(ob, bytes):
+            return ob.decode('latin-1')
+        raise TypeError("No support for encoding {ob}".format(ob=ob))
+    return json.dumps(ob, sort_keys=True, default=handle_set, **params)
 
 
 def make_hash(*args):
@@ -384,11 +380,10 @@ def make_hash(*args):
     Given any number of simple arguments (scalars, lists, tuples, dicts), turn
     them all into strings, cat them together, and return an md5 sum.
     """
-    s = ''.join(stringify(a) for a in args)
-    # md5() requires bytes
-    if isinstance(s, six.text_type):
-        s = s.encode('utf-8')
-    return hashlib.md5(s).hexdigest()
+    hash = hashlib.md5()
+    for txt in map(serialize, args):
+        hash.update(txt.encode('utf-8'))
+    return hash.hexdigest()
 
 
 env_help = "YAML dict of env vars to be set at runtime"
