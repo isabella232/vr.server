@@ -1,3 +1,13 @@
+7.0
+---
+
+* Changed the way blobs are serialized for hashing, now using
+  JSON to serialize, enabling the test suite to pass on Python 3.
+  Build and release hashes are likely to be invalidated by moving
+  to this release. Although the implications aren't well-known,
+  this change may cause old builds and releases not to match,
+  which may lead to extra builds and releases.
+
 6.11
 ----
 
