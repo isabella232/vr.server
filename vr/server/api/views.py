@@ -40,9 +40,11 @@ def auth_required(view_func):
         # user object if it passes.  Else return a 401 Unauthorized with JSON
         # content
 
-        nope = lambda: utils.json_response({'status': 401,
-                                            'msg': 'Basic auth required'},
-                                           status=401)
+        def nope():
+            return utils.json_response(
+                {'status': 401,
+                    'msg': 'Basic auth required'},
+                status=401)
         if request.user.is_authenticated():
             return view_func(request, *args, **kwargs)
         elif request.META.get('HTTP_AUTHORIZATION'):

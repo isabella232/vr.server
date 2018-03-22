@@ -1,3 +1,7 @@
-# This code has been moved to libraptor.  This file now exists only for
-# backwards compatibility.
+import warnings
+
 from vr.common.balancer.varnish import VarnishBalancer
+
+warnings.warn("This module is deprecated", DeprecationWarning)
+
+__all__ = ['VarnishBalancer']

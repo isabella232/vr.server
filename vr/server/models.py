@@ -175,7 +175,8 @@ class OSImage(models.Model):
 
     provisioning_script_url = models.CharField(max_length=200, blank=True,
                                                null=True)
-    build_log = models.FileField(upload_to=OS_IMAGES_BASE, null=True, blank=True)
+    build_log = models.FileField(
+        upload_to=OS_IMAGES_BASE, null=True, blank=True)
 
     # Only active images will be considered at swarm time
     active = models.BooleanField(default=False)

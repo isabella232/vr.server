@@ -18,14 +18,14 @@ class TestSaveSwarms(object):
             name=randchars(),
             repo_url=randchars(),
             repo_type=randchars(),
-            )
+        )
         self.app.save()
 
         self.app2 = models.App(
             name=randchars(),
             repo_url=randchars(),
             repo_type=randchars(),
-            )
+        )
         self.app2.save()
 
         self.build = models.Build(
@@ -34,7 +34,7 @@ class TestSaveSwarms(object):
             file=randchars(),
             status='success',
             hash=randchars(),
-            )
+        )
         self.build.save()
 
         self.build2 = models.Build(
@@ -43,7 +43,7 @@ class TestSaveSwarms(object):
             file=randchars(),
             status='success',
             hash=randchars(),
-            )
+        )
         self.build2.save()
 
         self.release = models.Release(
@@ -51,7 +51,7 @@ class TestSaveSwarms(object):
             config_yaml='',
             env_yaml='',
             hash=randchars(),
-            )
+        )
         self.release.save()
 
         self.release2 = models.Release(
@@ -59,10 +59,10 @@ class TestSaveSwarms(object):
             config_yaml='',
             env_yaml='',
             hash=randchars(),
-            )
+        )
         self.release2.save()
 
-        self.squad=models.Squad(name=randchars())
+        self.squad = models.Squad(name=randchars())
         self.squad.save()
 
         # create a swarm object
@@ -98,14 +98,16 @@ class TestSaveSwarms(object):
         self.user.userprofile.default_dashboard = self.dashboard
         self.user.userprofile.save()
         self.client = Client()
-        self.client.post(reverse('login'), {'username': self.user.username, 'password':'password123'})
+        self.client.post(reverse('login'), {
+            'username': self.user.username, 'password': 'password123'})
 
     def test_simple_update(self, redis):
 
         url = reverse('edit_swarm', kwargs={'swarm_id': self.swarm.id})
         payload = {
             'app_id': self.swarm.app.id,
-            'os_image_id': getattr(self.swarm.release.build.os_image, 'id', ''),
+            'os_image_id':
+                getattr(self.swarm.release.build.os_image, 'id', ''),
             'squad_id': self.swarm.squad.id,
             'tag': randchars(),
             'config_name': self.swarm.config_name,
@@ -123,7 +125,7 @@ class TestSaveSwarms(object):
                 ing.pk for ing in self.swarm.config_ingredients.all()]
         }
         previous_release_id = self.swarm.release_id
-        resp = self.client.post(url, data=payload)
+        self.client.post(url, data=payload)
         saved = models.Swarm.objects.get(id=self.swarm.id)
         new_release_id = saved.release_id
         assert previous_release_id != new_release_id
@@ -142,7 +144,8 @@ class TestSaveSwarms(object):
         ]
         payload = {
             'app_id': self.swarm.app.id,
-            'os_image_id': getattr(self.swarm.release.build.os_image, 'id', ''),
+            'os_image_id':
+                getattr(self.swarm.release.build.os_image, 'id', ''),
             'squad_id': self.swarm.squad.id,
             'config_name': self.swarm.config_name,
             'config_yaml': yamlize(self.swarm.config_yaml),
@@ -173,7 +176,8 @@ class TestSaveSwarms(object):
         url = reverse('edit_swarm', kwargs={'swarm_id': self.swarm.id})
         payload = {
             'app_id': self.swarm.app.id,
-            'os_image_id': getattr(self.swarm.release.build.os_image, 'id', ''),
+            'os_image_id':
+                getattr(self.swarm.release.build.os_image, 'id', ''),
             'squad_id': self.swarm.squad.id,
             'tag': randchars(),
             'config_name': self.swarm.config_name,
@@ -203,7 +207,8 @@ class TestSaveSwarms(object):
         url = reverse('edit_swarm', kwargs={'swarm_id': self.swarm2.id})
         payload = {
             'app_id': self.swarm2.app.id,
-            'os_image_id': getattr(self.swarm2.release.build.os_image, 'id', ''),
+            'os_image_id':
+                getattr(self.swarm2.release.build.os_image, 'id', ''),
             'squad_id': self.swarm2.squad.id,
             'tag': randchars(),
             'config_name': self.swarm2.config_name,
@@ -225,10 +230,11 @@ class TestSaveSwarms(object):
 
     def test_config_yaml_marshaling(self):
 
-        url = reverse('edit_swarm', kwargs={'swarm_id':self.swarm.id})
+        url = reverse('edit_swarm', kwargs={'swarm_id': self.swarm.id})
         payload = {
             'app_id': self.swarm.app.id,
-            'os_image_id': getattr(self.swarm.release.build.os_image, 'id', ''),
+            'os_image_id':
+                getattr(self.swarm.release.build.os_image, 'id', ''),
             'squad_id': self.swarm.squad.id,
             'tag': randchars(),
             'config_name': self.swarm.config_name,
@@ -250,10 +256,11 @@ class TestSaveSwarms(object):
 
     def test_env_yaml_marshaling(self):
 
-        url = reverse('edit_swarm', kwargs={'swarm_id':self.swarm.id})
+        url = reverse('edit_swarm', kwargs={'swarm_id': self.swarm.id})
         payload = {
             'app_id': self.swarm.app.id,
-            'os_image_id': getattr(self.swarm.release.build.os_image, 'id', ''),
+            'os_image_id':
+                getattr(self.swarm.release.build.os_image, 'id', ''),
             'squad_id': self.swarm.squad.id,
             'tag': randchars(),
             'config_name': self.swarm.config_name,
@@ -280,7 +287,8 @@ class TestSaveIngredients:
         # Get a logged in client ready
         self.user = get_user()
         self.client = Client()
-        self.client.post(reverse('login'), {'username': self.user.username, 'password':'password123'})
+        self.client.post(reverse('login'), {
+            'username': self.user.username, 'password': 'password123'})
 
     def test_save_unmarshalable_ingredient(self):
 

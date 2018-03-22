@@ -67,8 +67,8 @@ def test_config_xmlrpc_marshaling(postgresql):
     u = get_user()
     c = BasicAuthClient(u.username, 'password123')
     url = get_api_url('ingredients', 'api_dispatch_list')
-    #data = json.dumps({'config_yaml': {1: 'int key'}})
-    #data = json.dumps({'config_yaml': '"bigint": 123412341234}'})
+    # data = json.dumps({'config_yaml': {1: 'int key'}})
+    # data = json.dumps({'config_yaml': '"bigint": 123412341234}'})
     data = json.dumps({
         'name': randchars(),
         'config_yaml': "{'really_big_int': 1234123412341234}"
@@ -85,7 +85,7 @@ class TestSaveSwarms:
             name=randchars(),
             repo_url=randchars(),
             repo_type=randchars(),
-            )
+        )
         self.app.save()
 
         self.build = models.Build(
@@ -94,7 +94,7 @@ class TestSaveSwarms:
             file=randchars(),
             status='success',
             hash=randchars(),
-            )
+        )
         self.build.save()
 
         self.release = models.Release(
@@ -102,10 +102,10 @@ class TestSaveSwarms:
             config_yaml='',
             env_yaml='',
             hash=randchars(),
-            )
+        )
         self.release.save()
 
-        self.squad=models.Squad(name=randchars())
+        self.squad = models.Squad(name=randchars())
         self.squad.save()
 
         # create a swarm object
@@ -134,7 +134,8 @@ class TestSaveSwarms:
         # make a change, PUT it, and assert that it's in the DB.
         doc['config_name'] = 'test_config_name'
         payload = json.dumps(doc)
-        resp = self.client.put(url, data=payload,
+        resp = self.client.put(
+            url, data=payload,
             content_type='application/json')
 
         saved = models.Swarm.objects.get(id=self.swarm.id)
@@ -145,7 +146,7 @@ class TestSaveSwarms:
             name=randchars(),
             config_yaml='',
             env_yaml='',
-            )
+        )
         ing.save()
         self.swarm.config_ingredients.add(ing)
 
@@ -157,7 +158,8 @@ class TestSaveSwarms:
         # make a change, PUT it, and assert that it's in the DB.
         doc['config_name'] = 'test_config_name'
         payload = json.dumps(doc)
-        resp = self.client.put(url, data=payload,
+        resp = self.client.put(
+            url, data=payload,
             content_type='application/json')
 
         saved = models.Swarm.objects.get(id=self.swarm.id)

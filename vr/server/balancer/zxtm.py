@@ -1,3 +1,7 @@
-# This code has been moved to libraptor.  This file now exists only for
-# backwards compatibility.
+import warnings
+
 from vr.common.balancer.stingray import StingrayBalancer as ZXTMBalancer
+
+warnings.warn("This module is deprecated", DeprecationWarning)
+
+__all__ = ['ZXTMBalancer']

@@ -4,7 +4,6 @@ watch the event stream to be notified of its progress.
 """
 
 import json
-import urllib
 
 from six.moves import urllib
 
@@ -36,9 +35,12 @@ def run():
         # Throw exception and bail out if this fails
         r.raise_for_status()
 
-    # Make a buildpack record, if necessary.  Buildpacks don't have nice natural
+    # Make a buildpack record, if necessary.  Buildpacks
+    # don't have nice natural
     # keys like apps do, so we'll search.
-    node_buildpack_url = 'https://github.com/heroku/heroku-buildpack-nodejs.git'
+    node_buildpack_url = (
+        'https://github.com/heroku/heroku-buildpack-nodejs.git'
+    )
     buildpack_search_url = API_URL + 'buildpacks/?' + urllib.urlencode({
         'repo_url': node_buildpack_url
     })
@@ -63,7 +65,6 @@ def run():
     assert r.status_code == 201
     build_url = r.headers['location']
 
-
     # Tell VR to build it
     r = sess.post(build_url + 'build/')
 
@@ -72,5 +73,6 @@ def run():
     for message in sseclient.SSEClient(stream_url, auth=sess.auth):
         print(message.id, message)
         # TODO: Disconnect when it says we're done
+
 
 __name__ == '__main__' and run()

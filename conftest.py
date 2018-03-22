@@ -61,7 +61,7 @@ def postgresql(request):
         port = postgresql_instance.port
         settings.DATABASES['default']['PORT'] = str(postgresql_instance.port)
     else:
-        port=None
+        port = None
     dbsetup(port)
 
 

@@ -29,7 +29,7 @@ def test_build_usable(gridfs):
             status='success',
         )
         b.save()
-    assert b.is_usable() == True
+    assert b.is_usable() is True
 
 
 def test_build_unusable_status(gridfs):
@@ -46,7 +46,7 @@ def test_build_unusable_status(gridfs):
             status='',
         )
         b.save()
-    assert b.is_usable() == False
+    assert b.is_usable() is False
 
 
 class somefile():
@@ -56,4 +56,3 @@ class somefile():
 
     def __exit__(self, type, value, traceback):
         self.file.close()
-

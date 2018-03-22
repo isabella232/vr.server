@@ -1,6 +1,7 @@
 import os
 import shlex
 import subprocess
+import importlib
 
 from vr.common.utils import randchars
 
@@ -9,8 +10,8 @@ here = os.path.dirname(os.path.abspath(__file__))
 os.environ['APP_SETTINGS_YAML'] = os.path.join(here, 'testconfig.yaml')
 
 
-from django.contrib.auth.models import User
-from django.core.management import call_command
+User = importlib.import_module('django.contrib.auth.models').User
+call_command = importlib.import_module('django.core.management').call_command
 
 
 def sh(cmd):

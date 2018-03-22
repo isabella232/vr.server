@@ -33,7 +33,6 @@ class TestDeploy(object):
                                config_yaml=self.config, volumes=self.volumes)
         self.release.save()
 
-
     def test_build_proc_info(self, gridfs):
         info = build_proc_info(self.release, 'test', 'somehost', 'web', 8000)
         assert info['volumes'] == self.volumes
