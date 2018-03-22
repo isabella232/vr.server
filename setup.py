@@ -42,7 +42,7 @@ params = dict(
         'django-redis-cache==0.9.5',
         'django-reversion==1.9.3',
         'django-tastypie==0.12.2',
-        'Fabric3bis',
+        'Fabric3',
         'gevent>=1.1rc1,<2',
         'psycogreen',
         'gunicorn==0.17.2',
