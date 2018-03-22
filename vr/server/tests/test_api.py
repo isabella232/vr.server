@@ -66,6 +66,10 @@ def test_session_auth_accepted(postgresql):
     assert response.status_code == 200
 
 
+@pytest.mark.skipif(
+    "sys.version_info > (3,)",
+    reason="Big int is allowed on Python 3",
+)
 def test_config_xmlrpc_marshaling(postgresql):
     u = get_user()
     c = BasicAuthClient(u.username, 'password123')
@@ -77,7 +81,7 @@ def test_config_xmlrpc_marshaling(postgresql):
         'config_yaml': "{'really_big_int': 1234123412341234}"
     })
     resp = c.post(url, data=data, content_type='application/json')
-    assert "int exceeds XML-RPC limits" in resp.content
+    assert "int exceeds XML-RPC limits" in resp.content.decode('utf-8')
 
 
 @pytest.mark.usefixtures('postgresql')
