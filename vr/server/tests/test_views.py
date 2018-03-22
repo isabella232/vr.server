@@ -164,7 +164,7 @@ class TestSaveSwarms(object):
         for tag in invalid_tags:
             payload['tag'] = tag
             resp = self.client.post(url, data=payload)
-            assert 'Invalid tag name' in resp.content
+            assert 'Invalid tag name' in resp.content.decode('utf-8')
 
     def test_normal_app_update_redirection(self, redis):
         """
@@ -228,6 +228,10 @@ class TestSaveSwarms(object):
         resp = self.client.post(url, data=payload)
         assert resp._headers['location'][1] == 'http://testserver/dashboard/'
 
+    @pytest.mark.skipif(
+        "sys.version_info > (3,)",
+        reason="Int keys are allowed on Python 3",
+    )
     def test_config_yaml_marshaling(self):
 
         url = reverse('edit_swarm', kwargs={'swarm_id': self.swarm.id})
@@ -254,6 +258,10 @@ class TestSaveSwarms(object):
         resp = self.client.post(url, data=payload)
         assert "Cannot be marshalled to XMLRPC" in resp.content
 
+    @pytest.mark.skipif(
+        "sys.version_info > (3,)",
+        reason="Big int is allowed on Python 3",
+    )
     def test_env_yaml_marshaling(self):
 
         url = reverse('edit_swarm', kwargs={'swarm_id': self.swarm.id})
@@ -290,6 +298,10 @@ class TestSaveIngredients:
         self.client.post(reverse('login'), {
             'username': self.user.username, 'password': 'password123'})
 
+    @pytest.mark.skipif(
+        "sys.version_info > (3,)",
+        reason="Big int is allowed on Python 3",
+    )
     def test_save_unmarshalable_ingredient(self):
 
         url = reverse('ingredient_add')
