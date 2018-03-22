@@ -1,3 +1,6 @@
+from __future__ import unicode_literals
+
+import io
 import contextlib
 import datetime
 import functools
@@ -346,7 +349,7 @@ def save_build_logs(build, logs):
             failed_logs.append(log)
             continue
         try:
-            with open(log, 'rb') as f:
+            with io.open(log) as f:
                 content = f.read()
                 final_content.append('\n--- {} ---'.format(log))
                 final_content.append(content)
