@@ -6,14 +6,14 @@ VR.Dash = {};
 VR.Dash.Options = {
     refreshInterval: 60000,
     apps: [],
-    dashboardId: null,
+    dashboardId: null
 };
 
 VR.Dash.init = function(
     appsContainer,
     eventsContainer,
     eventsUrl,
-    procEventsUrl,
+    procEventsUrl
 ) {
     if (VR.Dash.Options.dashboardId) {
         $.getJSON(
@@ -22,13 +22,13 @@ VR.Dash.init = function(
                 _.each(data.apps, function(app) {
                     VR.Dash.Options.apps.push({name: app.name});
                 });
-            },
+            }
         );
 
         $("#setAsDefault").click(function(ev) {
             var dashId = $(this).data("dashboardid");
             var payload = {
-                default_dashboard: VR.Urls.root + "dashboard/" + dashId + "/",
+                default_dashboard: VR.Urls.root + "dashboard/" + dashId + "/"
             };
             $.ajax({
                 type: "PUT",
@@ -42,7 +42,7 @@ VR.Dash.init = function(
                         document.cookie = "dashboard=/dashboard/; path=/";
                         window.location = "/dashboard/";
                     }
-                },
+                }
             });
         });
     }
@@ -67,7 +67,7 @@ VR.Dash.init = function(
                     if (parsed.app_name === app.name) {
                         VR.ProcMessages.trigger(
                             "updateproc:" + parsed.id,
-                            parsed,
+                            parsed
                         );
                     }
                 });
@@ -218,13 +218,21 @@ VR.Dash.filterProcs = function(p) {
             }
         }
     });
-    $("#events-list .event-title").each(function(i, t) {
+    $("#events-list .event-wrapper").each(function(i, w) {
+        var $w = $(w);
         if (show_all) {
-            $(t).show();
-        } else if (t.textContent.toUpperCase().indexOf(p) == -1) {
-            $(t).hide();
+            $w.show();
+            return;
+        }
+
+        var $parent = $w.parent(),
+            title = $parent.attr("title").toUpperCase(),
+            message = $parent.attr("message").toUpperCase();
+        console.log(p);
+        if (title.indexOf(p) == -1 && message.indexOf(p) == -1) {
+            $w.hide();
         } else {
-            $(t).show();
+            $w.show();
         }
     });
 };
