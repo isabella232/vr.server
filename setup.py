@@ -68,9 +68,13 @@ params = dict(
     ],
     extras_require={
         'testing': [
+            # upstream
             'pytest>=2.8',
-            'pytest-sugar',
+            'pytest-sugar>=0.9.1',
             'collective.checkdocs',
+            'pytest-flake8',
+
+            # local
             'backports.unittest_mock',
             'jaraco.mongodb >= 3.11',
             'python-dateutil >= 2.4',
@@ -78,9 +82,12 @@ params = dict(
             'path.py >= 10.0',
         ],
         'docs': [
+            # upstream
             'sphinx',
             'jaraco.packaging>=3.2',
             'rst.linker>=1.9',
+
+            # local
         ],
         ':python_version=="2.7"': [
             'mercurial>=3.8',
