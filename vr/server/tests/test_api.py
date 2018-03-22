@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 import base64
 import json
 
@@ -21,7 +23,8 @@ class BasicAuthClient(Client):
     username and password on init.
     """
     def __init__(self, username, password, *args, **kwargs):
-        token = base64.b64encode('{username}:{password}'.format(**locals()))
+        cred = '{username}:{password}'.format(**locals())
+        token = base64.b64encode(cred.encode('utf-8')).decode('ascii')
         self.auth_headers = dict(HTTP_AUTHORIZATION='Basic ' + token)
         super(BasicAuthClient, self).__init__(*args, **kwargs)
 
