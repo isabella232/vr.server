@@ -1,9 +1,13 @@
+import functools
+
+import six
 from six.moves import urllib
 
 import pytest
 from django.test.client import Client
 from django.core.urlresolvers import reverse
 from django.core.exceptions import ValidationError
+import jaraco.context
 
 from vr.common.utils import randchars
 from vr.server.tests import get_user
@@ -26,13 +30,25 @@ def test_login(postgresql):
     assert urllib.parse.urlsplit(r['Location']).path == '/'
 
 
+expect_validation_error = (
+    jaraco.context.null
+    if six.PY3 else
+    functools.partial(pytest.raises, ValidationError)
+)
+"""
+On Python 2, xmlrpc raises validation errors, but on Python 3,
+these structures seem to work, so only expect the validation
+errors on Python 2.
+"""
+
+
 def test_config_ingredient_marshaling():
     ci = models.ConfigIngredient(
         name=randchars(),
         config_yaml='1: integer keys are not allowed in XMLRPC',
         env_yaml=None,
     )
-    with pytest.raises(ValidationError):
+    with expect_validation_error():
         ci.save()
 
 
@@ -54,7 +70,7 @@ def test_release_config_marshaling(postgresql):
         # numbers can only be 32 bit in xmlrpc
         env_yaml='FACEBOOK_APP_ID: 1234123412341234'
     )
-    with pytest.raises(ValidationError):
+    with expect_validation_error():
         release.save()
 
 
@@ -75,6 +91,7 @@ def test_swarm_config_marshaling(postgresql):
     )
     release.save()
     squad = models.Squad(name=randchars())
+    squad.save()
     swarm = models.Swarm(
         app=app,
         release=release,
@@ -83,5 +100,5 @@ def test_swarm_config_marshaling(postgresql):
         squad=squad,
         config_yaml='1: integer key!',
     )
-    with pytest.raises(ValidationError):
+    with expect_validation_error():
         swarm.save()
