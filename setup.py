@@ -46,7 +46,6 @@ params = dict(
         'gevent>=1.1rc1,<2',
         'psycogreen',
         'gunicorn==0.17.2',
-        'paramiko>=1.15.3,<2.0',
         'psycopg2>=2.4.4',
         'pymongo>=2.5.2,<4',
         'redis>=2.6.2,<3',
