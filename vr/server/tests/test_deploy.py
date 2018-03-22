@@ -1,7 +1,8 @@
+import io
+
 import pytest
 import yaml
 from django.utils import timezone
-
 
 from vr.server.models import App, Build, Release
 from vr.server.tasks import build_proc_info
@@ -50,10 +51,11 @@ class TestDeploy(object):
             # Generate the proc.yaml file the same way that
             # server.vr.server.tasks.deploy() does; then yaml.load() it
             # and compare with the local info.
-            with open('proc.yaml', 'w+b') as f:
+            with io.open('proc.yaml', 'w+') as f:
                 info = build_proc_info(self.release, config_name, hostname,
                                        proc, port)
-                f.write(yaml.safe_dump(info, default_flow_style=False))
+                yaml.safe_dump(
+                    info, stream=f, default_flow_style=False, encoding=None)
 
                 f.seek(0)
                 written_info = yaml.load(f.read())
