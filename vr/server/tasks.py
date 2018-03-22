@@ -357,12 +357,9 @@ def save_build_logs(build, logs):
             logger.exception(e)
             failed_logs.append(log)
 
-    if not final_content:
-        return failed_logs
-
-    compile_contents = '\n'.join(final_content).strip()
-
-    build.compile_log.save(logname, ContentFile(compile_contents))
+    if final_content:
+        compile_contents = '\n'.join(final_content).strip()
+        build.compile_log.save(logname, ContentFile(compile_contents))
 
     return failed_logs
 
