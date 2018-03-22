@@ -674,28 +674,6 @@ def build_image(image_yaml_path):
                 print_host("Could not retrieve", logfile)
 
 
-@contextlib.contextmanager
-def shell_env(**env_vars):
-    """
-    A context that updates the shell to add environment variables.
-    Ref http://stackoverflow.com/a/8454134/70170
-    """
-    orig_shell = env['shell']
-    env_vars_str = ' '.join(
-        '{key}={value}'.format(**vars())
-        for key, value in env_vars.items()
-    )
-    if env_vars:
-        env['shell'] = '{env_vars_str} {orig_shell}'.format(
-            env_vars_str=env_vars_str,
-            orig_shell=env['shell'],
-        )
-    try:
-        yield
-    finally:
-        env['shell'] = orig_shell
-
-
 def load_proc_data(proc_yaml_path):
     with open(proc_yaml_path, 'rb') as f:
         return ProcData(yaml.safe_load(f))
