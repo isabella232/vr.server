@@ -16,6 +16,8 @@ def validate_yaml_dict(value):
         raise ValidationError('Invalid dict')
 
 
+# Used so to_python() is called
+@six.add_metaclass(models.SubfieldBase)
 class YAMLDictField(models.TextField):
     """
     YAMLDictField is a TextField that serializes and deserializes YAML dicts
@@ -25,8 +27,6 @@ class YAMLDictField(models.TextField):
     further by ensuring that the data is a dict (or null), not just any valid
     yaml.
     """
-    # Used so to_python() is called
-    __metaclass__ = models.SubfieldBase
 
     def __init__(self, *args, **kwargs):
         super(YAMLDictField, self).__init__(*args, **kwargs)
@@ -87,6 +87,8 @@ def validate_yaml_list(value):
         raise ValidationError('Invalid list')
 
 
+# Used so to_python() is called
+@six.add_metaclass(models.SubfieldBase)
 class YAMLListField(models.TextField):
     """
     YAMLListField is a TextField that serializes and deserializes YAML lists
@@ -96,8 +98,6 @@ class YAMLListField(models.TextField):
     further by ensuring that the data is a list (or null), not just any valid
     yaml.
     """
-    # Used so to_python() is called
-    __metaclass__ = models.SubfieldBase
 
     def __init__(self, *args, **kwargs):
         super(YAMLListField, self).__init__(*args, **kwargs)
