@@ -364,13 +364,14 @@ def serialize(ob):
     Serialize the object to a string. If it's bytes, decode using
     latin-1, which will decode anything.
     """
-    params = dict() if six.PY3 else dict(encoding='latin-1')
+    encoding = 'latin-1'
+    params = dict() if six.PY3 else dict(encoding=encoding)
 
     def handle_set(ob):
         if isinstance(ob, set):
             return sorted(ob)
         if isinstance(ob, bytes):
-            return ob.decode('latin-1')
+            return ob.decode(encoding)
         raise TypeError("No support for encoding {ob}".format(ob=ob))
     return json.dumps(ob, sort_keys=True, default=handle_set, **params)
 
