@@ -66,10 +66,6 @@ def test_session_auth_accepted(postgresql):
     assert response.status_code == 200
 
 
-@pytest.mark.skipif(
-    "sys.version_info > (3,)",
-    reason="Big int is allowed on Python 3",
-)
 def test_config_xmlrpc_marshaling(postgresql):
     u = get_user()
     c = BasicAuthClient(u.username, 'password123')
