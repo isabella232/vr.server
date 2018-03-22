@@ -1,3 +1,9 @@
+6.11
+----
+
+* When doing builds, always set LANG=C.UTF-8 to avoid errors
+  when the builder emits non-ascii.
+
 6.9
 ---
 

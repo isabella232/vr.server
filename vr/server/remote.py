@@ -19,7 +19,7 @@ import yaml
 from fabric.api import (
     sudo as sudo_, get, put, task, env, settings as fab_settings, hide, run)
 from fabric.contrib import files
-from fabric.context_managers import cd
+from fabric.context_managers import cd, shell_env
 
 from vr.common.models import ProcData, ProcError
 from vr.common.paths import (
@@ -626,7 +626,8 @@ def build_app(build_yaml_path):
     with temp_dir():
         try:
             put(build_yaml_path, 'build_job.yaml', use_sudo=True)
-            sudo('vbuild build build_job.yaml')
+            with shell_env(LANG='C.UTF-8'):
+                sudo('vbuild build build_job.yaml')
             # relies on the build being named build.tar.gz and the
             # manifest being named build_result.yaml.
             get('build_result.yaml', 'build_result.yaml')
