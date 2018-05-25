@@ -113,7 +113,7 @@ class SquadResource(ReversionModelResource):
 @register_instance
 class IngredientResource(ReversionModelResource):
     swarms = fields.ToManyField(
-        'vr.server.api.resources.SwarmResource', 'swarms',
+        'vr.server.api.resources.SwarmResource', 'swarm_set',
         blank=True, null=True, readonly=True)
 
     class Meta:
