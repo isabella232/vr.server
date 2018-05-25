@@ -1,3 +1,8 @@
+7.1
+---
+
+* Fix https://github.com/yougov/vr.server/issues/2
+
 7.0
 ---
 
