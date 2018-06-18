@@ -276,35 +276,7 @@ def _do_build(build, build_yaml):
     # enter a temp folder
     with tmpdir():
         try:
-            with open('build_job.yaml', 'wb') as f:
-                f.write(build_yaml)
-
-            with remote_settings('localhost'):
-                remote.build_app('build_job.yaml')
-
-            # store the build file and metadata in the database.  There should
-            # now be a build.tar.gz and build_result.yaml in the current folder
-            with open('build_result.yaml', 'rb') as f:
-                build_result = BuildData(yaml.safe_load(f))
-
-            build_name = '-'.join([
-                build_result.app_name,
-                build_result.version,
-                build_result.build_md5
-            ])
-            filepath = 'builds/' + build_name + '.tar.gz'
-            logger.info('Saving tarball')
-            with open('build.tar.gz', 'rb') as localfile:
-                build.file.save(filepath, File(localfile))
-
-            logger.info('Saving build metadata')
-            build.file_md5 = build_result.build_md5
-            build.env_yaml = build_result.release_data.get('config_vars', {})
-            build.buildpack_url = build_result.buildpack_url
-            build.buildpack_version = build_result.buildpack_version
-            build.status = 'success'
-            try_get_compile_log(build)
-
+            _try_build(build, build_yaml)
         except Exception:
             logger.exception('Build failed')
             build.status = 'failed'
@@ -319,6 +291,37 @@ def _do_build(build, build_yaml):
     elapsed_time = time.time() - t0
     msg = "Completed build %s in %d seconds" % (build, elapsed_time)
     send_event(str(build), msg, tags=['build', 'success'])
+
+
+def _try_build(build, build_yaml):
+    with open('build_job.yaml', 'wb') as f:
+        f.write(build_yaml)
+
+    with remote_settings('localhost'):
+        remote.build_app('build_job.yaml')
+
+    # store the build file and metadata in the database.  There should
+    # now be a build.tar.gz and build_result.yaml in the current folder
+    with open('build_result.yaml', 'rb') as f:
+        build_result = BuildData(yaml.safe_load(f))
+
+    build_name = '-'.join([
+        build_result.app_name,
+        build_result.version,
+        build_result.build_md5
+    ])
+    filepath = 'builds/' + build_name + '.tar.gz'
+    logger.info('Saving tarball')
+    with open('build.tar.gz', 'rb') as localfile:
+        build.file.save(filepath, File(localfile))
+
+    logger.info('Saving build metadata')
+    build.file_md5 = build_result.build_md5
+    build.env_yaml = build_result.release_data.get('config_vars', {})
+    build.buildpack_url = build_result.buildpack_url
+    build.buildpack_version = build_result.buildpack_version
+    build.status = 'success'
+    try_get_compile_log(build)
 
 
 def try_get_compile_log(build, re_raise=True):
