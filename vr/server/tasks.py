@@ -19,6 +19,7 @@ import yaml
 import fabric.network
 import fabric.state
 import redis
+from tempora import timing
 from celery.task import subtask, chord, task
 from fabric.context_managers import settings as fab_settings
 from django.conf import settings
@@ -272,24 +273,23 @@ def build_image(image_id, callback=None):
 
 
 def _do_build(build, build_yaml):
-    t0 = time.time()
-    # enter a temp folder
-    with tmpdir():
-        try:
-            _try_build(build, build_yaml)
-        except Exception:
-            logger.exception('Build failed')
-            build.status = 'failed'
-            # Don't raise, or we'll mask the real error
-            try_get_compile_log(build, re_raise=False)
-            raise
+    with timing.Stopwatch() as watch:
+        # enter a temp folder
+        with tmpdir():
+            try:
+                _try_build(build, build_yaml)
+            except Exception:
+                logger.exception('Build failed')
+                build.status = 'failed'
+                # Don't raise, or we'll mask the real error
+                try_get_compile_log(build, re_raise=False)
+                raise
 
-        finally:
-            build.end_time = timezone.now()
-            build.save()
+            finally:
+                build.end_time = timezone.now()
+                build.save()
 
-    elapsed_time = time.time() - t0
-    msg = "Completed build %s in %d seconds" % (build, elapsed_time)
+    msg = "Completed build %s in %s" % (build, watch.elapsed)
     send_event(str(build), msg, tags=['build', 'success'])
 
 

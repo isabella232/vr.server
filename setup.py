@@ -64,6 +64,7 @@ params = dict(
         'celery<4dev',
         'jaraco.functools',
         'backports.datetime_timestamp',
+        'tempora',
     ],
     extras_require={
         'testing': [
