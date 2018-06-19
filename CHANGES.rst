@@ -1,3 +1,9 @@
+7.2
+---
+
+* Buffer stdout in remote commands to fix performance issues with
+  verbose buildpacks
+
 7.1
 ---
 
