@@ -81,6 +81,9 @@ def sudo(*args, **kwargs):
     Wrap fabric's sudo to trap errors and raise them.
     """
     kwargs.setdefault('warn_only', True)
+    # Very verbose commands can slow down execution and use lots of
+    # memory
+    kwargs.setdefault('capture_buffer_size', 1024)
     return Error.handle(sudo_(*args, **kwargs))
 
 
