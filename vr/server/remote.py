@@ -81,9 +81,6 @@ def sudo(*args, **kwargs):
     Wrap fabric's sudo to trap errors and raise them.
     """
     kwargs.setdefault('warn_only', True)
-    # Very verbose commands can slow down execution and use lots of
-    # memory
-    kwargs.setdefault('capture_buffer_size', 1024)
     return Error.handle(sudo_(*args, **kwargs))
 
 
@@ -638,7 +635,7 @@ def build_app(build_yaml_path):
         try:
             put(build_yaml_path, 'build_job.yaml', use_sudo=True)
             with shell_env(LANG='C.UTF-8'):
-                sudo('vbuild build build_job.yaml')
+                sudo('vbuild build build_job.yaml', capture_buffer_size=1024)
             # relies on the build being named build.tar.gz and the
             # manifest being named build_result.yaml.
             get('build_result.yaml', 'build_result.yaml')
@@ -673,7 +670,7 @@ def build_image(image_yaml_path):
     with temp_dir():
         try:
             put(image_yaml_path, 'image_job.yaml', use_sudo=True)
-            sudo('vimage build image_job.yaml')
+            sudo('vimage build image_job.yaml', capture_buffer_size=1024)
             fname = '%s.tar.gz' % image_data['new_image_name']
             get(fname, fname)
         finally:
