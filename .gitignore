@@ -6,3 +6,4 @@ dist/
 .cache/
 MongoDBInstance
 .tox/
+/.pytest_cache

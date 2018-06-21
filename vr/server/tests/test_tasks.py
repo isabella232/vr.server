@@ -212,14 +212,15 @@ class TestScooper(object):
     @mock.patch.object(remote, 'get_procs')
     @mock.patch.object(remote, 'get_old_procnames')
     @mock.patch.object(remote, 'get_builds')
+    @mock.patch.object(remote, '_is_file_obsolete')
     @mock.patch.object(remote, 'get_images')
     @mock.patch.object(remote, 'get_orphans')
     @mock.patch.object(remote, 'delete_build')
     @mock.patch.object(remote, 'teardown')
     def test_clean_host_no_unused(
             self, mock_teardown, mock_delete_build, mock_get_orphans,
-            mock_get_images, mock_get_builds, mock_get_procs,
-            mock_get_old_procnames, mock_files):
+            mock_get_images, mock_is_file_obsolete, mock_get_builds,
+            mock_get_procs, mock_get_old_procnames, mock_files):
         mock_get_orphans.return_value = []
         mock_get_images.return_value = []
         mock_get_builds.return_value = [
@@ -245,14 +246,15 @@ class TestScooper(object):
     @mock.patch.object(remote, 'get_procs')
     @mock.patch.object(remote, 'get_old_procnames')
     @mock.patch.object(remote, 'get_builds')
+    @mock.patch.object(remote, '_is_file_obsolete')
     @mock.patch.object(remote, 'get_images')
     @mock.patch.object(remote, 'get_orphans')
     @mock.patch.object(remote, 'delete_build')
     @mock.patch.object(remote, 'teardown')
     def test_clean_host(
             self, mock_teardown, mock_delete_build, mock_get_images,
-            mock_get_orphans, mock_get_builds, mock_get_procs,
-            mock_get_old_procnames, mock_files):
+            mock_get_orphans, mock_is_file_obsolete, mock_get_builds,
+            mock_get_procs, mock_get_old_procnames, mock_files):
         mock_get_orphans.return_value = []
         mock_get_images.return_value = []
         mock_get_builds.return_value = [
