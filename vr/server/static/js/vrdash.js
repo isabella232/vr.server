@@ -78,14 +78,14 @@ VR.Dash.init = function(
     }, this);
 
     // filter procs
-    $("#proc-filter").keyup(function(ev) {
+    $("#proc-filter").keyup(_.debounce(function() {
         var q = $("#proc-filter").val();
         // Allow to clear filter to mean "no filter"
         if (0 < q.length && q.length < 3) {
             return;
         }
         VR.Dash.filterProcs(q);
-    });
+    }, 200));
 };
 
 VR.Dash.removeProc = function(procdata) {
