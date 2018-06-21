@@ -31,9 +31,10 @@ from vr.builder.main import BuildData
 from vr.server.models import Host, Build, App
 
 
-# How long ago must an image be last accessed before being removed
-# from host?
+# How long ago must an image/build be last accessed before being
+# removed from host?
 MAX_IMAGE_AGE = datetime.timedelta(days=7)
+MAX_BUILD_AGE = datetime.timedelta(days=7)
 
 # Supervisorctl may take a long time and even hang.
 # Specify a timeout before giving up.
@@ -371,18 +372,33 @@ def clean_builds_folders():
     print_host('Cleaning builds')
     if files.exists(BUILDS_ROOT, use_sudo=True):
         builds_in_use = _get_builds_in_use()
-        all_builds = set(get_builds())
-        unused_builds = all_builds.difference(builds_in_use)
-        for build in unused_builds:
+        all_build_tarballs = set(get_builds())
+
+        unused_build_tarballs = set()
+        for tarball in all_build_tarballs:
+            b = proc_to_build(tarball)
+            obsolete = _is_build_obsolete(os.path.join(BUILDS_ROOT, tarball))
+            if b not in builds_in_use and obsolete:
+                unused_build_tarballs.add(b)
+
+        for build in unused_build_tarballs:
             delete_build(build)
 
 
-def _is_image_obsolete(img_path):
+def _is_file_obsolete(fpath, maxage):
     stat_args = '-f "%a"' if platform.system() == 'Darwin' else '-c "%X"'
-    atime_ts = int(sudo('stat {stat_args} {img_path}'.format(**locals())))
+    atime_ts = int(sudo('stat {stat_args} {fpath}'.format(**locals())))
     atime = datetime.datetime.fromtimestamp(atime_ts)
     age = datetime.datetime.now() - atime
-    return age > MAX_IMAGE_AGE
+    return age > maxage
+
+
+def _is_build_obsolete(build_path):
+    return _is_file_obsolete(build_path, MAX_BUILD_AGE)
+
+
+def _is_image_obsolete(img_path):
+    return _is_file_obsolete(img_path, MAX_IMAGE_AGE)
 
 
 def _rm_image(img_path):
