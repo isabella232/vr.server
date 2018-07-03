@@ -346,16 +346,25 @@ def get_build_procs(build):
 
 
 @task
-def delete_build(build, cascade=False):
-    build_procs = get_build_procs(build)
+def delete_build(build_path, cascade=False):
+    print_host('Cleaning build {}'.format(build_path))
+
+    assert build_path.startswith(BUILDS_ROOT), 'Invalid build_path: {}'.format(
+        build_path)
+    assert files.exists(build_path), 'Build tarball {} does not exist'.format(
+        build_path)
+
+    tarball = os.path.basename(build_path)
+    build_name = '-'.join(tarball.split('-')[:2])
+    build_procs = get_build_procs(build_name)
     if build_procs:
         if not cascade:
             raise SystemExit("NOT DELETING %s. Build is currently in use, "
-                             "and cascade=False" % build)
+                             "and cascade=False" % build_name)
         else:
             for proc in build_procs:
                 delete_proc(env.host_string, proc)
-    sudo('rm -rf %s/%s' % (BUILDS_ROOT, build))
+    sudo('rm -f {}'.format(build_path))
 
 
 def _get_builds_in_use():
@@ -377,9 +386,10 @@ def clean_builds_folders():
         unused_build_tarballs = set()
         for tarball in all_build_tarballs:
             b = proc_to_build(tarball)
-            obsolete = _is_build_obsolete(os.path.join(BUILDS_ROOT, tarball))
+            build_path = os.path.join(BUILDS_ROOT, tarball)
+            obsolete = _is_build_obsolete(build_path)
             if b not in builds_in_use and obsolete:
-                unused_build_tarballs.add(b)
+                unused_build_tarballs.add(build_path)
 
         for build in unused_build_tarballs:
             delete_build(build)
