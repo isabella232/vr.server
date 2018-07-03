@@ -15,6 +15,7 @@ from fabric.api import local
 from backports.datetime_timestamp import timestamp
 
 from vr.common.utils import randchars
+from vr.common.paths import BUILDS_ROOT
 from vr.server import tasks, remote
 from vr.server.models import App, Build, BuildPack, OSImage, Host
 from vr.server.settings import MEDIA_URL
@@ -268,30 +269,36 @@ class TestScooper(object):
         mock_files.exists.return_value = True
         tasks._clean_host_filesystem(self.host.name)
         tasks._clean_host_procs(self.host.name)
-        mock_delete_build.assert_called_once_with('app-build1')
+        mock_delete_build.assert_called_once_with(
+            os.path.join(BUILDS_ROOT, 'app-build1'))
 
         # Order doesn't matter
         mock_teardown.assert_any_call('app-build2-proc1', None)
 
+    @mock.patch.object(remote, 'files')
     @mock.patch.object(remote, 'get_build_procs')
     @mock.patch.object(remote, 'delete_proc')
     @mock.patch.object(remote, 'sudo')
     def test_delete_build(
-            self, mock_sudo, mock_delete_proc, mock_get_build_procs):
+            self, mock_sudo, mock_delete_proc, mock_get_build_procs,
+            mock_files):
         mock_get_build_procs.return_value = [
             'app-build-proc1',
             'app-build-proc2',
         ]
 
-        with pytest.raises(SystemExit):
-            remote.delete_build('app-build', cascade=False)
+        build_path = os.path.join(BUILDS_ROOT, 'app-build')
+        mock_files.exists.return_value = True
 
-        remote.delete_build('app-build', cascade=True)
+        with pytest.raises(SystemExit):
+            remote.delete_build(build_path, cascade=False)
+
+        remote.delete_build(build_path, cascade=True)
         mock_delete_proc.assert_has_calls([
             mock.call(remote.env.host_string, 'app-build-proc1'),
             mock.call(remote.env.host_string, 'app-build-proc2'),
         ])
-        mock_sudo.assert_called_once_with('rm -rf /apps/builds/app-build')
+        mock_sudo.assert_called_once_with('rm -f {}'.format(build_path))
 
     @mock.patch.object(remote, 'get_images')
     @mock.patch.object(remote, '_get_builds_in_use')
