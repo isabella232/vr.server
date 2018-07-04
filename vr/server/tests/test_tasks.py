@@ -213,6 +213,7 @@ class TestScooper(object):
     @mock.patch.object(remote, 'get_procs')
     @mock.patch.object(remote, 'get_old_procnames')
     @mock.patch.object(remote, 'get_builds')
+    @mock.patch.object(remote, 'get_installed_proc_yamls')
     @mock.patch.object(remote, '_is_file_obsolete')
     @mock.patch.object(remote, 'get_images')
     @mock.patch.object(remote, 'get_orphans')
@@ -220,10 +221,20 @@ class TestScooper(object):
     @mock.patch.object(remote, 'teardown')
     def test_clean_host_no_unused(
             self, mock_teardown, mock_delete_build, mock_get_orphans,
-            mock_get_images, mock_is_file_obsolete, mock_get_builds,
+            mock_get_images, mock_is_file_obsolete,
+            mock_get_installed_proc_yamls, mock_get_builds,
             mock_get_procs, mock_get_old_procnames, mock_files):
         mock_get_orphans.return_value = []
-        mock_get_images.return_value = []
+        mock_get_images.return_value = [
+            'image_1',
+            'image_2',
+        ]
+        # All images are used
+        mock_get_installed_proc_yamls.return_value = [{
+            'image_name': 'image_1',
+        }, {
+            'image_name': 'image_2',
+        }]
         mock_get_builds.return_value = [
             'app-build1',
             'app-build2',
@@ -247,6 +258,7 @@ class TestScooper(object):
     @mock.patch.object(remote, 'get_procs')
     @mock.patch.object(remote, 'get_old_procnames')
     @mock.patch.object(remote, 'get_builds')
+    @mock.patch.object(remote, 'get_installed_proc_yamls')
     @mock.patch.object(remote, '_is_file_obsolete')
     @mock.patch.object(remote, 'get_images')
     @mock.patch.object(remote, 'get_orphans')
@@ -254,7 +266,8 @@ class TestScooper(object):
     @mock.patch.object(remote, 'teardown')
     def test_clean_host(
             self, mock_teardown, mock_delete_build, mock_get_images,
-            mock_get_orphans, mock_is_file_obsolete, mock_get_builds,
+            mock_get_orphans, mock_is_file_obsolete,
+            mock_get_installed_proc_yamls, mock_get_builds,
             mock_get_procs, mock_get_old_procnames, mock_files):
         mock_get_orphans.return_value = []
         mock_get_images.return_value = []
@@ -263,9 +276,12 @@ class TestScooper(object):
             'app-build2',
         ]
         mock_get_procs.return_value = mock_get_old_procnames.return_value = [
-            # app-build1 is unused
             'app-build2-proc1',
         ]
+        # app-build1 is unused
+        mock_get_installed_proc_yamls.return_value = [{
+            'image_name': 'image_2',
+        }]
         mock_files.exists.return_value = True
         tasks._clean_host_filesystem(self.host.name)
         tasks._clean_host_procs(self.host.name)

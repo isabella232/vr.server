@@ -432,14 +432,9 @@ def clean_images_folders():
             return
 
         all_images = set(get_images())
-        all_procs = set(get_installed_procnames())
         images_in_use = set()
-        for proc in all_procs:
-            proc_yaml = os.path.join(PROCS_ROOT, proc, 'proc.yaml')
-            with fab_settings(hide('stdout')):
-                output = run('cat {}'.format(proc_yaml))
-            data = yaml.load(output)
-            images_in_use.add(data['image_name'])
+        for proc_yaml in get_installed_proc_yamls():
+            images_in_use.add(proc_yaml['image_name'])
 
         # Set of unused images (dirnames wrt IMAGES_ROOT)
         unused_images = all_images.difference(images_in_use)
@@ -491,6 +486,18 @@ def get_supervised_procnames():
 def get_installed_procnames():
     """Get a list of procs currently on the file system."""
     return set(get_procs())
+
+
+def get_installed_proc_yamls():
+    """Parse and return all installed proc.yaml data."""
+    proc_yamls = []
+    for proc in get_installed_procnames():
+        proc_yaml = os.path.join(PROCS_ROOT, proc, 'proc.yaml')
+        with fab_settings(hide('stdout')):
+            output = run('cat {}'.format(proc_yaml))
+        data = yaml.load(output)
+        proc_yamls.append(data['image_name'])
+    return proc_yamls
 
 
 def get_old_procnames():
