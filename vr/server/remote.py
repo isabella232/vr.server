@@ -496,7 +496,7 @@ def get_installed_proc_yamls():
         with fab_settings(hide('stdout')):
             output = run('cat {}'.format(proc_yaml))
         data = yaml.load(output)
-        proc_yamls.append(data['image_name'])
+        proc_yamls.append(data)
     return proc_yamls
 
 
