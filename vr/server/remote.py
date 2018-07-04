@@ -28,7 +28,7 @@ from vr.common.paths import (
 from vr.common.utils import randchars
 from vr.builder.main import BuildData
 
-from vr.server.models import Host, Build, App
+from vr.server.models import Host
 
 
 # How long ago must an image/build be last accessed before being
@@ -413,7 +413,8 @@ def _is_image_obsolete(img_path):
 
 def _rm_image(img_path):
     assert img_path, 'Empty img_path'
-    assert img_path != '/', 'img_path is root!'
+    assert img_path.startswith(IMAGES_ROOT), 'Invalid img_path {}'.format(
+        img_path)
     print_host('Removing image {}'.format(img_path))
     # Be careful!
     sudo('rm -rf {}'.format(img_path))
@@ -431,28 +432,14 @@ def clean_images_folders():
             return
 
         all_images = set(get_images())
-
-        builds_in_use = _get_builds_in_use()
+        all_procs = set(get_installed_procnames())
         images_in_use = set()
-        for app_tag in builds_in_use:
-            try:
-                app_name, tag = app_tag.split('-', 1)
-            except ValueError:
-                print_host('Invalid app name: {}'.format(app_tag))
-                continue
-
-            try:
-                app = App.objects.get(name=app_name)
-            except App.DoesNotExist:
-                print_host('Unknown app {}'.format(app_name))
-                continue
-
-            for b in Build.objects.filter(
-                    app=app,
-                    tag=tag,
-            ):
-                if b.os_image:
-                    images_in_use.add(b.os_image.name)
+        for proc in all_procs:
+            proc_yaml = os.path.join(PROCS_ROOT, proc, 'proc.yaml')
+            with fab_settings(hide('stdout')):
+                output = run('cat {}'.format(proc_yaml))
+            data = yaml.load(output)
+            images_in_use.add(data['image_name'])
 
         # Set of unused images (dirnames wrt IMAGES_ROOT)
         unused_images = all_images.difference(images_in_use)
