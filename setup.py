@@ -45,7 +45,7 @@ params = dict(
         'Fabric3',
         'gevent>=1.1rc1,<2',
         'psycogreen',
-        'gunicorn==0.17.2',
+        'gunicorn>=19.5',
         'psycopg2-binary>=2.7.5',
         'pymongo>=2.5.2,<4',
         'redis>=2.6.2,<3',

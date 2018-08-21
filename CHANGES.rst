@@ -1,3 +1,9 @@
+7.3
+---
+
+* Update to gunicorn 19.5 due to
+  `CVE-2018-1000164 <https://nvd.nist.gov/vuln/detail/CVE-2018-1000164>`_.
+
 7.2
 ---
 
