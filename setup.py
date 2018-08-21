@@ -74,6 +74,8 @@ params = dict(
             'python-dateutil >= 2.4',
             'jaraco.postgres >= 1.3.1',
             'path.py >= 10.0',
+            'pytest-services',
+            'jaraco.context',
         ],
         'docs': [
             # upstream

@@ -1,8 +1,12 @@
 import os
 import sys
+import functools
 
 import pytest
 from django import setup
+import portend
+import redis
+import jaraco.context
 
 from vr.server.tests import dbsetup
 
@@ -66,14 +70,48 @@ def postgresql(request):
     return postgresql_instance
 
 
-@pytest.fixture()
-def redis():
+def check_redis(port):
+    return redis.StrictRedis(host='localhost', port=port).echo('this')
+
+
+def redis_running(port):
+    with jaraco.context.ExceptionTrap() as trap:
+        check_redis(port)
+    return not bool(trap)
+
+
+@pytest.fixture(scope='session')
+def redis_instance(watcher_getter, request):
+    port = portend.find_available_local_port()
+    proc = watcher_getter( # noqa
+        name='redis-server',
+        arguments=[
+            '--port', str(port),
+        ],
+        checker=functools.partial(redis_running, port=port),
+        request=request,
+    )
+    client = redis.StrictRedis(host='localhost', port=port)
+    return locals()
+
+
+@pytest.fixture(name='redis', scope='session')
+def redis_(request):
     try:
-        redis = __import__('redis')
-        redis.StrictRedis(host='localhost', port=6379).echo('this')
-    except Exception as exc:
-        tmpl = "Unable to establish connection to redis ({exc})"
-        pytest.skip(tmpl.format(**locals()))
+        instance = request.getfixturevalue('redis_instance')
+    except Exception:
+        instance = request.getfixturevalue('redis_local')
+    url = 'redis://localhost:{port}/0'.format(**instance)
+    from django.conf import settings
+    settings.EVENTS_PUBSUB_URL = url
+    return instance
+
+
+@pytest.fixture(scope='session')
+def redis_local():
+    client = redis.StrictRedis('localhost')
+    client.echo('this')
+    return dict(locals(), port=6379)
 
 
 def pytest_addoption(parser):
