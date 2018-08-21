@@ -55,14 +55,15 @@ def patch_default_storage():
 
 @pytest.fixture
 def postgresql(request):
-    if not request.config.getoption('--use-local-db'):
-        postgresql_instance = request.getfuncargvalue('postgresql_instance')
-        from django.conf import settings
-        port = postgresql_instance.port
-        settings.DATABASES['default']['PORT'] = str(postgresql_instance.port)
-    else:
-        port = None
-    dbsetup(port)
+    if request.config.getoption('--use-local-db'):
+        dbsetup()
+        return
+
+    postgresql_instance = request.getfuncargvalue('postgresql_instance')
+    from django.conf import settings
+    settings.DATABASES['default']['PORT'] = str(postgresql_instance.port)
+    dbsetup(postgresql_instance.port)
+    return postgresql_instance
 
 
 @pytest.fixture()
