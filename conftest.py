@@ -102,8 +102,13 @@ def redis_(request):
     except Exception:
         instance = request.getfixturevalue('redis_local')
     url = 'redis://localhost:{port}/0'.format(**instance)
+    netloc = 'localhost:{port}'.format(**instance)
     from django.conf import settings
     settings.EVENTS_PUBSUB_URL = url
+    settings.CACHES['default']['LOCATION'] = netloc
+    settings.CELERYBEAT_SCHEDULE_FILENAME = url
+    settings.BROKER_URL = url
+    settings.CELERY_RESULT_BACKEND = url
     return instance
 
 
