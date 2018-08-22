@@ -394,11 +394,16 @@ class ReleaseResource(ReversionModelResource):
         }
 
     def prepend_urls(self):
+        pattern = (
+            r'^(?P<resource_name>{meta.resource_name})'
+            r'/(?P<pk>\w[\w/-]*)/deploy{trailing_slash}$'
+        ).format(meta=self._meta, trailing_slash=trailing_slash())
         return [
-            url(r"^(?P<resource_name>%s)/(?P<pk>\w[\w/-]*)/deploy%s$" %
-                (self._meta.resource_name, trailing_slash()),
+            url(
+                pattern,
                 auth_required(self.wrap_view('deploy_release')),
-                name="api_deploy_release"),
+                name="api_deploy_release",
+            ),
         ]
 
     def deploy_release(self, request, **kwargs):

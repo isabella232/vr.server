@@ -55,6 +55,8 @@ params = dict(
         'backports.functools_lru_cache',
         # Celery 4 removes support for e-mail
         # https://github.com/celery/celery/blob/master/docs/whatsnew-4.0.rst#removed-features
+        # and Celery 3.x is dependent on kombu <3.1, which
+        # doesn't run on Python 3.7
         'celery<4dev',
         'jaraco.functools',
         'backports.datetime_timestamp',
