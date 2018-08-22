@@ -7,6 +7,11 @@ python:
 - 3.6
 - &latest_py3 3.7
 
+matrix:
+  allow_failures:
+  # https://github.com/yougov/velociraptor/issues/225
+  - python: 3.7
+
 jobs:
   fast_finish: true
   include:
