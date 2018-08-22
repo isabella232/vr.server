@@ -53,7 +53,7 @@ def auth_required(view_func):
             if auth_type.lower() != 'basic':
                 return nope()
 
-            username, password = base64.b64decode(data).split(':', 1)
+            username, password = base64.b64decode(data).split(b':', 1)
             user = authenticate(username=username, password=password)
             if not user:
                 return nope()
