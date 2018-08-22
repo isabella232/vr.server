@@ -69,7 +69,8 @@ def yamlize(dct):
 
 
 def build_swarm_trace_id(swarm):
-    return md5(str(swarm) + str(time.time())).hexdigest()
+    payload = str(swarm) + str(time.time())
+    return md5(payload.encode()).hexdigest()
 
 
 def validate_xmlrpc(data):
