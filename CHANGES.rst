@@ -1,3 +1,8 @@
+7.3.1
+-----
+
+* A few fixes for Python 3.
+
 7.3
 ---
 
