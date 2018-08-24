@@ -1,3 +1,9 @@
+7.3.2
+-----
+
+* Bump django-redis-cache and celery-scheduler for improved
+  Python 3 compatibility in vr_beat.
+
 7.3.1
 -----
 
