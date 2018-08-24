@@ -27,7 +27,7 @@ params = dict(
     ),
     python_requires='>=2.7',
     install_requires=[
-        'celery-schedulers==0.0.2',
+        'celery-schedulers',
         'diff-match-patch==20121119',
         'Django>=1.8,<1.9',
         'django-celery>=3.1.17,<3.2',
