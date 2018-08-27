@@ -1,3 +1,8 @@
+8.0.2
+-----
+
+* Once again, filter non-messages in ProcListener.
+
 8.0.1
 -----
 
