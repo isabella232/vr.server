@@ -52,10 +52,11 @@ class ProcListener(six.Iterator):
     def __next__(self):
         msg = next(self.pubsub.listen())
         if msg['type'] == 'message':
-            if msg['data'] == 'flush':
+            data = msg['data'].decode('utf-8')
+            if data == 'flush':
                 return ':\n'
             else:
-                ev = sseclient.Event(data=msg['data'], retry=1000)
+                ev = sseclient.Event(data=data, retry=1000)
                 return ev.dump()
 
     def close(self):
