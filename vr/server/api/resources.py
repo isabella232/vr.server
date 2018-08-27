@@ -6,6 +6,7 @@ import json
 import logging
 import re
 
+import six
 from six.moves import configparser
 from backports.functools_lru_cache import lru_cache
 
@@ -190,7 +191,7 @@ class AppResource(ReversionModelResource):
         """
         parser = configparser.ConfigParser()
         parser.read(path.Path('~/.hgrc').expanduser())
-        return parser['schemes']
+        return dict(parser.items('schemes')) if six.PY2 else parser['schemes']
 
 
 @register_instance
