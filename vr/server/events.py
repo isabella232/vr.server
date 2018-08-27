@@ -59,9 +59,9 @@ class ProcListener(six.Iterator):
         data = msg['data'].decode('utf-8')
         if data == 'flush':
             return ':\n'
-        else:
-            ev = sseclient.Event(data=data, retry=1000)
-            return ev.dump()
+
+        ev = sseclient.Event(data=data, retry=1000)
+        return ev.dump()
 
     def close(self):
         self.rcon.connection_pool.disconnect()
