@@ -1,3 +1,9 @@
+7.3.3
+-----
+
+* VR-228: In ``events.ProcListener``, decode bytes to text when
+  reading from the pubsub.
+
 7.3.2
 -----
 
