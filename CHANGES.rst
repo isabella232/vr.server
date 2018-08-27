@@ -1,3 +1,9 @@
+8.0.1
+-----
+
+* Declared new dependencies on path.py and jaraco.context,
+  previously masked by test dependencies.
+
 8.0
 ---
 

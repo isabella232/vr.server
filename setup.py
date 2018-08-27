@@ -61,6 +61,8 @@ params = dict(
         'jaraco.functools',
         'backports.datetime_timestamp',
         'tempora',
+        'jaraco.context',
+        'path.py >= 10',
     ],
     extras_require={
         'testing': [
@@ -75,9 +77,7 @@ params = dict(
             'jaraco.mongodb >= 3.11',
             'python-dateutil >= 2.4',
             'jaraco.postgres >= 1.3.1',
-            'path.py >= 10.0',
             'pytest-services',
-            'jaraco.context',
         ],
         'docs': [
             # upstream
