@@ -34,7 +34,7 @@ class EventSender(Sender):
         self.rcon.connection_pool.disconnect()
 
 
-class ProcListener(object):
+class ProcListener(six.Iterator):
     def __init__(self, rcon_or_url, channel):
         if isinstance(rcon_or_url, redis.StrictRedis):
             self.rcon = rcon_or_url
@@ -47,18 +47,16 @@ class ProcListener(object):
         self.rcon.publish(channel, 'flush')
 
     def __iter__(self):
-        while 1:
-            yield self.next()
+        return self
 
-    def next(self):
-        while 1:
-            msg = next(self.pubsub.listen())
-            if msg['type'] == 'message':
-                if msg['data'] == 'flush':
-                    return ':\n'
-                else:
-                    ev = sseclient.Event(data=msg['data'], retry=1000)
-                    return ev.dump()
+    def __next__(self):
+        msg = next(self.pubsub.listen())
+        if msg['type'] == 'message':
+            if msg['data'] == 'flush':
+                return ':\n'
+            else:
+                ev = sseclient.Event(data=msg['data'], retry=1000)
+                return ev.dump()
 
     def close(self):
         self.rcon.connection_pool.disconnect()
