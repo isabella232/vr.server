@@ -4,6 +4,8 @@ import datetime
 import logging
 
 import six
+from six.moves import filter
+
 import redis
 import sseclient
 from django.conf import settings
@@ -50,14 +52,16 @@ class ProcListener(six.Iterator):
         return self
 
     def __next__(self):
-        msg = next(self.pubsub.listen())
-        if msg['type'] == 'message':
-            data = msg['data'].decode('utf-8')
-            if data == 'flush':
-                return ':\n'
-            else:
-                ev = sseclient.Event(data=data, retry=1000)
-                return ev.dump()
+        def is_message(msg):
+            return msg['type'] == 'message'
+        messages = filter(is_message, self.pubsub.listen())
+        msg = next(messages)
+        data = msg['data'].decode('utf-8')
+        if data == 'flush':
+            return ':\n'
+        else:
+            ev = sseclient.Event(data=data, retry=1000)
+            return ev.dump()
 
     def close(self):
         self.rcon.connection_pool.disconnect()
