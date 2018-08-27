@@ -2,6 +2,7 @@ from __future__ import unicode_literals
 
 import base64
 import json
+import os
 
 import pytest
 from django.test.client import Client
@@ -10,6 +11,7 @@ from django.core.urlresolvers import reverse
 from vr.common.utils import randchars
 from vr.server.tests import get_user
 from vr.server import models
+from vr.server.api import resources
 
 
 def get_api_url(resource_name, view_name, **kwargs):
@@ -224,3 +226,40 @@ class TestAppURL:
         resp = client.get(url)
         doc = json.loads(resp.content)
         assert doc['resolved_url'] == doc['repo_url']
+
+
+class TestURLSchemeResolution:
+    @pytest.fixture(autouse=True)
+    def clear_cache(self):
+        resources.AppResource.load_schemes.cache_clear()
+
+    @pytest.fixture
+    def tmp_home(self, tmpdir, monkeypatch):
+        monkeypatch.setitem(os.environ, 'HOME', str(tmpdir))
+        return tmpdir
+
+    @pytest.fixture
+    def schemes(self, tmp_home):
+        hgrc = tmp_home / '.hgrc'
+        hgrc.write_text(
+            '[schemes]\nexample=https://example.com/\n',
+            encoding='ascii',
+        )
+
+    def test_load_schemes(self, schemes):
+        expected = dict(example='https://example.com/')
+        assert dict(resources.AppResource.load_schemes()) == expected
+
+    def test_resolve_matched(self, schemes):
+        expected = 'https://example.com/foo/bar'
+        actual = resources.AppResource.resolve_url('example://foo/bar')
+        assert actual == expected
+
+    def test_resolve_unmatched(self, schemes):
+        expected = 'bing://foo/bar'
+        actual = resources.AppResource.resolve_url('bing://foo/bar')
+        assert actual == expected
+
+    def test_no_schemes(self, tmp_home):
+        url = 'example://foo/bar'
+        assert resources.AppResource.resolve_url(url) == url

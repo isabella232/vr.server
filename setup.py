@@ -87,9 +87,6 @@ params = dict(
 
             # local
         ],
-        ':python_version=="2.7"': [
-            'mercurial>=3.8',
-        ],
     },
     setup_requires=[
         'setuptools_scm>=1.15.0',

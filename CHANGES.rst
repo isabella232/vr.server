@@ -1,3 +1,11 @@
+8.0
+---
+
+* Drop dependency on Mercurial for resolving schemes. To retain
+  maximal compatibility, continue to rely on Mercurial-style
+  schemes in ~/.hgrc. The 'SCHEME_EXPAND_COMMAND' is no
+  longer honored.
+
 7.3.3
 -----
 

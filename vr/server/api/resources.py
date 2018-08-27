@@ -4,11 +4,13 @@ from __future__ import print_function
 import contextlib
 import json
 import logging
-import os
-import shlex
-import subprocess
+import re
 
+from six.moves import configparser
 from backports.functools_lru_cache import lru_cache
+
+import path
+import jaraco.context
 
 from django.conf.urls import url
 from django.http import (HttpResponse, HttpResponseNotAllowed,
@@ -160,22 +162,35 @@ class AppResource(ReversionModelResource):
         bundle.data['resolved_url'] = canon_url or bundle.data['repo_url']
         return bundle
 
-    @staticmethod
-    @lru_cache(maxsize=None)
-    def resolve_url(spec_url):
+    @classmethod
+    def resolve_url(cls, spec_url):
         """
-        Assuming Mercurial and assuming an appropriate plugin is
-        installed, resolve the specified URL to a canonical URL.
+        Expand schemes in the URL based on schemes defined
+        Mercurial-style.
+        """
+        mapping = cls.load_schemes() or {}
+
+        def replace(match):
+            return mapping.get(match.group('scheme'), match.group(0))
+        return re.sub(r'^(?P<scheme>\w+)://', replace, spec_url)
+
+    @staticmethod
+    @lru_cache()
+    @jaraco.context.suppress(Exception)
+    def load_schemes():
+        """
+        Read schemes from a config file expecting the format:
+
+        [schemes]
+        scheme = https://example.com/
+
+        Roughly compatible with Mercurial's schemes definitions.
 
         Failsafe - never raises an exception, but returns None
         """
-        default = 'hg debugexpandscheme'
-        expand_cmd = os.environ.get('SCHEME_EXPAND_COMMAND', default)
-        cmd = shlex.split(expand_cmd) + [spec_url]
-        try:
-            return subprocess.check_output(cmd).strip()
-        except Exception:
-            pass
+        parser = configparser.ConfigParser()
+        parser.read(path.Path('~/.hgrc').expanduser())
+        return parser['schemes']
 
 
 @register_instance
