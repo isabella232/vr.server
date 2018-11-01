@@ -1,3 +1,8 @@
+8.0.3
+-----
+
+* Fix crontab specifications for periodic tasks
+
 8.0.2
 -----
 
