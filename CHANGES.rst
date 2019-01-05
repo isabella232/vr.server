@@ -1,3 +1,8 @@
+8.1
+---
+
+* Pin against vr libraries for namespace compatibility.
+
 8.0.3
 -----
 
