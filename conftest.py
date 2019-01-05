@@ -63,7 +63,7 @@ def postgresql(request):
         dbsetup()
         return
 
-    postgresql_instance = request.getfuncargvalue('postgresql_instance')
+    postgresql_instance = request.getfixturevalue('postgresql_instance')
     from django.conf import settings
     settings.DATABASES['default']['PORT'] = str(postgresql_instance.port)
     dbsetup(postgresql_instance.port)
