@@ -1,3 +1,8 @@
+8.2
+---
+
+Switch to pkgutil-style namespace package.
+
 8.1
 ---
 
