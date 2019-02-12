@@ -16,7 +16,6 @@ from django.contrib.auth.models import User
 from django.conf import settings
 from django.utils import timezone
 from vr.common import repo, models as common_models
-from vr.common.utils import parse_redis_url
 
 from vr.server.fields import YAMLDictField, YAMLListField
 from .utils import validate_xmlrpc
@@ -29,8 +28,7 @@ log = logging.getLogger(__name__)
 # save it here.  redis-py implements an internal conection pool, so this
 # should be thread safe and gevent safe.
 if 'collectstatic' not in sys.argv and 'events_redis' not in globals():
-    kwargs = parse_redis_url(settings.EVENTS_PUBSUB_URL)
-    events_redis = redis.StrictRedis(**kwargs)
+    events_redis = redis.StrictRedis.from_url(settings.EVENTS_PUBSUB_URL)
 
 LOG_ENTRY_TYPES = (
     ('build', 'Build'),

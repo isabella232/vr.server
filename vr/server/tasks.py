@@ -29,7 +29,6 @@ from django.core.files.base import ContentFile
 
 from vr.builder.main import BuildData
 from vr.imager.command import ImageData
-from vr.common import utils
 from vr.common.models import Proc
 from vr.common.utils import tmpdir
 from vr.server.utils import build_swarm_trace_id
@@ -1111,8 +1110,7 @@ def _disconnect_from_host(host):
 
 class tmpredis(object):
     def __enter__(self):
-        self.conn = redis.StrictRedis(
-            **utils.parse_redis_url(settings.EVENTS_PUBSUB_URL))
+        self.conn = redis.StrictRedis.from_url(settings.EVENTS_PUBSUB_URL)
         return self.conn
 
     def __exit__(self, type, value, tb):
