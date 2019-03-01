@@ -6,18 +6,18 @@ from vr.server.models import DeploymentLogEntry
 
 
 class DeploymentLogFeed(Feed):
-	title = "Deployment Log"
-	link = "/log"
-	description = "Application deployment details"
+    title = "Deployment Log"
+    link = "/log"
+    description = "Application deployment details"
 
-	def items(self):
-		return DeploymentLogEntry.objects.all()
+    def items(self):
+        return DeploymentLogEntry.objects.all()
 
-	def item_link(self, entry):
-		return "/log"
+    def item_link(self, entry):
+        return "/log"
 
-	def item_title(self, entry):
-		return "activity by {entry.user} at {entry.time}".format(entry=entry)
+    def item_title(self, entry):
+        return "activity by {entry.user} at {entry.time}".format(entry=entry)
 
-	def item_description(self, entry):
-		return six.text_type(entry)
+    def item_description(self, entry):
+        return six.text_type(entry)

@@ -10,7 +10,6 @@ import redis
 import sseclient
 from django.conf import settings
 
-from vr.common import utils
 from vr.events import Sender
 
 
@@ -41,7 +40,7 @@ class ProcListener(six.Iterator):
         if isinstance(rcon_or_url, redis.StrictRedis):
             self.rcon = rcon_or_url
         elif isinstance(rcon_or_url, six.string_types):
-            self.rcon = redis.StrictRedis(**utils.parse_redis_url(rcon_or_url))
+            self.rcon = redis.StrictRedis.from_url(rcon_or_url)
         self.channel = channel
         self.pubsub = self.rcon.pubsub()
         self.pubsub.subscribe([channel])

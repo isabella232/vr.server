@@ -7,3 +7,4 @@ dist/
 MongoDBInstance
 .tox/
 /.pytest_cache
+/pip-wheel-metadata
