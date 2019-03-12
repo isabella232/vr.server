@@ -52,7 +52,7 @@ admin.site.register(models.Squad, SquadAdmin)
 
 class AppAdmin(admin.ModelAdmin):
     model = models.App
-    list_display = ('__unicode__', 'repo_url')
+    list_display = ('__unicode__' if six.PY2 else '__str__', 'repo_url')
 
 
 admin.site.register(models.App, AppAdmin)
